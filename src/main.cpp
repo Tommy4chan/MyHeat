@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "MyHeatTelebot.h"
+#include <MyHeatTelebot.h>
 
 #define XSTR(x) #x
 #define STR(x) XSTR(x)
