@@ -2,8 +2,6 @@
 
 namespace MyHeatTelebot
 {
-    FastBot2 bot;
-
     void begin(String token)
     {
         bot.setToken(token);
@@ -54,11 +52,7 @@ namespace MyHeatTelebot
             case su::SH("/menu"):
             {
                 msg.text = F("Головне меню");
-
-                fb::Menu menu;
-                menu.addButton(F("Температура")).addButton(F("Реле")).newRow();
-                menu.addButton(F("Функції")).addButton(F("Допомога")).newRow();
-                msg.setMenu(menu);
+                msg.setMenu(getMainReplyMenu());
             } break;
             case su::SH("/help"):
             {
@@ -86,7 +80,8 @@ namespace MyHeatTelebot
             } break;
             case su::SH("Реле"):
             {
-                msg.text = F("Реле: інфа");
+                msg.text = getRelayScreenText();
+                msg.setInlineMenu(getRelayInlineMenu());
             } break;
             case su::SH("Функції"):
             {
@@ -103,11 +98,11 @@ namespace MyHeatTelebot
 
     void handleQuery(fb::Update &u)
     {
-        // fb::QueryRead q = u.query();
-        // Serial.println(q.data());
+        fb::QueryRead q = u.query();
+        Serial.println(q.data());
 
         // // ответ
-        // // bot.answerCallbackQuery(q.id());
+        bot.answerCallbackQuery(q.id());
         // bot.answerCallbackQuery(q.id(), q.data());
         // // bot.answerCallbackQuery(q.id(), q.data(), true);
 

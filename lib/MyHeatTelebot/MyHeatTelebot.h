@@ -1,11 +1,11 @@
-#ifndef MYHEATTELEBOT_H
-#define MYHEATTELEBOT_H
-
+#pragma once
 #include <FastBot2.h>
+#include "Menus.h"
+#include "MessageTexts.h"
 
 namespace MyHeatTelebot
 {
-    extern FastBot2 bot;
+    inline FastBot2 bot;
 
     void begin(String token);
     void tick();
@@ -15,5 +15,3 @@ namespace MyHeatTelebot
     void handleCommand(fb::Update& u);
     void handleQuery(fb::Update& u);
 }
-
-#endif

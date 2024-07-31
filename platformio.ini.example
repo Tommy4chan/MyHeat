@@ -13,9 +13,11 @@ platform = espressif32
 board = nodemcu-32s
 framework = arduino
 monitor_speed = 115200
-lib_deps =
-    https://github.com/GyverLibs/FastBot2.git
+lib_deps = gyverlibs/FastBot2@^1.0.0
+build_unflags = -std=gnu++11
 build_flags = 
     -D WIFI_SSID=""
     -D WIFI_PASSWORD=""
     -D TELEGRAM_BOT_TOKEN=""
+    -D RELAY_COUNT=0
+    -std=gnu++2a 
