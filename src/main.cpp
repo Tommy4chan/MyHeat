@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <MyHeatTelebot.h>
+#include <LittleFS.h>
 
 #define XSTR(x) #x
 #define STR(x) XSTR(x)
@@ -16,10 +17,14 @@ void setup()
 	}
 	Serial.println("Connected");
 
-    MyHeatTelebot::begin(STR(TELEGRAM_BOT_TOKEN));
+	configTime(NTP_OFFSET, NTP_DAYLIGHT_OFFSET, STR(NTP_SERVER));
+
+	LittleFS.begin();
+
+	MyHeatTelebot::begin(STR(TELEGRAM_BOT_TOKEN));
 }
 
 void loop()
 {
-    MyHeatTelebot::tick();
+	MyHeatTelebot::tick();
 }

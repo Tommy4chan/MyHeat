@@ -1,5 +1,7 @@
 #pragma once
+
 #include <FastBot2.h>
+#include "MyHeatUtils.h"
 
 namespace MyHeatTelebot
 {
@@ -9,4 +11,5 @@ namespace MyHeatTelebot
     fb::Menu &getMainReplyMenu();
 
     fb::InlineMenu &getRelayInlineMenu();
+    fb::InlineMenu &getTemperatureInlineMenu();
 }

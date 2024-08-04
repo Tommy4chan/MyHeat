@@ -1,5 +1,8 @@
 #include "MyHeatTelebot.h"
 
+#define XSTR(x) #x
+#define STR(x) XSTR(x)
+
 namespace MyHeatTelebot
 {
     void begin(String token)
@@ -7,15 +10,24 @@ namespace MyHeatTelebot
         bot.setToken(token);
         bot.setPollMode(fb::Poll::Long, 20000);
         bot.attachUpdate(handleUpdate);
+        usersDB.begin();
     }
 
     void tick()
     {
         bot.tick();
+        usersDB.tick();
     }
 
     void handleUpdate(fb::Update &u)
     {
+        if (!isUserRegistered(u.message().chat().id()))
+        {
+            usersDB.dump(Serial);
+            handleUserRegistration(u);
+            return;
+        }
+
         if (u.isMessage())
         {
             if (u.message().text().startsWith('/'))
@@ -27,6 +39,8 @@ namespace MyHeatTelebot
         {
             handleQuery(u);
         }
+
+        usersDB.dump(Serial);
     }
 
     void handleCommand(fb::Update &u)
@@ -48,17 +62,19 @@ namespace MyHeatTelebot
                 bot.setMyCommands(commands);
 
                 msg.text = F("Привіт! \nЯ бот, для контролю системи опалення.");
-            } break;
+                break;
+            }
             case su::SH("/menu"):
             {
                 msg.text = F("Головне меню");
                 msg.setMenu(getMainReplyMenu());
-            } break;
+                break;
+            }
             case su::SH("/help"):
             {
                 msg.text = F("Тут буде допомога");
+                break;
             }
-            break;
         }
 
         bot.sendMessage(msg);
@@ -69,28 +85,37 @@ namespace MyHeatTelebot
         Text chat_id = u.message().chat().id();
         String messageDecoded = u.message().text().decodeUnicode(); // temp solution, need to fix (maybe bug in FastBot2)
         Text message = messageDecoded;                              // temp solution, need to fix (maybe bug in FastBot2)
-
         fb::Message msg("", chat_id);
 
         switch (message.hash())
         {
             case su::SH("Температура"):
             {
-                msg.text = F("Температура: інфа");
-            } break;
+                msg.text = getTemperatureScreenText();
+                msg.setInlineMenu(getTemperatureInlineMenu());
+                break;
+            }
             case su::SH("Реле"):
             {
                 msg.text = getRelayScreenText();
                 msg.setInlineMenu(getRelayInlineMenu());
-            } break;
+                break;
+            }
             case su::SH("Функції"):
             {
                 msg.text = F("Функції: інфа");
-            } break;
-            case su::SH("Допомога"):
+                break;
+            }
+            case su::SH("Налаштування"):
             {
-                msg.text = F("Допомога: інфа");
-            } break;
+                msg.text = F("Налаштування: інфа");
+                break;
+            }
+            case su::SH(STR(REGISTER_PHRASE)):
+            {
+                msg.text = F("Ви вже зареєстровані");
+                break;
+            }
         }
 
         bot.sendMessage(msg);
@@ -125,5 +150,23 @@ namespace MyHeatTelebot
         //     m.setInlineMenu(menu);
         //     bot.editMenu(m);
         // }
+    }
+
+    void handleUserRegistration(fb::Update &u)
+    {
+        Text chat_id = u.message().chat().id();
+        fb::Message msg("", chat_id);
+
+        if (u.message().text().hash() == su::SH(STR(REGISTER_PHRASE)))
+        {
+            registerUser(chat_id);
+            msg.text = F("Вас зареєстровано, /start");
+        }
+        else
+        {
+            msg.text = F("Ви не зареєстровані, введіть фразу реєстрації");
+        }
+
+        bot.sendMessage(msg);
     }
 }

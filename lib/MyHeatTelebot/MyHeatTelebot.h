@@ -1,7 +1,8 @@
 #pragma once
 #include <FastBot2.h>
-#include "Menus.h"
-#include "MessageTexts.h"
+#include "Menu.h"
+#include "Message.h"
+#include "User.h"
 
 namespace MyHeatTelebot
 {
@@ -14,4 +15,5 @@ namespace MyHeatTelebot
     void handleMessage(fb::Update& u);
     void handleCommand(fb::Update& u);
     void handleQuery(fb::Update& u);
+    void handleUserRegistration(fb::Update &u);
 }
