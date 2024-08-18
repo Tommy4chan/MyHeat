@@ -16,6 +16,11 @@ namespace MyHeatUtils
         return text;
     }
 
+    String getConvertedActiveToText(bool active)
+    {
+        return active ? "Так" : "Ні";
+    }
+
     String getCurrentDateAndTime()
     {
         time_t now = time(nullptr);

@@ -9,7 +9,38 @@ namespace MyHeatTelebot
 
     void registerUser(Text chat_id)
     {
-        User user = {MAIN_SCREEN, 0, 0};
+        User user = {MAIN_SCREEN, false, 0};
         usersDB.set(chat_id, user);
+    }
+
+    void setUserScreen(Text chat_id, ScreenType type)
+    {
+        User user;
+        usersDB[chat_id].writeTo(user);
+        user.screenType = type;
+        usersDB.set(chat_id, user);
+    }
+
+    void setUserInputMode(Text chat_id, bool inputMode)
+    {
+        User user;
+        usersDB[chat_id].writeTo(user);
+        user.isInputMode = inputMode;
+        usersDB.set(chat_id, user);
+    }
+
+    void setUserTempValue(Text chat_id, byte tempValue)
+    {
+        User user;
+        usersDB[chat_id].writeTo(user);
+        user.tempValue = tempValue;
+        usersDB.set(chat_id, user);
+    }
+
+    User getUser(Text chat_id)
+    {
+        User user;
+        usersDB[chat_id].writeTo(user);
+        return user;
     }
 }

@@ -14,7 +14,9 @@ board = nodemcu-32s
 framework = arduino
 monitor_speed = 115200
 board_build.filesystem = littlefs
-lib_deps = gyverlibs/FastBot2@^1.0.1
+lib_deps = 
+	gyverlibs/FastBot2@^1.0.1
+	gyverlibs/GyverDB@^1.1.0
 build_unflags = -std=gnu++11
 build_flags = 
     -D WIFI_SSID=""
@@ -22,8 +24,9 @@ build_flags =
     -D TELEGRAM_BOT_TOKEN=""
     -D RELAY_COUNT=0
     -D TEMPERATURE_COUNT=0
+    -D FUNCTION_COUNT=0
     -D NTP_SERVER="pool.ntp.org"
-	-D NTP_OFFSET=seconds
-	-D NTP_DAYLIGHT_OFFSET=seconds
+	-D NTP_OFFSET=0
+	-D NTP_DAYLIGHT_OFFSET=0
     -D REGISTER_PHRASE=""
     -std=gnu++2a 

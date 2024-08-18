@@ -5,20 +5,25 @@
 
 namespace MyHeatTelebot
 {
-    enum StateType
-    {
-        MAIN_SCREEN,
+    enum ScreenType : size_t {
+        MAIN_SCREEN = SH("MAIN_SCREEN"),
+        TEMP_SCREEN = SH("TEMP_SCREEN"),
+        RELAY_SCREEN = SH("RELAY_SCREEN"),
     };
 
     struct User
     {
-        StateType stateType;
-        byte tempValue1;
-        byte tempValue2;
+        ScreenType screenType;
+        bool isInputMode;
+        byte tempValue;
     };
 
     inline GyverDBFile usersDB(&LittleFS, "/users.bin");
 
     bool isUserRegistered(Text chatId);
     void registerUser(Text chat_id);
+    void setUserScreen(Text chat_id, ScreenType type);
+    void setUserInputMode(Text chat_id, bool inputMode);
+    void setUserTempValue(Text chat_id, byte tempValue);
+    User getUser(Text chat_id);
 }

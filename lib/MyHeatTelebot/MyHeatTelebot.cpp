@@ -62,12 +62,16 @@ namespace MyHeatTelebot
                 bot.setMyCommands(commands);
 
                 msg.text = F("Привіт! \nЯ бот, для контролю системи опалення.");
+
+                setUserScreen(chat_id, ScreenType::MAIN_SCREEN);
                 break;
             }
             case su::SH("/menu"):
             {
                 msg.text = F("Головне меню");
                 msg.setMenu(getMainReplyMenu());
+
+                setUserScreen(chat_id, ScreenType::MAIN_SCREEN);
                 break;
             }
             case su::SH("/help"):
@@ -103,7 +107,8 @@ namespace MyHeatTelebot
             }
             case su::SH("Функції"):
             {
-                msg.text = F("Функції: інфа");
+                msg.text = getFunctionScreenText();
+                msg.setInlineMenu(getFunctionInlineMenu());
                 break;
             }
             case su::SH("Налаштування"):
