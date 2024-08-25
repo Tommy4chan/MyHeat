@@ -9,7 +9,7 @@ namespace MyHeatTelebot
 
     void registerUser(Text chat_id)
     {
-        User user = {MAIN_SCREEN, false, 0};
+        User user = {MAIN_SCREEN, false, 0, 0};
         usersDB.set(chat_id, user);
     }
 
@@ -29,11 +29,19 @@ namespace MyHeatTelebot
         usersDB.set(chat_id, user);
     }
 
-    void setUserTempValue(Text chat_id, byte tempValue)
+    void setUserTempValue1(Text chat_id, byte tempValue1)
     {
         User user;
         usersDB[chat_id].writeTo(user);
-        user.tempValue = tempValue;
+        user.tempValue1 = tempValue1;
+        usersDB.set(chat_id, user);
+    }
+
+    void setUserTempValue2(Text chat_id, byte tempValue2)
+    {
+        User user;
+        usersDB[chat_id].writeTo(user);
+        user.tempValue2 = tempValue2;
         usersDB.set(chat_id, user);
     }
 

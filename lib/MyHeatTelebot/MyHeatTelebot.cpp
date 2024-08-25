@@ -21,15 +21,15 @@ namespace MyHeatTelebot
 
     void handleUpdate(fb::Update &u)
     {
-        if (!isUserRegistered(u.message().chat().id()))
-        {
-            usersDB.dump(Serial);
-            handleUserRegistration(u);
-            return;
-        }
-
         if (u.isMessage())
         {
+            if (!isUserRegistered(u.message().chat().id()))
+            {
+                Serial.println("User not registered");
+                handleUserRegistration(u);
+                return;
+            }
+
             if (u.message().text().startsWith('/'))
                 handleCommand(u);
             else
@@ -40,7 +40,7 @@ namespace MyHeatTelebot
             handleQuery(u);
         }
 
-        usersDB.dump(Serial);
+        // usersDB.dump(Serial);
     }
 
     void handleCommand(fb::Update &u)
@@ -107,8 +107,8 @@ namespace MyHeatTelebot
             }
             case su::SH("Функції"):
             {
-                msg.text = getFunctionScreenText();
-                msg.setInlineMenu(getFunctionInlineMenu());
+                msg.text = getFunctionsListScreenText();
+                msg.setInlineMenu(getFunctionListInlineMenu());
                 break;
             }
             case su::SH("Налаштування"):
@@ -131,30 +131,110 @@ namespace MyHeatTelebot
         fb::QueryRead q = u.query();
         Serial.println(q.data());
 
-        // // ответ
-        bot.answerCallbackQuery(q.id());
-        // bot.answerCallbackQuery(q.id(), q.data());
-        // // bot.answerCallbackQuery(q.id(), q.data(), true);
+        Text chat_id = q.message().chat().id();
+        Text callback = getCallbackFromQuery(q.data());
+        int value = getValueFromQuery(q.data());
+        fb::TextEdit msg("", q.message().id(), chat_id);
 
-        // if (q.data() == "change_msg")
-        // {
-        //     fb::TextEdit t;
-        //     t.text = "New message + new menu";
-        //     t.chatID = q.message().chat().id();
-        //     t.messageID = q.message().id();
-        //     fb::InlineMenu menu("kek 1;kek 2;kek 3", "1;2;3");
-        //     t.setInlineMenu(menu);
-        //     bot.editText(t);
-        // }
-        // else if (q.data() == "change_menu")
-        // {
-        //     fb::MenuEdit m;
-        //     m.chatID = q.message().chat().id();
-        //     m.messageID = q.message().id();
-        //     fb::InlineMenu menu("pepe 1;pepe 2;pepe 3", "11;22;33");
-        //     m.setInlineMenu(menu);
-        //     bot.editMenu(m);
-        // }
+        Serial.println(callback);
+        Serial.println(value);
+
+        switch (callback.hash())
+        {
+            case su::SH("function"):
+            {
+                setUserScreen(chat_id, ScreenType::FUNCTION_SCREEN);
+                setUserTempValue1(chat_id, value);
+                msg.text = getFunctionScreenText(value);
+                msg.setInlineMenu(getFunctionInlineMenu());
+                break;
+            }
+            case su::SH("functionChangeState"):
+            {
+                msg.text = getFunctionScreenText(value);
+                //here change function state
+                msg.setInlineMenu(getFunctionInlineMenu());
+                break;
+            }
+            case su::SH("functionChangeSign"):
+            {
+                setUserScreen(chat_id, ScreenType::FUNCTION_CHANGE_SIGN_SCREEN);
+                msg.text = F("Виберіть знак");
+                msg.setInlineMenu(getFunctionChangeSignInlineMenu());
+                break;
+            }
+            case su::SH("functionSetSign"):
+            {
+                User user = getUser(chat_id);
+                
+                if (user.screenType == ScreenType::FUNCTION_CHANGE_SIGN_SCREEN)
+                {
+                    //here change function sign
+                    Serial.println("Change sign to");
+                    Serial.println(value);
+                    
+                    setUserScreen(chat_id, ScreenType::FUNCTION_SCREEN);
+                    msg.text = getFunctionScreenText(user.tempValue1);
+                    msg.setInlineMenu(getFunctionInlineMenu());
+                }
+
+                break;
+            }
+            case su::SH("functionChangeTemp"):
+            {
+                setUserScreen(chat_id, ScreenType::FUNCTION_CHANGE_TEMPERATURE_SCREEN);
+                setUserTempValue2(chat_id, value);
+                msg.text = F("Виберіть датчик температури");
+                msg.setInlineMenu(getFunctionChangeTemperatureInlineMenu());
+                break;
+            }
+            case su::SH("functionSetTemp"):
+            {
+                User user = getUser(chat_id);
+                
+                if (user.screenType == ScreenType::FUNCTION_CHANGE_TEMPERATURE_SCREEN)
+                {
+                    //here change function temp sensor
+                    Serial.println("Change temp to");
+                    Serial.println(user.tempValue2);
+                    Serial.println(value);
+                    
+                    setUserScreen(chat_id, ScreenType::FUNCTION_SCREEN);
+                    msg.text = getFunctionScreenText(user.tempValue1);
+                    msg.setInlineMenu(getFunctionInlineMenu());
+                }
+                
+                break;
+            }
+            case su::SH("functionChangeRelay"):
+            {
+                setUserScreen(chat_id, ScreenType::FUNCTION_CHANGE_RELAY_SCREEN);
+                setUserTempValue2(chat_id, value);
+                msg.text = F("Виберіть реле");
+                msg.setInlineMenu(getFunctionChangeRelayInlineMenu());
+                break;
+            }
+            case su::SH("functionSetRelay"):
+            {
+                User user = getUser(chat_id);
+                
+                if (user.screenType == ScreenType::FUNCTION_CHANGE_RELAY_SCREEN)
+                {
+                    //here change function relay
+                    Serial.println("Change relay to");
+                    Serial.println(value);
+                    
+                    setUserScreen(chat_id, ScreenType::FUNCTION_SCREEN);
+                    msg.text = getFunctionScreenText(user.tempValue1);
+                    msg.setInlineMenu(getFunctionInlineMenu());
+                }
+                
+                break;
+            }
+        }
+
+        bot.answerCallbackQuery(q.id());
+        bot.editText(msg);
     }
 
     void handleUserRegistration(fb::Update &u)

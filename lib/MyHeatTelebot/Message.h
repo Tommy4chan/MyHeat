@@ -8,5 +8,6 @@ namespace MyHeatTelebot
 {
     String getRelayScreenText();
     String getTemperatureScreenText();
-    String getFunctionScreenText();
+    String getFunctionsListScreenText();
+    String getFunctionScreenText(byte functionIndex);
 }

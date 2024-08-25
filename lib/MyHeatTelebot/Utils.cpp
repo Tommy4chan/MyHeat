@@ -46,10 +46,18 @@ namespace MyHeatTelebot
 
         String sign(char(60 + customFunctions[functionIndex].sign));
 
-        return "Функція " + String(functionIndex) + ": \n" +
+        return "Функція " + String(functionIndex + 1) + ": \n" +
                result[0] + " " + sign + " " + result[1] +
                "\nРеле: Реле " + String(customFunctions[functionIndex].relayNumber) + 
                "\nСтан: " + MyHeatUtils::getConvertedStateToText(customFunctions[functionIndex].isEnabled) +
                "\nАктивна: " + MyHeatUtils::getConvertedActiveToText(customFunctions[functionIndex].isActive) + "\n\n";
+    }
+
+    Text getCallbackFromQuery(Text query) {
+        return query.indexOf("_") == -1 ? query : query.substring(0, query.indexOf("_"));
+    }
+
+    byte getValueFromQuery(String query) {
+        return query.substring(query.indexOf("_") + 1).toInt();
     }
 }

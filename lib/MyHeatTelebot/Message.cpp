@@ -26,7 +26,7 @@ namespace MyHeatTelebot
         return text;
     }
 
-    String getFunctionScreenText()
+    String getFunctionsListScreenText()
     {
         String text = "";
 
@@ -36,5 +36,10 @@ namespace MyHeatTelebot
         }
 
         return text;
+    }
+
+    String getFunctionScreenText(byte functionIndex)
+    {
+        return getConvertedFunctionToText(functionIndex);
     }
 }

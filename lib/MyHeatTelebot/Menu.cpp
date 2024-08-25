@@ -33,7 +33,7 @@ namespace MyHeatTelebot
         return inlineMenu;
     }
 
-    fb::InlineMenu &getFunctionInlineMenu()
+    fb::InlineMenu &getFunctionListInlineMenu()
     {
         inlineMenu = fb::InlineMenu();
 
@@ -52,6 +52,58 @@ namespace MyHeatTelebot
         }
 
         inlineMenu.addButton("Оновити", "refresh");
+
+        return inlineMenu;
+    }
+
+    fb::InlineMenu &getFunctionInlineMenu()
+    {
+        inlineMenu = fb::InlineMenu(
+            F("Увімкнути/Вимкнути \n Змінити знак \n Змінити T[0] \n Змінити ΔT[0] \n Змінити T[1] \n Змінити ΔT[1] \n Змінити реле \n Закрити"),
+            F("functionChangeState;functionChangeSign;functionChangeTemp_0;functionChangeDeltaTemp_0;functionChangeTemp_1;functionChangeDeltaTemp_1;functionChangeRelay;close"));
+
+        return inlineMenu;
+    }
+
+    fb::InlineMenu &getFunctionChangeSignInlineMenu()
+    {
+        inlineMenu = fb::InlineMenu(
+            F("< ; = ; > \n Скасувати"),
+            F("functionSetSign_0;functionSetSign_1;functionSetSign_2;cancel"));
+
+        return inlineMenu;
+    }
+
+    fb::InlineMenu &getFunctionChangeTemperatureInlineMenu()
+    {
+        inlineMenu = fb::InlineMenu();
+
+        for (byte i = 0; i < TEMPERATURE_COUNT; i++)
+        {
+            inlineMenu.addButton("T" + String(i), "functionSetTemp_" + String(i));
+            if (i % 2 != 0)
+            {
+                inlineMenu.newRow();
+            }
+        }
+
+        inlineMenu.addButton(F("TN"), "functionSetTemp_" + String(TEMPERATURE_COUNT));
+
+        return inlineMenu;
+    }
+
+    fb::InlineMenu &getFunctionChangeRelayInlineMenu()
+    {
+        inlineMenu = fb::InlineMenu();
+        
+        for (byte i = 0; i < RELAY_COUNT; i++)
+        {
+            inlineMenu.addButton("Реле " + String(i), "functionSetRelay_" + String(i));
+            if (i % 2 != 0 && i != RELAY_COUNT - 1)
+            {
+                inlineMenu.newRow();
+            }
+        }
 
         return inlineMenu;
     }
