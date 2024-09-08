@@ -69,7 +69,7 @@ namespace MyHeatTelebot
     {
         inlineMenu = fb::InlineMenu(
             F("< ; = ; > \n Скасувати"),
-            F("functionSetSign_0;functionSetSign_1;functionSetSign_2;cancel"));
+            F("functionSetSign_0;functionSetSign_1;functionSetSign_2;cancelFunction"));
 
         return inlineMenu;
     }
@@ -107,4 +107,12 @@ namespace MyHeatTelebot
 
         return inlineMenu;
     }
+
+    fb::InlineMenu &getCancelFunctionInlineMenu()
+    {
+        inlineMenu = fb::InlineMenu(F("Скасувати"), F("cancelFunction"));
+
+        return inlineMenu;
+    }
+
 }

@@ -28,6 +28,7 @@ namespace MyHeatTelebot
     inline GyverDBFile usersDB(&LittleFS, "/users.bin");
 
     bool isUserRegistered(Text chatId);
+    bool isUserInputMode(Text chatId);
     void registerUser(Text chat_id);
     void setUserScreen(Text chat_id, ScreenType type);
     void setUserInputMode(Text chat_id, bool inputMode);

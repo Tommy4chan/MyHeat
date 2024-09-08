@@ -21,7 +21,11 @@ namespace MyHeatTelebot
 
     void handleUpdate(fb::Update &u)
     {
-        if (u.isMessage())
+        if (u.isQuery())
+        {
+            handleQuery(u);
+        }
+        else if (u.isMessage())
         {
             if (!isUserRegistered(u.message().chat().id()))
             {
@@ -33,11 +37,16 @@ namespace MyHeatTelebot
             if (u.message().text().startsWith('/'))
                 handleCommand(u);
             else
-                handleMessage(u);
-        }
-        else if (u.isQuery())
-        {
-            handleQuery(u);
+            {
+                if (!isUserInputMode(u.message().chat().id()))
+                {
+                    handleMessage(u);
+                }
+                else
+                {
+                    handleUserInput(u);
+                }
+            }
         }
 
         // usersDB.dump(Serial);
@@ -231,6 +240,37 @@ namespace MyHeatTelebot
                 
                 break;
             }
+            case su::SH("functionChangeDeltaTemp"):
+            {
+                setUserScreen(chat_id, ScreenType::FUNCTION_CHANGE_DELTA_TEMPERATURE_SCREEN);
+                setUserTempValue2(chat_id, value);
+                setUserInputMode(chat_id, true);
+                msg.text = F("Введіть Δ значення: ");
+                msg.setInlineMenu(getCancelFunctionInlineMenu());
+                break;
+            }
+            case su::SH("cancelFunction"):
+            {
+                User user = getUser(chat_id);
+
+                setUserScreen(chat_id, ScreenType::FUNCTION_SCREEN);
+                msg.text = getFunctionScreenText(user.tempValue1);
+                msg.setInlineMenu(getFunctionInlineMenu());
+                setUserInputMode(chat_id, false);
+                break;
+            }
+            case su::SH("close"):
+            {
+                fb::Message closeMsg("", chat_id);
+                setUserScreen(chat_id, ScreenType::MAIN_SCREEN);
+                closeMsg.text = F("Головне меню");
+                closeMsg.setMenu(getMainReplyMenu());
+
+                bot.deleteMessage(chat_id, q.message().id());
+                bot.sendMessage(closeMsg);
+                return;
+                break;
+            }
         }
 
         bot.answerCallbackQuery(q.id());
@@ -250,6 +290,37 @@ namespace MyHeatTelebot
         else
         {
             msg.text = F("Ви не зареєстровані, введіть фразу реєстрації");
+        }
+
+        bot.sendMessage(msg);
+    }
+
+    void handleUserInput(fb::Update &u)
+    {
+        Text chat_id = u.message().chat().id();
+        fb::Message msg("", chat_id);
+        
+        Serial.println("Input mode");
+
+        User user = getUser(u.message().chat().id());
+
+        if (user.screenType == ScreenType::FUNCTION_CHANGE_DELTA_TEMPERATURE_SCREEN)
+        {
+            Serial.println("Change delta temp");
+
+            if (!u.message().text().toFloat())
+            {
+                msg.text = F("Введіть коректне значення");
+            }
+            else 
+            {
+                Serial.println(u.message().text().toFloat());
+                setUserScreen(chat_id, ScreenType::FUNCTION_SCREEN);
+                msg.text = getFunctionScreenText(user.tempValue1);
+                msg.setInlineMenu(getFunctionInlineMenu());
+                setUserInputMode(chat_id, false);
+                bot.deleteMessage(chat_id, u.message().id());
+            }
         }
 
         bot.sendMessage(msg);

@@ -17,4 +17,5 @@ namespace MyHeatTelebot
     fb::InlineMenu &getFunctionChangeSignInlineMenu();
     fb::InlineMenu &getFunctionChangeTemperatureInlineMenu();
     fb::InlineMenu &getFunctionChangeRelayInlineMenu();
+    fb::InlineMenu &getCancelFunctionInlineMenu();
 }

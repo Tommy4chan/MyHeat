@@ -7,6 +7,13 @@ namespace MyHeatTelebot
         return usersDB.has(chatId);
     }
 
+    bool isUserInputMode(Text chatId)
+    {
+        User user;
+        usersDB[chatId].writeTo(user);
+        return user.isInputMode;
+    }
+
     void registerUser(Text chat_id)
     {
         User user = {MAIN_SCREEN, false, 0, 0};
