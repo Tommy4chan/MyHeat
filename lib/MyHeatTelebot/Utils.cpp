@@ -60,4 +60,10 @@ namespace MyHeatTelebot
     byte getValueFromQuery(String query) {
         return query.substring(query.indexOf("_") + 1).toInt();
     }
+
+    void setFunctionScreen(fb::TextEdit &msg, byte functionIndex) {
+        setUserScreen(msg.chatID, ScreenType::FUNCTION_SCREEN);
+        msg.text = getFunctionScreenText(functionIndex);
+        msg.setInlineMenu(getFunctionInlineMenu());
+    }
 }

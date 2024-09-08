@@ -152,17 +152,17 @@ namespace MyHeatTelebot
         {
             case su::SH("function"):
             {
-                setUserScreen(chat_id, ScreenType::FUNCTION_SCREEN);
                 setUserTempValue1(chat_id, value);
-                msg.text = getFunctionScreenText(value);
-                msg.setInlineMenu(getFunctionInlineMenu());
+                setFunctionScreen(msg, value);
                 break;
             }
             case su::SH("functionChangeState"):
             {
-                msg.text = getFunctionScreenText(value);
+                User user = getUser(chat_id);
+
                 //here change function state
-                msg.setInlineMenu(getFunctionInlineMenu());
+                
+                setFunctionScreen(msg, user.tempValue1);
                 break;
             }
             case su::SH("functionChangeSign"):
@@ -182,9 +182,7 @@ namespace MyHeatTelebot
                     Serial.println("Change sign to");
                     Serial.println(value);
                     
-                    setUserScreen(chat_id, ScreenType::FUNCTION_SCREEN);
-                    msg.text = getFunctionScreenText(user.tempValue1);
-                    msg.setInlineMenu(getFunctionInlineMenu());
+                    setFunctionScreen(msg, user.tempValue1);
                 }
 
                 break;
@@ -208,9 +206,7 @@ namespace MyHeatTelebot
                     Serial.println(user.tempValue2);
                     Serial.println(value);
                     
-                    setUserScreen(chat_id, ScreenType::FUNCTION_SCREEN);
-                    msg.text = getFunctionScreenText(user.tempValue1);
-                    msg.setInlineMenu(getFunctionInlineMenu());
+                    setFunctionScreen(msg, user.tempValue1);
                 }
                 
                 break;
@@ -233,9 +229,7 @@ namespace MyHeatTelebot
                     Serial.println("Change relay to");
                     Serial.println(value);
                     
-                    setUserScreen(chat_id, ScreenType::FUNCTION_SCREEN);
-                    msg.text = getFunctionScreenText(user.tempValue1);
-                    msg.setInlineMenu(getFunctionInlineMenu());
+                    setFunctionScreen(msg, user.tempValue1);
                 }
                 
                 break;
@@ -253,9 +247,7 @@ namespace MyHeatTelebot
             {
                 User user = getUser(chat_id);
 
-                setUserScreen(chat_id, ScreenType::FUNCTION_SCREEN);
-                msg.text = getFunctionScreenText(user.tempValue1);
-                msg.setInlineMenu(getFunctionInlineMenu());
+                setFunctionScreen(msg, user.tempValue1);
                 setUserInputMode(chat_id, false);
                 break;
             }
@@ -319,7 +311,6 @@ namespace MyHeatTelebot
                 msg.text = getFunctionScreenText(user.tempValue1);
                 msg.setInlineMenu(getFunctionInlineMenu());
                 setUserInputMode(chat_id, false);
-                bot.deleteMessage(chat_id, u.message().id());
             }
         }
 
