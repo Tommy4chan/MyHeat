@@ -1,9 +1,12 @@
 #include <Arduino.h>
 #include <MyHeatTelebot.h>
+#include <MyHeatDevice.h>
 #include <LittleFS.h>
 
 #define XSTR(x) #x
 #define STR(x) XSTR(x)
+
+MyHeatDevice myHeatDevice;
 
 void setup()
 {
@@ -21,10 +24,12 @@ void setup()
 
 	LittleFS.begin();
 
-	MyHeatTelebot::begin(STR(TELEGRAM_BOT_TOKEN));
+	myHeatDevice.begin();
+	MyHeatTelebot::begin(STR(TELEGRAM_BOT_TOKEN), &myHeatDevice);
 }
 
 void loop()
 {
 	MyHeatTelebot::tick();
+	myHeatDevice.tick();
 }

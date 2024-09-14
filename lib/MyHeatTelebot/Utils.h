@@ -7,11 +7,12 @@
 #include "Menu.h"
 #include "Message.h"
 #include "User.h"
+#include "CustomFunction.h"
 
 namespace MyHeatTelebot
 {
-    String getConvertedFunctionToText(byte functionIndex);
+    String getConvertedFunctionToText(CustomFunction customFunction, byte functionIndex);
     Text getCallbackFromQuery(Text query);
     byte getValueFromQuery(String query);
-    void setFunctionScreen(fb::TextEdit &msg, byte functionIndex);
+    void setFunctionScreen(fb::TextEdit &msg, CustomFunction customFunction, byte functionIndex);
 }

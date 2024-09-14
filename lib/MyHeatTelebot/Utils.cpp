@@ -2,55 +2,37 @@
 
 namespace MyHeatTelebot
 {
-    String getConvertedFunctionToText(byte functionIndex)
+    String getConvertedFunctionToText(CustomFunction customFunction, byte functionIndex)
     {
-        //temp data for testing
-        struct CustomFunction
-        {
-            byte sign;
-            byte temp[2];
-            float deltaValue[2];
-            byte relayNumber;
-            bool isEnabled;
-            bool isActive;
-        };
-
-        //temp data for testing
-        CustomFunction customFunctions[FUNCTION_COUNT] = {
-            {0, {0, 1}, {23, 0}, 0, false, false},
-            {1, {2, 0}, {0, -12}, 1, true, false},
-            {2, {3, 4}, {0, 0}, 1, true, true},
-            {0, {6, 0}, {0, 0}, 0, false, false}};
-
         String result[2] = {"", ""};
 
         for (int i = 0; i < 2; i++)
         {
-            if (customFunctions[functionIndex].temp[i] == TEMPERATURE_COUNT)
+            if (customFunction.getTemperatureIndex(i) == TEMPERATURE_COUNT)
             {
-                result[i] += String(customFunctions[functionIndex].deltaValue[i]);
+                result[i] += String(customFunction.getDeltaValue(i));
             }
             else
             {
-                result[i] += "T" + String(customFunctions[functionIndex].temp[i]);
-                if (customFunctions[functionIndex].deltaValue[i] != 0)
+                result[i] += "T" + String(customFunction.getTemperatureIndex(i));
+                if (customFunction.getDeltaValue(i) != 0)
                 {
-                    if (customFunctions[functionIndex].deltaValue[i] > 0)
+                    if (customFunction.getDeltaValue(i) > 0)
                         result[i] += " + ";
                     else
                         result[i] += " - ";
-                    result[i] += String(abs(customFunctions[functionIndex].deltaValue[i]));
+                    result[i] += String(abs(customFunction.getDeltaValue(i)));
                 }
             }
         }
 
-        String sign(char(60 + customFunctions[functionIndex].sign));
+        String sign(char(60 + customFunction.getSign()));
 
         return "Функція " + String(functionIndex + 1) + ": \n" +
                result[0] + " " + sign + " " + result[1] +
-               "\nРеле: Реле " + String(customFunctions[functionIndex].relayNumber) + 
-               "\nСтан: " + MyHeatUtils::getConvertedStateToText(customFunctions[functionIndex].isEnabled) +
-               "\nАктивна: " + MyHeatUtils::getConvertedActiveToText(customFunctions[functionIndex].isActive) + "\n\n";
+               "\nРеле: Реле " + String(customFunction.getRelayIndex()) + 
+               "\nСтан: " + MyHeatUtils::getConvertedStateToText(customFunction.getIsEnabled()) +
+               "\nАктивна: " + MyHeatUtils::getConvertedActiveToText(customFunction.getIsActive()) + "\n\n";
     }
 
     Text getCallbackFromQuery(Text query) {
@@ -61,9 +43,9 @@ namespace MyHeatTelebot
         return query.substring(query.indexOf("_") + 1).toInt();
     }
 
-    void setFunctionScreen(fb::TextEdit &msg, byte functionIndex) {
+    void setFunctionScreen(fb::TextEdit &msg, CustomFunction customFunction, byte functionIndex) {
         setUserScreen(msg.chatID, ScreenType::FUNCTION_SCREEN);
-        msg.text = getFunctionScreenText(functionIndex);
+        msg.text = getFunctionScreenText(customFunction, functionIndex);
         msg.setInlineMenu(getFunctionInlineMenu());
     }
 }

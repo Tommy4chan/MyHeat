@@ -26,20 +26,20 @@ namespace MyHeatTelebot
         return text;
     }
 
-    String getFunctionsListScreenText()
+    String getFunctionsListScreenText(CustomFunction *customFunctionsPtr)
     {
         String text = "";
 
         for (byte i = 0; i < FUNCTION_COUNT; i++)
         {
-            text += getConvertedFunctionToText(i);
+            text += getConvertedFunctionToText(customFunctionsPtr[i], i);
         }
 
         return text;
     }
 
-    String getFunctionScreenText(byte functionIndex)
+    String getFunctionScreenText(CustomFunction customFunction, byte functionIndex)
     {
-        return getConvertedFunctionToText(functionIndex);
+        return getConvertedFunctionToText(customFunction, functionIndex);
     }
 }

@@ -5,12 +5,14 @@
 
 namespace MyHeatTelebot
 {
-    void begin(String token)
+    void begin(String token, MyHeatDevice *myHeatDevicePtr)
     {
         bot.setToken(token);
         bot.setPollMode(fb::Poll::Long, 20000);
         bot.attachUpdate(handleUpdate);
         usersDB.begin();
+
+        MyHeatTelebot::myHeatDevicePtr = myHeatDevicePtr;
     }
 
     void tick()
@@ -60,34 +62,34 @@ namespace MyHeatTelebot
 
         switch (u.message().text().hash())
         {
-            case su::SH("/start"):
-            {
-                fb::MyCommands commands;
+        case su::SH("/start"):
+        {
+            fb::MyCommands commands;
 
-                commands.addCommand("start", "Запустити бота");
-                commands.addCommand("menu", "Головне меню");
-                commands.addCommand("help", "Допомога");
+            commands.addCommand("start", "Запустити бота");
+            commands.addCommand("menu", "Головне меню");
+            commands.addCommand("help", "Допомога");
 
-                bot.setMyCommands(commands);
+            bot.setMyCommands(commands);
 
-                msg.text = F("Привіт! \nЯ бот, для контролю системи опалення.");
+            msg.text = F("Привіт! \nЯ бот, для контролю системи опалення.");
 
-                setUserScreen(chat_id, ScreenType::MAIN_SCREEN);
-                break;
-            }
-            case su::SH("/menu"):
-            {
-                msg.text = F("Головне меню");
-                msg.setMenu(getMainReplyMenu());
+            setUserScreen(chat_id, ScreenType::MAIN_SCREEN);
+            break;
+        }
+        case su::SH("/menu"):
+        {
+            msg.text = F("Головне меню");
+            msg.setMenu(getMainReplyMenu());
 
-                setUserScreen(chat_id, ScreenType::MAIN_SCREEN);
-                break;
-            }
-            case su::SH("/help"):
-            {
-                msg.text = F("Тут буде допомога");
-                break;
-            }
+            setUserScreen(chat_id, ScreenType::MAIN_SCREEN);
+            break;
+        }
+        case su::SH("/help"):
+        {
+            msg.text = F("Тут буде допомога");
+            break;
+        }
         }
 
         bot.sendMessage(msg);
@@ -102,34 +104,35 @@ namespace MyHeatTelebot
 
         switch (message.hash())
         {
-            case su::SH("Температура"):
-            {
-                msg.text = getTemperatureScreenText();
-                msg.setInlineMenu(getTemperatureInlineMenu());
-                break;
-            }
-            case su::SH("Реле"):
-            {
-                msg.text = getRelayScreenText();
-                msg.setInlineMenu(getRelayInlineMenu());
-                break;
-            }
-            case su::SH("Функції"):
-            {
-                msg.text = getFunctionsListScreenText();
-                msg.setInlineMenu(getFunctionListInlineMenu());
-                break;
-            }
-            case su::SH("Налаштування"):
-            {
-                msg.text = F("Налаштування: інфа");
-                break;
-            }
-            case su::SH(STR(REGISTER_PHRASE)):
-            {
-                msg.text = F("Ви вже зареєстровані");
-                break;
-            }
+        case su::SH("Температура"):
+        {
+            msg.text = getTemperatureScreenText();
+            msg.setInlineMenu(getTemperatureInlineMenu());
+            break;
+        }
+        case su::SH("Реле"):
+        {
+            msg.text = getRelayScreenText();
+            msg.setInlineMenu(getRelayInlineMenu());
+            break;
+        }
+        case su::SH("Функції"):
+        {
+            setUserScreen(chat_id, ScreenType::FUNCTIONS_LIST_SCREEN);
+            msg.text = getFunctionsListScreenText(myHeatDevicePtr->getCustomFunctions());
+            msg.setInlineMenu(getFunctionListInlineMenu());
+            break;
+        }
+        case su::SH("Налаштування"):
+        {
+            msg.text = F("Налаштування: інфа");
+            break;
+        }
+        case su::SH(STR(REGISTER_PHRASE)):
+        {
+            msg.text = F("Ви вже зареєстровані");
+            break;
+        }
         }
 
         bot.sendMessage(msg);
@@ -150,119 +153,134 @@ namespace MyHeatTelebot
 
         switch (callback.hash())
         {
-            case su::SH("function"):
-            {
-                setUserTempValue1(chat_id, value);
-                setFunctionScreen(msg, value);
-                break;
-            }
-            case su::SH("functionChangeState"):
-            {
-                User user = getUser(chat_id);
+        case su::SH("function"):
+        {
+            setUserTempValue1(chat_id, value);
+            setFunctionScreen(msg, myHeatDevicePtr->getCustomFunction(value), value);
+            break;
+        }
+        case su::SH("functionChangeState"):
+        {
+            User user = getUser(chat_id);
 
-                //here change function state
-                
-                setFunctionScreen(msg, user.tempValue1);
-                break;
-            }
-            case su::SH("functionChangeSign"):
-            {
-                setUserScreen(chat_id, ScreenType::FUNCTION_CHANGE_SIGN_SCREEN);
-                msg.text = F("Виберіть знак");
-                msg.setInlineMenu(getFunctionChangeSignInlineMenu());
-                break;
-            }
-            case su::SH("functionSetSign"):
-            {
-                User user = getUser(chat_id);
-                
-                if (user.screenType == ScreenType::FUNCTION_CHANGE_SIGN_SCREEN)
-                {
-                    //here change function sign
-                    Serial.println("Change sign to");
-                    Serial.println(value);
-                    
-                    setFunctionScreen(msg, user.tempValue1);
-                }
+            myHeatDevicePtr->setCustomFunctionIsEnabled(user.tempValue1);
 
-                break;
-            }
-            case su::SH("functionChangeTemp"):
-            {
-                setUserScreen(chat_id, ScreenType::FUNCTION_CHANGE_TEMPERATURE_SCREEN);
-                setUserTempValue2(chat_id, value);
-                msg.text = F("Виберіть датчик температури");
-                msg.setInlineMenu(getFunctionChangeTemperatureInlineMenu());
-                break;
-            }
-            case su::SH("functionSetTemp"):
-            {
-                User user = getUser(chat_id);
-                
-                if (user.screenType == ScreenType::FUNCTION_CHANGE_TEMPERATURE_SCREEN)
-                {
-                    //here change function temp sensor
-                    Serial.println("Change temp to");
-                    Serial.println(user.tempValue2);
-                    Serial.println(value);
-                    
-                    setFunctionScreen(msg, user.tempValue1);
-                }
-                
-                break;
-            }
-            case su::SH("functionChangeRelay"):
-            {
-                setUserScreen(chat_id, ScreenType::FUNCTION_CHANGE_RELAY_SCREEN);
-                setUserTempValue2(chat_id, value);
-                msg.text = F("Виберіть реле");
-                msg.setInlineMenu(getFunctionChangeRelayInlineMenu());
-                break;
-            }
-            case su::SH("functionSetRelay"):
-            {
-                User user = getUser(chat_id);
-                
-                if (user.screenType == ScreenType::FUNCTION_CHANGE_RELAY_SCREEN)
-                {
-                    //here change function relay
-                    Serial.println("Change relay to");
-                    Serial.println(value);
-                    
-                    setFunctionScreen(msg, user.tempValue1);
-                }
-                
-                break;
-            }
-            case su::SH("functionChangeDeltaTemp"):
-            {
-                setUserScreen(chat_id, ScreenType::FUNCTION_CHANGE_DELTA_TEMPERATURE_SCREEN);
-                setUserTempValue2(chat_id, value);
-                setUserInputMode(chat_id, true);
-                msg.text = F("Введіть Δ значення: ");
-                msg.setInlineMenu(getCancelFunctionInlineMenu());
-                break;
-            }
-            case su::SH("cancelFunction"):
-            {
-                User user = getUser(chat_id);
+            setFunctionScreen(msg, myHeatDevicePtr->getCustomFunction(user.tempValue1), user.tempValue1);
+            break;
+        }
+        case su::SH("functionChangeSign"):
+        {
+            setUserScreen(chat_id, ScreenType::FUNCTION_CHANGE_SIGN_SCREEN);
+            msg.text = F("Виберіть знак");
+            msg.setInlineMenu(getFunctionChangeSignInlineMenu());
+            break;
+        }
+        case su::SH("functionSetSign"):
+        {
+            User user = getUser(chat_id);
 
-                setFunctionScreen(msg, user.tempValue1);
-                setUserInputMode(chat_id, false);
-                break;
-            }
-            case su::SH("close"):
+            if (user.screenType == ScreenType::FUNCTION_CHANGE_SIGN_SCREEN)
             {
-                fb::Message closeMsg("", chat_id);
-                setUserScreen(chat_id, ScreenType::MAIN_SCREEN);
-                closeMsg.text = F("Головне меню");
-                closeMsg.setMenu(getMainReplyMenu());
+                myHeatDevicePtr->setCustomFunctionSign(user.tempValue1, value);
 
-                bot.deleteMessage(chat_id, q.message().id());
-                bot.sendMessage(closeMsg);
-                return;
-                break;
+                setFunctionScreen(msg, myHeatDevicePtr->getCustomFunction(user.tempValue1), user.tempValue1);
             }
+
+            break;
+        }
+        case su::SH("functionChangeTemp"):
+        {
+            setUserScreen(chat_id, ScreenType::FUNCTION_CHANGE_TEMPERATURE_SCREEN);
+            setUserTempValue2(chat_id, value);
+            msg.text = F("Виберіть датчик температури");
+            msg.setInlineMenu(getFunctionChangeTemperatureInlineMenu());
+            break;
+        }
+        case su::SH("functionSetTemp"):
+        {
+            User user = getUser(chat_id);
+
+            if (user.screenType == ScreenType::FUNCTION_CHANGE_TEMPERATURE_SCREEN)
+            {
+                myHeatDevicePtr->setCustomFunctionTemperatureIndex(user.tempValue1, user.tempValue2, value);
+
+                setFunctionScreen(msg, myHeatDevicePtr->getCustomFunction(user.tempValue1), user.tempValue1);
+            }
+
+            break;
+        }
+        case su::SH("functionChangeRelay"):
+        {
+            setUserScreen(chat_id, ScreenType::FUNCTION_CHANGE_RELAY_SCREEN);
+            msg.text = F("Виберіть реле");
+            msg.setInlineMenu(getFunctionChangeRelayInlineMenu());
+            break;
+        }
+        case su::SH("functionSetRelay"):
+        {
+            User user = getUser(chat_id);
+
+            if (user.screenType == ScreenType::FUNCTION_CHANGE_RELAY_SCREEN)
+            {
+                myHeatDevicePtr->setCustomFunctionRelayIndex(user.tempValue1, value);
+
+                setFunctionScreen(msg, myHeatDevicePtr->getCustomFunction(user.tempValue1), user.tempValue1);
+            }
+
+            break;
+        }
+        case su::SH("functionChangeDeltaTemp"):
+        {
+            setUserScreen(chat_id, ScreenType::FUNCTION_CHANGE_DELTA_TEMPERATURE_SCREEN);
+            setUserTempValue2(chat_id, value);
+            setUserInputMode(chat_id, true);
+            msg.text = F("Введіть Δ значення: ");
+            msg.setInlineMenu(getCancelFunctionInlineMenu());
+            break;
+        }
+        case su::SH("cancelFunction"):
+        {
+            User user = getUser(chat_id);
+
+            setFunctionScreen(msg, myHeatDevicePtr->getCustomFunction(user.tempValue1), user.tempValue1);
+            setUserInputMode(chat_id, false);
+            break;
+        }
+        case su::SH("closeFunction"):
+        {
+            setUserScreen(chat_id, ScreenType::FUNCTIONS_LIST_SCREEN);
+            msg.text = getFunctionsListScreenText(myHeatDevicePtr->getCustomFunctions());
+            msg.setInlineMenu(getFunctionListInlineMenu());
+            break;
+        }
+        case su::SH("close"):
+        {
+            fb::Message closeMsg("", chat_id);
+            setUserScreen(chat_id, ScreenType::MAIN_SCREEN);
+            closeMsg.text = F("Головне меню");
+            closeMsg.setMenu(getMainReplyMenu());
+
+            bot.deleteMessage(chat_id, q.message().id());
+            bot.sendMessage(closeMsg);
+            return;
+            break;
+        }
+        case su::SH("refreshFunction"):
+        {
+            User user = getUser(chat_id);
+            if (user.screenType == ScreenType::FUNCTION_SCREEN)
+            {
+                setFunctionScreen(msg, myHeatDevicePtr->getCustomFunction(user.tempValue1), user.tempValue1);
+            }
+            break;
+        }
+        case su::SH("refreshFunctions"):
+        {
+            setUserScreen(chat_id, ScreenType::FUNCTIONS_LIST_SCREEN);
+            msg.text = getFunctionsListScreenText(myHeatDevicePtr->getCustomFunctions());
+            msg.setInlineMenu(getFunctionListInlineMenu());
+            break;
+        }
         }
 
         bot.answerCallbackQuery(q.id());
@@ -291,7 +309,7 @@ namespace MyHeatTelebot
     {
         Text chat_id = u.message().chat().id();
         fb::Message msg("", chat_id);
-        
+
         Serial.println("Input mode");
 
         User user = getUser(u.message().chat().id());
@@ -304,11 +322,11 @@ namespace MyHeatTelebot
             {
                 msg.text = F("Введіть коректне значення");
             }
-            else 
+            else
             {
-                Serial.println(u.message().text().toFloat());
+                myHeatDevicePtr->setCustomFunctionDeltaValue(user.tempValue1, user.tempValue2, u.message().text().toFloat());
                 setUserScreen(chat_id, ScreenType::FUNCTION_SCREEN);
-                msg.text = getFunctionScreenText(user.tempValue1);
+                msg.text = getFunctionScreenText(myHeatDevicePtr->getCustomFunction(user.tempValue1), user.tempValue1);
                 msg.setInlineMenu(getFunctionInlineMenu());
                 setUserInputMode(chat_id, false);
             }

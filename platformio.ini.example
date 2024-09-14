@@ -17,6 +17,7 @@ board_build.filesystem = littlefs
 lib_deps = 
 	gyverlibs/FastBot2@^1.0.1
 	gyverlibs/GyverDB@^1.1.0
+    gyverlibs/FileData@^1.0.2
 build_unflags = -std=gnu++11
 build_flags = 
     -D WIFI_SSID=""

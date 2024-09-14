@@ -51,7 +51,7 @@ namespace MyHeatTelebot
             inlineMenu.newRow();
         }
 
-        inlineMenu.addButton("Оновити", "refresh");
+        inlineMenu.addButton("Оновити", "refreshFunctions");
 
         return inlineMenu;
     }
@@ -59,8 +59,8 @@ namespace MyHeatTelebot
     fb::InlineMenu &getFunctionInlineMenu()
     {
         inlineMenu = fb::InlineMenu(
-            F("Увімкнути/Вимкнути \n Змінити знак \n Змінити T[0] \n Змінити ΔT[0] \n Змінити T[1] \n Змінити ΔT[1] \n Змінити реле \n Закрити"),
-            F("functionChangeState;functionChangeSign;functionChangeTemp_0;functionChangeDeltaTemp_0;functionChangeTemp_1;functionChangeDeltaTemp_1;functionChangeRelay;close"));
+            F("Увімкнути/Вимкнути \n Змінити знак \n Змінити T[0] \n Змінити ΔT[0] \n Змінити T[1] \n Змінити ΔT[1] \n Змінити реле \n Оновити \n Назад"),
+            F("functionChangeState;functionChangeSign;functionChangeTemp_0;functionChangeDeltaTemp_0;functionChangeTemp_1;functionChangeDeltaTemp_1;functionChangeRelay;refreshFunction;closeFunction"));
 
         return inlineMenu;
     }
@@ -95,7 +95,7 @@ namespace MyHeatTelebot
     fb::InlineMenu &getFunctionChangeRelayInlineMenu()
     {
         inlineMenu = fb::InlineMenu();
-        
+
         for (byte i = 0; i < RELAY_COUNT; i++)
         {
             inlineMenu.addButton("Реле " + String(i), "functionSetRelay_" + String(i));
