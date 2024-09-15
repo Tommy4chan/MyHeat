@@ -112,8 +112,9 @@ namespace MyHeatTelebot
         }
         case su::SH("Реле"):
         {
-            msg.text = getRelayScreenText();
-            msg.setInlineMenu(getRelayInlineMenu());
+            setUserScreen(msg.chatID, ScreenType::RELAYS_SCREEN);
+            msg.text = getRelayScreenText(myHeatDevicePtr->getRelays());
+            msg.setInlineMenu(getRelayInlineMenu(myHeatDevicePtr->getRelays()));
             break;
         }
         case su::SH("Функції"):
@@ -153,6 +154,13 @@ namespace MyHeatTelebot
 
         switch (callback.hash())
         {
+        case su::SH("relay"):
+        {
+            myHeatDevicePtr->changeRelayMode(value);
+            msg.text = getRelayScreenText(myHeatDevicePtr->getRelays());
+            msg.setInlineMenu(getRelayInlineMenu(myHeatDevicePtr->getRelays()));
+            break;
+        }
         case su::SH("function"):
         {
             setUserTempValue1(chat_id, value);
@@ -279,6 +287,13 @@ namespace MyHeatTelebot
             setUserScreen(chat_id, ScreenType::FUNCTIONS_LIST_SCREEN);
             msg.text = getFunctionsListScreenText(myHeatDevicePtr->getCustomFunctions());
             msg.setInlineMenu(getFunctionListInlineMenu());
+            break;
+        }
+        case su::SH("refreshRelays"):
+        {
+            setUserScreen(chat_id, ScreenType::RELAYS_SCREEN);
+            msg.text = getRelayScreenText(myHeatDevicePtr->getRelays());
+            msg.setInlineMenu(getRelayInlineMenu(myHeatDevicePtr->getRelays()));
             break;
         }
         }

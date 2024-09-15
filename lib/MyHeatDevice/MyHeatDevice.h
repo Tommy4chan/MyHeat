@@ -2,7 +2,11 @@
 #include <Arduino.h>
 #include <FileData.h>
 #include <LittleFS.h>
-#include "CustomFunction.h"
+#include "MyHeatCustomFunction.h"
+#include "MyHeatRelay.h"
+
+#define XSTR(x) #x
+#define STR(x) XSTR(x)
 
 // #include <FS.h>
 
@@ -12,19 +16,29 @@
 class MyHeatDevice
 {
 private:
-    CustomFunction customFunctions[FUNCTION_COUNT];
+    MyHeatCustomFunction customFunctions[FUNCTION_COUNT];
+    MyHeatRelay relays[RELAY_COUNT];
     uint32_t tickTimer;
     FileData *customFunctionsData;
+    FileData *relaysData;
+    void readFileData(FileData *fileData);
+    void checkCustomFunctions();
+    void updateRelays();
 
 public:
     void begin();
-    CustomFunction getCustomFunction(byte index);
-    CustomFunction *getCustomFunctions();
+    void initRelays();
+    MyHeatCustomFunction getCustomFunction(byte index);
+    MyHeatCustomFunction *getCustomFunctions();
     void setCustomFunctionIsEnabled(byte functionIndex);
     void setCustomFunctionSign(byte functionIndex, byte sign);
     void setCustomFunctionTemperatureIndex(byte functionIndex, byte tempIndex, byte tempSensorIndex);
     void setCustomFunctionDeltaValue(byte functionIndex, byte deltaValueIndex, float deltaValue);
     void setCustomFunctionRelayIndex(byte functionIndex, byte relayIndex);
-    void checkCustomFunctions();
+    
+    MyHeatRelay getRelay(byte relayIndex);
+    MyHeatRelay *getRelays();
+    void changeRelayMode(byte relayIndex);
+
     void tick();
 };

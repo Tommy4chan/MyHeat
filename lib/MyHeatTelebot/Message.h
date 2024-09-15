@@ -3,12 +3,13 @@
 #include <StringUtils.h>
 #include "MyHeatUtils.h"
 #include "Utils.h"
-#include "CustomFunction.h"
+#include "MyHeatCustomFunction.h"
+#include "MyHeatRelay.h"
 
 namespace MyHeatTelebot
 {
-    String getRelayScreenText();
+    String getRelayScreenText(MyHeatRelay *relaysPtr);
     String getTemperatureScreenText();
-    String getFunctionsListScreenText(CustomFunction *customFunctionsPtr);
-    String getFunctionScreenText(CustomFunction customFunction, byte functionIndex);
+    String getFunctionsListScreenText(MyHeatCustomFunction *customFunctionsPtr);
+    String getFunctionScreenText(MyHeatCustomFunction customFunction, byte functionIndex);
 }

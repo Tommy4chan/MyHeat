@@ -1,7 +1,7 @@
 #pragma once
 #include <Arduino.h>
 
-class CustomFunction
+class MyHeatCustomFunction
 {
 private:
     byte sign;
@@ -12,7 +12,7 @@ private:
     bool isActive;
 
 public:
-    CustomFunction()
+    MyHeatCustomFunction()
     {
         this->sign = 0;
         this->temperatureIndex[0] = 0;

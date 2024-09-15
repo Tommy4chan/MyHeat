@@ -2,13 +2,13 @@
 
 namespace MyHeatTelebot
 {
-    String getRelayScreenText()
+    String getRelayScreenText(MyHeatRelay *relaysPtr)
     {
         String text = "";
 
         for (byte i = 0; i < RELAY_COUNT; i++)
         {
-            text += "Реле " + String(i + 1) + ": \n" + "Активне: " + MyHeatUtils::getConvertedActiveToText(random(0, 2)) + "\n\n";
+            text += "Реле " + String(i + 1) + ": \n" + "Активне: " + MyHeatUtils::getConvertedActiveToText(relaysPtr[i].getIsActive()) + "\n\n";
         }
 
         return text;
@@ -26,7 +26,7 @@ namespace MyHeatTelebot
         return text;
     }
 
-    String getFunctionsListScreenText(CustomFunction *customFunctionsPtr)
+    String getFunctionsListScreenText(MyHeatCustomFunction *customFunctionsPtr)
     {
         String text = "";
 
@@ -38,7 +38,7 @@ namespace MyHeatTelebot
         return text;
     }
 
-    String getFunctionScreenText(CustomFunction customFunction, byte functionIndex)
+    String getFunctionScreenText(MyHeatCustomFunction customFunction, byte functionIndex)
     {
         return getConvertedFunctionToText(customFunction, functionIndex);
     }

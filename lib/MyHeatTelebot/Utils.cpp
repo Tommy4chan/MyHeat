@@ -2,7 +2,7 @@
 
 namespace MyHeatTelebot
 {
-    String getConvertedFunctionToText(CustomFunction customFunction, byte functionIndex)
+    String getConvertedFunctionToText(MyHeatCustomFunction customFunction, byte functionIndex)
     {
         String result[2] = {"", ""};
 
@@ -43,7 +43,7 @@ namespace MyHeatTelebot
         return query.substring(query.indexOf("_") + 1).toInt();
     }
 
-    void setFunctionScreen(fb::TextEdit &msg, CustomFunction customFunction, byte functionIndex) {
+    void setFunctionScreen(fb::TextEdit &msg, MyHeatCustomFunction customFunction, byte functionIndex) {
         setUserScreen(msg.chatID, ScreenType::FUNCTION_SCREEN);
         msg.text = getFunctionScreenText(customFunction, functionIndex);
         msg.setInlineMenu(getFunctionInlineMenu());

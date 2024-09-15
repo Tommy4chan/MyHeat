@@ -1,11 +1,21 @@
 #include "MyHeatDevice.h"
 
-void MyHeatDevice::begin() {
+void MyHeatDevice::begin()
+{
     customFunctionsData = new FileData(&LittleFS, "/customFunctions.dat", 'A', &customFunctions, sizeof(customFunctions));
+    relaysData = new FileData(&LittleFS, "/relays.dat", 'B', &relays, sizeof(relays));
 
-    FDstat_t customFunctionsStat = customFunctionsData->read();
+    readFileData(customFunctionsData);
+    readFileData(relaysData);
 
-    switch (customFunctionsStat)
+    initRelays();
+}
+
+void MyHeatDevice::readFileData(FileData *fileData)
+{
+    FDstat_t stat = fileData->read();
+
+    switch (stat)
     {
     case FD_FS_ERR:
         Serial.println("FS Error");
@@ -27,12 +37,22 @@ void MyHeatDevice::begin() {
     }
 }
 
-CustomFunction MyHeatDevice::getCustomFunction(byte index)
+void MyHeatDevice::initRelays()
+{
+    byte relayPinsArray[] = RELAY_PINS;
+
+    for (int i = 0; i < RELAY_COUNT; i++)
+    {
+        relays[i].setPin(relayPinsArray[i]);
+    }
+}
+
+MyHeatCustomFunction MyHeatDevice::getCustomFunction(byte index)
 {
     return customFunctions[index];
 }
 
-CustomFunction *MyHeatDevice::getCustomFunctions()
+MyHeatCustomFunction *MyHeatDevice::getCustomFunctions()
 {
     return customFunctions;
 }
@@ -65,6 +85,22 @@ void MyHeatDevice::setCustomFunctionRelayIndex(byte functionIndex, byte relayInd
 {
     customFunctions[functionIndex].setRelayIndex(relayIndex);
     customFunctionsData->updateNow();
+}
+
+MyHeatRelay MyHeatDevice::getRelay(byte relayIndex)
+{
+    return relays[relayIndex];
+}
+
+MyHeatRelay *MyHeatDevice::getRelays()
+{
+    return relays;
+}
+
+void MyHeatDevice::changeRelayMode(byte relayIndex)
+{
+    relays[relayIndex].changeMode();
+    relaysData->updateNow();
 }
 
 void MyHeatDevice::checkCustomFunctions()
@@ -101,11 +137,41 @@ void MyHeatDevice::checkCustomFunctions()
     }
 }
 
+void MyHeatDevice::updateRelays()
+{
+    bool wasRelayActive[RELAY_COUNT] = {false};
+
+    for (int i = 0; i < FUNCTION_COUNT; i++)
+    {
+        if (customFunctions[i].getIsActive() && !wasRelayActive[customFunctions[i].getRelayIndex()])
+        {
+            wasRelayActive[customFunctions[i].getRelayIndex()] = true;
+        }
+    }
+
+    for (int i = 0; i < RELAY_COUNT; i++)
+    {
+        if (relays[i].getMode() == 0)
+        {
+            relays[i].setIsActive(false);
+        }
+        else if (relays[i].getMode() == 1)
+        {
+            relays[i].setIsActive(true);
+        }
+        else
+        {
+            relays[i].setIsActive(wasRelayActive[i]);
+        }
+    }
+}
+
 void MyHeatDevice::tick()
 {
     if (millis() - tickTimer >= 5000)
     {
         tickTimer = millis();
         checkCustomFunctions();
+        updateRelays();
     }
 }
