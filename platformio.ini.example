@@ -18,6 +18,8 @@ lib_deps =
 	gyverlibs/FastBot2@^1.0.1
 	gyverlibs/GyverDB@^1.1.0
     gyverlibs/FileData@^1.0.2
+    paulstoffregen/OneWire@^2.3.8
+    milesburton/DallasTemperature@^3.11.0
 build_unflags = -std=gnu++11
 build_flags = 
     -D WIFI_SSID=""
@@ -30,4 +32,6 @@ build_flags =
 	-D NTP_OFFSET=0
 	-D NTP_DAYLIGHT_OFFSET=0
     -D REGISTER_PHRASE=""
+    -D RELAY_PINS={26,27}
+    -D TEMPERATURE_PIN=21
     -std=gnu++2a 

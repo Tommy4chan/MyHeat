@@ -14,13 +14,13 @@ namespace MyHeatTelebot
         return text;
     }
 
-    String getTemperatureScreenText()
+    String getTemperatureScreenText(float temperatures[])
     {
         String text = MyHeatUtils::getCurrentDateAndTime();
 
         for (byte i = 0; i < TEMPERATURE_COUNT; i++)
         {
-            text += "T" + String(i) + ": " + String((float)random(2000, 8000) / 100) + "°C\n";
+            text += "T" + String(i) + ": " + (temperatures[i] == -127 ? "не визначено" : String(temperatures[i])) + "°C\n";
         }
 
         return text;

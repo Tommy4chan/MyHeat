@@ -4,6 +4,7 @@
 #include "Message.h"
 #include "User.h"
 #include "MyHeatDevice.h"
+#include "MyHeatUtils.h"
 
 namespace MyHeatTelebot
 {

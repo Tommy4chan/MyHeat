@@ -106,7 +106,8 @@ namespace MyHeatTelebot
         {
         case su::SH("Температура"):
         {
-            msg.text = getTemperatureScreenText();
+            setUserScreen(chat_id, ScreenType::TEMP_SCREEN);
+            msg.text = getTemperatureScreenText(myHeatDevicePtr->getTemperatures());
             msg.setInlineMenu(getTemperatureInlineMenu());
             break;
         }
@@ -154,6 +155,53 @@ namespace MyHeatTelebot
 
         switch (callback.hash())
         {
+        case su::SH("discoverTemperatureSensor"):
+        {
+            setUserScreen(chat_id, ScreenType::TEMP_DISCOVER_SCREEN);
+            byte addressesCount = myHeatDevicePtr->discoverTemperatureSensor();
+
+            if (addressesCount) {
+                msg.text = F("\nДатчики виявлено");
+                msg.setInlineMenu(getDiscoveredTemperatureSensorsInlineMenu(addressesCount, myHeatDevicePtr->getDiscoveredTemperatureSensorAddresses()));
+            } else {
+                msg.text = F("Датчик не виявлено");
+            }
+            
+            break;
+        }
+        case su::SH("deleteTemperatureSensor"):
+        {
+            setUserScreen(chat_id, ScreenType::TEMP_DELETE_SCREEN);
+
+            setUserTempValue1(chat_id, value);
+            msg.text = F("Виберіть датчик для видалення");
+            msg.setInlineMenu(getTemperatureIndexesInlineMenu());
+            break;
+        }
+        case su::SH("setTemperatureSensor"):
+        {
+            setUserTempValue1(chat_id, value);
+            msg.text = F("Датчик вибрано");
+            msg.setInlineMenu(getTemperatureIndexesInlineMenu());
+            break;
+        }
+        case su::SH("setTemperatureIndex"):
+        {
+            User user = getUser(chat_id);
+            if (user.screenType == ScreenType::TEMP_DISCOVER_SCREEN) {
+                myHeatDevicePtr->setTemperatureSensorAddress(value, user.tempValue1);
+                msg.text = F("Датчик встановлено \n\n");
+            }
+            else if (user.screenType == ScreenType::TEMP_DELETE_SCREEN) {
+                myHeatDevicePtr->deleteTemperatureSensorAddress(value);
+                msg.text = F("Датчик видалено \n\n");
+            }
+
+            setUserScreen(chat_id, ScreenType::TEMP_SCREEN);
+            msg.text += getTemperatureScreenText(myHeatDevicePtr->getTemperatures());
+            msg.setInlineMenu(getTemperatureInlineMenu());
+            break;
+        }
         case su::SH("relay"):
         {
             myHeatDevicePtr->changeRelayMode(value);
@@ -296,6 +344,12 @@ namespace MyHeatTelebot
             msg.setInlineMenu(getRelayInlineMenu(myHeatDevicePtr->getRelays()));
             break;
         }
+        case su::SH("refreshTemperatures"):
+        {
+            msg.text += getTemperatureScreenText(myHeatDevicePtr->getTemperatures());
+            msg.setInlineMenu(getTemperatureInlineMenu());
+            break;
+        }
         }
 
         bot.answerCallbackQuery(q.id());
@@ -333,7 +387,7 @@ namespace MyHeatTelebot
         {
             Serial.println("Change delta temp");
 
-            if (!u.message().text().toFloat())
+            if (!MyHeatUtils::isFloat(u.message().text()))
             {
                 msg.text = F("Введіть коректне значення");
             }

@@ -4,9 +4,11 @@ void MyHeatDevice::begin()
 {
     customFunctionsData = new FileData(&LittleFS, "/customFunctions.dat", 'A', &customFunctions, sizeof(customFunctions));
     relaysData = new FileData(&LittleFS, "/relays.dat", 'B', &relays, sizeof(relays));
+    temperatureSensorData = new FileData(&LittleFS, "/temperatures.dat", 'C', &temperatureSensorsAddresses, sizeof(temperatureSensorsAddresses));
 
     readFileData(customFunctionsData);
     readFileData(relaysData);
+    readFileData(temperatureSensorData);
 
     initRelays();
 }
@@ -105,8 +107,6 @@ void MyHeatDevice::changeRelayMode(byte relayIndex)
 
 void MyHeatDevice::checkCustomFunctions()
 {
-    float temperatures[] = {0, 10, 20, 30, 40, 50, 0};
-
     for (int i = 0; i < FUNCTION_COUNT; i++)
     {
         float tempA = temperatures[customFunctions[i].getTemperatureIndex(0)] + customFunctions[i].getDeltaValue(0);
@@ -166,6 +166,79 @@ void MyHeatDevice::updateRelays()
     }
 }
 
+byte MyHeatDevice::discoverTemperatureSensor()
+{
+    uint8_t address[8];
+    byte count = 0;
+
+    while (oneWire.search(address))
+    {
+        bool flag = false;
+        for (int i = 0; i < TEMPERATURE_COUNT; i++)
+        {
+            if (memcmp(temperatureSensorsAddresses[i], address, 8) == 0)
+            {
+                flag = true;
+                break;
+            }
+        }
+
+        if (flag)
+            continue;
+        memcpy(discoveredTemperatureSensorsAddresses[count], address, 8);
+        count++;
+    }
+
+    return count;
+}
+
+void MyHeatDevice::setTemperatureSensorAddress(byte tempIndex, byte sensorAddressIndex)
+{
+    memcpy(temperatureSensorsAddresses[tempIndex], discoveredTemperatureSensorsAddresses[sensorAddressIndex], 8);
+    temperatureSensorData->updateNow();
+}
+
+void MyHeatDevice::deleteTemperatureSensorAddress(byte tempIndex)
+{
+    memset(temperatureSensorsAddresses[tempIndex], 0, 8);
+    temperatureSensorData->updateNow();
+}
+
+
+uint8_t (*MyHeatDevice::getDiscoveredTemperatureSensorAddresses())[8]
+{
+    return discoveredTemperatureSensorsAddresses;
+}
+
+uint8_t (*MyHeatDevice::getTemperatureSensorAddresses())[8]
+{
+    return temperatureSensorsAddresses;
+}
+
+void MyHeatDevice::updateTemperature()
+{
+    static uint32_t tmr;
+    if (millis() - tmr >= 1000)
+    {
+        Serial.println("Temp tick");
+        tmr = millis();
+
+        for (byte i = 0; i < TEMPERATURE_COUNT; i++)
+        {
+            temperatures[i] = temperatureSensors.getTempC(temperatureSensorsAddresses[i]);
+            Serial.println(MyHeatUtils::getAddressToString(temperatureSensorsAddresses[i]));
+            
+        }
+        Serial.println("END");
+        temperatureSensors.requestTemperatures();
+    }
+}
+
+float *MyHeatDevice::getTemperatures()
+{
+    return temperatures;
+}
+
 void MyHeatDevice::tick()
 {
     if (millis() - tickTimer >= 5000)
@@ -174,4 +247,6 @@ void MyHeatDevice::tick()
         checkCustomFunctions();
         updateRelays();
     }
+
+    updateTemperature();
 }

@@ -26,9 +26,42 @@ namespace MyHeatTelebot
 
     fb::InlineMenu &getTemperatureInlineMenu()
     {
+        inlineMenu = fb::InlineMenu(
+            F("Виявити датчик \n Видалити датчик \n Оновити"),
+            F("discoverTemperatureSensor;deleteTemperatureSensor;refreshTemperatures"));
+
+
+        return inlineMenu;
+    }
+
+    fb::InlineMenu &getDiscoveredTemperatureSensorsInlineMenu(byte count, uint8_t addresses[][8]) 
+    {
         inlineMenu = fb::InlineMenu();
 
-        inlineMenu.addButton("Оновити", "refresh");
+        for (byte i = 0; i < count; i++)
+        {
+            inlineMenu.addButton(MyHeatUtils::getAddressToString(addresses[i]), "setTemperatureSensor_" + String(i));
+            if (i % 2 != 0 && i != count - 1)
+            {
+                inlineMenu.newRow();
+            }
+        }
+
+        return inlineMenu;
+    }
+
+    fb::InlineMenu &getTemperatureIndexesInlineMenu() 
+    {
+        inlineMenu = fb::InlineMenu();
+
+        for (byte i = 0; i < TEMPERATURE_COUNT; i++)
+        {
+            inlineMenu.addButton("T" + String(i), "setTemperatureIndex_" + String(i));
+            if (i % 2 != 0 && i != TEMPERATURE_COUNT - 1)
+            {
+                inlineMenu.newRow();
+            }
+        }
 
         return inlineMenu;
     }

@@ -28,4 +28,26 @@ namespace MyHeatUtils
         strftime(buffer, 20, "%d.%m.%Y %H:%M:%S", localtime(&now));
         return String(buffer) + "\n\n";
     }
+
+    String getAddressToString(uint8_t address[8])
+    {
+        String text = "";
+        for (int i = 0; i < 8; i++)
+        {
+            text += String(address[i], HEX);
+            if (i < 7)
+                text += ":";
+        }
+        return text;
+    }
+
+    bool isFloat(const String &str)
+    {
+        const char *cstr = str.c_str();
+        char *end;
+        double floatValue = strtod(cstr, &end);
+
+
+        return *end == '\0';
+    }
 }
