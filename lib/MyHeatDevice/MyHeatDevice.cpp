@@ -11,6 +11,7 @@ void MyHeatDevice::begin()
     readFileData(temperatureSensorData);
 
     initRelays();
+    hardwareIO.begin();
 }
 
 void MyHeatDevice::readFileData(FileData *fileData)
@@ -139,13 +140,13 @@ void MyHeatDevice::checkCustomFunctions()
 
 void MyHeatDevice::updateRelays()
 {
-    bool wasRelayActive[RELAY_COUNT] = {false};
+    bool isSetRelayActive[RELAY_COUNT] = {false};
 
     for (int i = 0; i < FUNCTION_COUNT; i++)
     {
-        if (customFunctions[i].getIsActive() && !wasRelayActive[customFunctions[i].getRelayIndex()])
+        if (customFunctions[i].getIsEnabled())
         {
-            wasRelayActive[customFunctions[i].getRelayIndex()] = true;
+            isSetRelayActive[customFunctions[i].getRelayIndex()] = isSetRelayActive[customFunctions[i].getRelayIndex()] && customFunctions[i].getIsActive();
         }
     }
 
@@ -161,7 +162,7 @@ void MyHeatDevice::updateRelays()
         }
         else
         {
-            relays[i].setIsActive(wasRelayActive[i]);
+            relays[i].setIsActive(isSetRelayActive[i]);
         }
     }
 }
@@ -204,7 +205,6 @@ void MyHeatDevice::deleteTemperatureSensorAddress(byte tempIndex)
     temperatureSensorData->updateNow();
 }
 
-
 uint8_t (*MyHeatDevice::getDiscoveredTemperatureSensorAddresses())[8]
 {
     return discoveredTemperatureSensorsAddresses;
@@ -217,21 +217,11 @@ uint8_t (*MyHeatDevice::getTemperatureSensorAddresses())[8]
 
 void MyHeatDevice::updateTemperature()
 {
-    static uint32_t tmr;
-    if (millis() - tmr >= 1000)
+    for (byte i = 0; i < TEMPERATURE_COUNT; i++)
     {
-        Serial.println("Temp tick");
-        tmr = millis();
-
-        for (byte i = 0; i < TEMPERATURE_COUNT; i++)
-        {
-            temperatures[i] = temperatureSensors.getTempC(temperatureSensorsAddresses[i]);
-            Serial.println(MyHeatUtils::getAddressToString(temperatureSensorsAddresses[i]));
-            
-        }
-        Serial.println("END");
-        temperatureSensors.requestTemperatures();
+        temperatures[i] = temperatureSensors.getTempC(temperatureSensorsAddresses[i]);
     }
+    temperatureSensors.requestTemperatures();
 }
 
 float *MyHeatDevice::getTemperatures()
@@ -241,12 +231,18 @@ float *MyHeatDevice::getTemperatures()
 
 void MyHeatDevice::tick()
 {
-    if (millis() - tickTimer >= 5000)
+    if (millis() - tickTimerMain >= 5000)
     {
-        tickTimer = millis();
+        tickTimerMain = millis();
         checkCustomFunctions();
         updateRelays();
     }
 
-    updateTemperature();
+    if (millis() - tickTimerSecondary >= 1000)
+    {
+        tickTimerSecondary = millis();
+        updateTemperature();
+    }
+
+    hardwareIO.tick();
 }

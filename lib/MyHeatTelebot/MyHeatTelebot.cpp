@@ -50,8 +50,6 @@ namespace MyHeatTelebot
                 }
             }
         }
-
-        // usersDB.dump(Serial);
     }
 
     void handleCommand(fb::Update &u)

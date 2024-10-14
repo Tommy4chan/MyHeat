@@ -5,22 +5,20 @@
 #include "MyHeatCustomFunction.h"
 #include "MyHeatRelay.h"
 #include "MyHeatUtils.h"
+#include "MyHeatHardwareIO.h"
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
 #define XSTR(x) #x
 #define STR(x) XSTR(x)
 
-// #include <FS.h>
-
-// Створити все в цьому неймспейсі
-// Використовувати цю лібу https://github.com/GyverLibs/GyverDS18 і цей клас GyverDS18
-
 class MyHeatDevice
 {
 private:
     MyHeatCustomFunction customFunctions[FUNCTION_COUNT];
     MyHeatRelay relays[RELAY_COUNT];
+    MyHeatHardwareIO hardwareIO;
+
     uint8_t temperatureSensorsAddresses[TEMPERATURE_COUNT][8];
     uint8_t discoveredTemperatureSensorsAddresses[TEMPERATURE_COUNT][8];
     FileData *customFunctionsData;
@@ -28,7 +26,8 @@ private:
     FileData *temperatureSensorData;
 
     float temperatures[TEMPERATURE_COUNT];
-    uint32_t tickTimer;
+    uint32_t tickTimerMain;
+    uint32_t tickTimerSecondary;
     OneWire oneWire;
     DallasTemperature temperatureSensors;
 
@@ -38,7 +37,7 @@ private:
     void updateTemperature();
 
 public:
-    MyHeatDevice() : oneWire(TEMPERATURE_PIN), temperatureSensors(&oneWire) {}
+    MyHeatDevice() : oneWire(TEMPERATURE_PIN), temperatureSensors(&oneWire), hardwareIO(temperatures, relays) {}
     void begin();
     void initRelays();
     MyHeatCustomFunction getCustomFunction(byte index);
