@@ -6,6 +6,7 @@ class MyHeatRelay
 private:
     byte mode;
     byte pin;
+    bool trigger;
     bool isActive;
 
 public:
@@ -13,6 +14,7 @@ public:
     {
         this->pin = 0;
         this->mode = 0;
+        this->trigger = false;
         this->isActive = false;
     }
 
@@ -20,6 +22,12 @@ public:
     {
         this->pin = pin;
         pinMode(this->pin, OUTPUT);
+        update();
+    }
+
+    void setTrigger(bool trigger)
+    {
+        this->trigger = trigger;
     }
 
     void changeMode()
@@ -30,7 +38,11 @@ public:
     void setIsActive(bool isActive)
     {
         this->isActive = isActive;
-        digitalWrite(this->pin, this->isActive);
+        update();
+    }
+
+    void update() {
+        digitalWrite(this->pin, this->isActive ? trigger : !trigger);
     }
 
     byte getMode()

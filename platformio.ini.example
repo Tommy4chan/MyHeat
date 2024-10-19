@@ -22,6 +22,7 @@ lib_deps =
     milesburton/DallasTemperature@^3.11.0
     olikraus/U8g2@^2.35.30
 	SPI
+    Wire
 build_unflags = -std=gnu++11
 build_flags = 
     -D WIFI_SSID=""
@@ -35,7 +36,8 @@ build_flags =
 	-D NTP_DAYLIGHT_OFFSET=0
     -D REGISTER_PHRASE=""
     -D RELAY_PINS={26,27}
+    -D RELAY_TRIGGER={0,0,0,0}
     -D TEMPERATURE_PIN=19
     -D OLED_SDA 21
 	-D OLED_SCL 22
-    -std=gnu++2a 
+    -std=gnu++2a

@@ -43,10 +43,12 @@ void MyHeatDevice::readFileData(FileData *fileData)
 void MyHeatDevice::initRelays()
 {
     byte relayPinsArray[] = RELAY_PINS;
+    bool relayTriggerArray[] = RELAY_TRIGGER;
 
     for (int i = 0; i < RELAY_COUNT; i++)
     {
         relays[i].setPin(relayPinsArray[i]);
+        relays[i].setTrigger(relayTriggerArray[i]);
     }
 }
 
