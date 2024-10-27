@@ -16,7 +16,7 @@ namespace MyHeatTelebot
 
         for (byte i = 0; i < RELAY_COUNT; i++)
         {
-            inlineMenu.addButton("Реле " + String(i + 1) + ": " + MyHeatUtils::getConvertedStateToText(relaysPtr[i].getMode()), "relay_" + String(i)).newRow();
+            inlineMenu.addButton("Реле " + String(i) + ": " + MyHeatUtils::getConvertedStateToText(relaysPtr[i].getMode()), "relay_" + String(i)).newRow();
         }
 
         inlineMenu.addButton("Оновити", "refreshRelays");

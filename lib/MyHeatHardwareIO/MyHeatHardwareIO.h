@@ -1,6 +1,7 @@
 #pragma once
 #include <Arduino.h>
 #include <U8g2lib.h>
+#include <EncButton.h>
 #include "MyHeatRelay.h"
 #include "MyHeatUtils.h"
 
@@ -14,6 +15,7 @@ private:
     U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2;
     float *temperatures;
     MyHeatRelay *relays;
+    EncButton eb;
     byte menuIndex;
     uint32_t screenUpdateTimer;
     uint32_t screenPowerSaveTimer;
@@ -53,36 +55,27 @@ private:
         u8g2.print("Активне: " + MyHeatUtils::getConvertedActiveToText(relays[relayIndex].getIsActive()));
     }
 
-public:
-    MyHeatHardwareIO(float *temperatures, MyHeatRelay *relays) : u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE, OLED_SCL, OLED_SDA)
+    void handleEncoder()
     {
-        this->temperatures = temperatures;
-        this->relays = relays;
-        this->menuIndex = 2;
-        this->isScreenOn = true;
+        if (eb.turn())
+        {
+            menuIndex = (menuIndex + eb.dir()) % MAX_SCREENS;
+
+            updateScreenManual();
+        }
+        else if (eb.click())
+        {
+            menuIndex = ++menuIndex % MAX_SCREENS; // temp for tests
+
+            updateScreenManual();
+        }
     }
 
-    void begin()
+    void updateScreenManual()
     {
-        u8g2.begin();
-        u8g2.clearBuffer();
-        u8g2.enableUTF8Print();
-        u8g2.sendBuffer();
-    }
-
-    void tick()
-    {
-        if (isScreenOn && millis() - screenPowerSaveTimer >= 10000)
-        {
-            isScreenOn = false;
-            u8g2.setPowerSave(true);
-        }
-
-        if (isScreenOn && millis() - screenUpdateTimer >= 1000)
-        {
-            screenUpdateTimer = millis();
-            updateScreen();
-        }
+        isScreenOn = true;
+        screenPowerSaveTimer = millis();
+        updateScreen();
     }
 
     void updateScreen()
@@ -103,5 +96,40 @@ public:
         }
 
         u8g2.sendBuffer();
+    }
+
+public:
+    MyHeatHardwareIO(float *temperatures, MyHeatRelay *relays) : u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE, OLED_SCL, OLED_SDA), eb(ENC_A, ENC_B, ENC_BTN)
+    {
+        this->temperatures = temperatures;
+        this->relays = relays;
+        this->menuIndex = 0;
+        this->isScreenOn = true;
+    }
+
+    void begin()
+    {
+        u8g2.begin();
+        u8g2.clearBuffer();
+        u8g2.enableUTF8Print();
+        u8g2.sendBuffer();
+    }
+
+    void tick()
+    {
+        if (isScreenOn && millis() - screenPowerSaveTimer >= 60000)
+        {
+            isScreenOn = false;
+            u8g2.setPowerSave(true);
+        }
+
+        if (isScreenOn && millis() - screenUpdateTimer >= 1000)
+        {
+            screenUpdateTimer = millis();
+            updateScreen();
+        }
+
+        eb.tick();
+        handleEncoder();
     }
 };

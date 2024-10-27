@@ -18,6 +18,7 @@ lib_deps =
 	gyverlibs/FastBot2@^1.0.1
 	gyverlibs/GyverDB@^1.1.0
     gyverlibs/FileData@^1.0.2
+    gyverlibs/EncButton@^3.6.3
     paulstoffregen/OneWire@^2.3.8
     milesburton/DallasTemperature@^3.11.0
     olikraus/U8g2@^2.35.30
@@ -36,8 +37,11 @@ build_flags =
 	-D NTP_DAYLIGHT_OFFSET=0
     -D REGISTER_PHRASE=""
     -D RELAY_PINS={26,27}
-    -D RELAY_TRIGGER={0,0,0,0}
+    -D RELAY_TRIGGER={0,0}
     -D TEMPERATURE_PIN=19
     -D OLED_SDA 21
 	-D OLED_SCL 22
+    -D ENC_A=4
+	-D ENC_B=19
+	-D ENC_BTN=18
     -std=gnu++2a

@@ -11,6 +11,16 @@ void MyHeatDevice::begin()
     readFileData(temperatureSensorData);
 
     initRelays();
+    temperatureSensors.begin();
+    temperatureSensors.setWaitForConversion(false);
+    temperatureSensors.requestTemperatures();
+
+    delay(1000);
+
+    updateTemperature();
+    checkCustomFunctions();
+    updateRelays();
+
     hardwareIO.begin();
 }
 
@@ -47,8 +57,7 @@ void MyHeatDevice::initRelays()
 
     for (int i = 0; i < RELAY_COUNT; i++)
     {
-        relays[i].setPin(relayPinsArray[i]);
-        relays[i].setTrigger(relayTriggerArray[i]);
+        relays[i].begin(relayPinsArray[i], relayTriggerArray[i]);
     }
 }
 
@@ -148,10 +157,10 @@ void MyHeatDevice::updateRelays()
     {
         if (customFunctions[i].getIsEnabled())
         {
-            isSetRelayActive[customFunctions[i].getRelayIndex()] = isSetRelayActive[customFunctions[i].getRelayIndex()] && customFunctions[i].getIsActive();
+            isSetRelayActive[customFunctions[i].getRelayIndex()] = isSetRelayActive[customFunctions[i].getRelayIndex()] || customFunctions[i].getIsActive();
         }
     }
-
+    
     for (int i = 0; i < RELAY_COUNT; i++)
     {
         if (relays[i].getMode() == 0)
@@ -237,14 +246,15 @@ void MyHeatDevice::tick()
     {
         tickTimerMain = millis();
         checkCustomFunctions();
-        updateRelays();
     }
 
     if (millis() - tickTimerSecondary >= 1000)
     {
         tickTimerSecondary = millis();
         updateTemperature();
+        updateRelays();
     }
+
 
     hardwareIO.tick();
 }

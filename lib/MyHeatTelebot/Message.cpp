@@ -8,7 +8,7 @@ namespace MyHeatTelebot
 
         for (byte i = 0; i < RELAY_COUNT; i++)
         {
-            text += "Реле " + String(i + 1) + ": \n" + "Активне: " + MyHeatUtils::getConvertedActiveToText(relaysPtr[i].getIsActive()) + "\n\n";
+            text += "Реле " + String(i) + ": \n" + "Активне: " + MyHeatUtils::getConvertedActiveToText(relaysPtr[i].getIsActive()) + "\n\n";
         }
 
         return text;

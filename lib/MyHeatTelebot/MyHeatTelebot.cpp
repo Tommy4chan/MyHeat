@@ -31,7 +31,6 @@ namespace MyHeatTelebot
         {
             if (!isUserRegistered(u.message().chat().id()))
             {
-                Serial.println("User not registered");
                 handleUserRegistration(u);
                 return;
             }
@@ -141,15 +140,11 @@ namespace MyHeatTelebot
     void handleQuery(fb::Update &u)
     {
         fb::QueryRead q = u.query();
-        Serial.println(q.data());
 
         Text chat_id = q.message().chat().id();
         Text callback = getCallbackFromQuery(q.data());
         int value = getValueFromQuery(q.data());
         fb::TextEdit msg("", q.message().id(), chat_id);
-
-        Serial.println(callback);
-        Serial.println(value);
 
         switch (callback.hash())
         {

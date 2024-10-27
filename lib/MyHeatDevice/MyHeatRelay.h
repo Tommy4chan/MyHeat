@@ -6,52 +6,60 @@ class MyHeatRelay
 private:
     byte mode;
     byte pin;
-    bool trigger;
+    bool isTriggerOnHigh;
     bool isActive;
-
-public:
-    MyHeatRelay()
-    {
-        this->pin = 0;
-        this->mode = 0;
-        this->trigger = false;
-        this->isActive = false;
-    }
 
     void setPin(byte pin)
     {
         this->pin = pin;
-        pinMode(this->pin, OUTPUT);
-        update();
+        pinMode(pin, OUTPUT);
+        updateState();
     }
 
-    void setTrigger(bool trigger)
+    void setTrigger(bool isTriggerOnHigh)
     {
-        this->trigger = trigger;
+        this->isTriggerOnHigh = isTriggerOnHigh;
+    }
+
+    void updateState() {
+        digitalWrite(pin, isActive == isTriggerOnHigh);
+    }
+
+public:
+    MyHeatRelay()
+    {
+        pin = 0;
+        mode = 0;
+        isTriggerOnHigh = false;
+        isActive = false;
+    }
+
+    void begin(byte pin, bool isTriggerOnHigh)
+    {
+        setPin(pin);
+        setTrigger(isTriggerOnHigh);
+        setIsActive(false);
+        updateState();
     }
 
     void changeMode()
     {        
-        this->mode = (this->mode + 1) % 3;
+        mode = (mode + 1) % 3;
     }
 
     void setIsActive(bool isActive)
     {
         this->isActive = isActive;
-        update();
-    }
-
-    void update() {
-        digitalWrite(this->pin, this->isActive ? trigger : !trigger);
+        updateState();
     }
 
     byte getMode()
     {
-        return this->mode;
+        return mode;
     }
 
     bool getIsActive()
     {
-        return this->isActive;
+        return isActive;
     }
 };
