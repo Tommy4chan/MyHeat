@@ -59,7 +59,7 @@ private:
     {
         if (eb.turn())
         {
-            menuIndex = (menuIndex + eb.dir()) % MAX_SCREENS;
+            menuIndex = (menuIndex + eb.dir() + MAX_SCREENS) % MAX_SCREENS;
 
             updateScreenManual();
         }
