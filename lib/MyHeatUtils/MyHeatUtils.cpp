@@ -38,6 +38,7 @@ namespace MyHeatUtils
             if (i < 7)
                 text += ":";
         }
+
         return text;
     }
 
@@ -47,7 +48,15 @@ namespace MyHeatUtils
         char *end;
         double floatValue = strtod(cstr, &end);
 
-
         return *end == '\0';
+    }
+
+    bool isTimeDefault()
+    {
+        time_t now;
+        time(&now);
+        struct tm timeinfo;
+        gmtime_r(&now, &timeinfo);
+        return (timeinfo.tm_year == (1970 - 1900));
     }
 }

@@ -8,10 +8,10 @@
 
 namespace MyHeatTelebot
 {
-    inline FastBot2 bot;
-    inline MyHeatDevice *myHeatDevicePtr = nullptr;
+    extern FastBot2 bot;
+    MyHeatDevice& getMyHeatDevice();
 
-    void begin(String token, MyHeatDevice *myHeatDevicePtr);
+    void begin();
     void tick();
 
     void handleUpdate(fb::Update &u);

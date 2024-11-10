@@ -2,60 +2,135 @@
 
 namespace MyHeatTelebot
 {
-    bool isUserRegistered(Text chatId)
+    class UserSave : public MyHeatSaveInterface
     {
-        return usersDB.has(chatId);
-    }
-
-    bool isUserInputMode(Text chatId)
-    {
+    public:
         User user;
-        usersDB[chatId].writeTo(user);
-        return user.isInputMode;
+
+        void serialize(JsonDocument &doc)
+        {
+            doc[F("screenType")] = user.screenType;
+            doc[F("isInputMode")] = user.isInputMode;
+            doc[F("tempValue1")] = user.tempValue1;
+            doc[F("tempValue2")] = user.tempValue2;
+        }
+
+        void deserialize(JsonDocument &doc)
+        {
+            user.screenType = doc[F("screenType")];
+            user.isInputMode = doc[F("isInputMode")];
+            user.tempValue1 = doc[F("tempValue1")];
+            user.tempValue2 = doc[F("tempValue2")];
+        }
+    };
+
+    void loadUsers()
+    {
+        if (!LittleFS.exists("/users"))
+        {
+            LittleFS.mkdir("/users");
+        }
+
+        File root = LittleFS.open("/users");
+        if (!root || !root.isDirectory()) {
+            Serial.println("Failed to open /users directory");
+            return;
+        }
+
+        File file = root.openNextFile();
+        while (file)
+        {
+            String fileName = file.name();
+            if (fileName.endsWith(".json"))
+            {
+                String chatId = fileName.substring(0, fileName.length() - 5);
+                fileName = "/users/" + fileName;
+                UserSave userSave;
+                MyHeatSave myHeatSave(&LittleFS, fileName.c_str(), &userSave);
+                if (myHeatSave.read())
+                {
+                    users[chatId] = userSave.user;
+                }
+            }
+            file = root.openNextFile();
+        }
     }
 
-    void registerUser(Text chat_id)
+    bool isUserRegistered(String chatId)
     {
-        User user = {MAIN_SCREEN, false, 0, 0};
-        usersDB.set(chat_id, user);
+        return users.find(chatId) != users.end();
     }
 
-    void setUserScreen(Text chat_id, ScreenType type)
+    bool isUserInputMode(String chatId)
     {
-        User user;
-        usersDB[chat_id].writeTo(user);
-        user.screenType = type;
-        usersDB.set(chat_id, user);
+        if (isUserRegistered(chatId))
+        {
+            return users[chatId].isInputMode;
+        }
+        return false;
     }
 
-    void setUserInputMode(Text chat_id, bool inputMode)
+    void registerUser(String chatId)
     {
-        User user;
-        usersDB[chat_id].writeTo(user);
-        user.isInputMode = inputMode;
-        usersDB.set(chat_id, user);
+        if (!isUserRegistered(chatId))
+        {
+            User user = {MAIN_SCREEN, false, 0, 0};
+            users[chatId] = user;
+            saveUser(chatId);
+        }
     }
 
-    void setUserTempValue1(Text chat_id, byte tempValue1)
+    void setUserScreen(String chatId, ScreenType type)
     {
-        User user;
-        usersDB[chat_id].writeTo(user);
-        user.tempValue1 = tempValue1;
-        usersDB.set(chat_id, user);
+        if (isUserRegistered(chatId))
+        {
+            users[chatId].screenType = type;
+            saveUser(chatId);
+        }
     }
 
-    void setUserTempValue2(Text chat_id, byte tempValue2)
+    void setUserInputMode(String chatId, bool inputMode)
     {
-        User user;
-        usersDB[chat_id].writeTo(user);
-        user.tempValue2 = tempValue2;
-        usersDB.set(chat_id, user);
+        if (isUserRegistered(chatId))
+        {
+            users[chatId].isInputMode = inputMode;
+            saveUser(chatId);
+        }
     }
 
-    User getUser(Text chat_id)
+    void setUserTempValue1(String chatId, byte tempValue1)
     {
-        User user;
-        usersDB[chat_id].writeTo(user);
-        return user;
+        if (isUserRegistered(chatId))
+        {
+            users[chatId].tempValue1 = tempValue1;
+            saveUser(chatId);
+        }
+    }
+
+    void setUserTempValue2(String chatId, byte tempValue2)
+    {
+        if (isUserRegistered(chatId))
+        {
+            users[chatId].tempValue2 = tempValue2;
+            saveUser(chatId);
+        }
+    }
+
+    User getUser(String chatId)
+    {
+        if (isUserRegistered(chatId))
+        {
+            return users[chatId];
+        }
+        return {MAIN_SCREEN, false, 0, 0}; // Return default user if not found
+    }
+
+    void saveUser(String chatId)
+    {
+        UserSave userSave;
+        userSave.user = users[chatId];
+        String path = "/users/" + chatId + ".json";
+        MyHeatSave myHeatSave(&LittleFS, path.c_str(), &userSave);
+        myHeatSave.save();
     }
 }

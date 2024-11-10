@@ -1,9 +1,18 @@
 #pragma once
+
 #include <Arduino.h>
 #include <U8g2lib.h>
 #include <EncButton.h>
 #include "MyHeatRelay.h"
 #include "MyHeatUtils.h"
+#include "MyHeatWifi.h"
+
+#ifdef U8X8_HAVE_HW_SPI
+#include <SPI.h>
+#endif
+#ifdef U8X8_HAVE_HW_I2C
+#include <Wire.h>
+#endif
 
 constexpr byte MAX_TEMPERATURE_SCREENS = ceil(TEMPERATURE_COUNT / 3);
 constexpr byte MAX_RELAY_SCREENS = RELAY_COUNT;
@@ -34,7 +43,7 @@ private:
             else
             {
                 u8g2.print(String(temperatures[i]));
-                u8g2.setFont(u8g2_font_10x20_tf);
+                u8g2.setFont(u8g2_font_10x20_tn);
                 u8g2.print(F("°"));
                 u8g2.setFont(u8g2_font_10x20_t_cyrillic);
                 u8g2.print(F("C"));
@@ -65,9 +74,11 @@ private:
         }
         else if (eb.click())
         {
-            menuIndex = ++menuIndex % MAX_SCREENS; // temp for tests
-
             updateScreenManual();
+        }
+        else if (eb.hold(2))
+        {
+            MyHeatWifi::getInstance().switchWifiMode();
         }
     }
 
@@ -99,16 +110,16 @@ private:
     }
 
 public:
-    MyHeatHardwareIO(float *temperatures, MyHeatRelay *relays) : u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE, OLED_SCL, OLED_SDA), eb(ENC_A, ENC_B, ENC_BTN)
+    MyHeatHardwareIO() : u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE, OLED_SCL, OLED_SDA), eb(ENC_A, ENC_B, ENC_BTN)
     {
-        this->temperatures = temperatures;
-        this->relays = relays;
         this->menuIndex = 0;
         this->isScreenOn = true;
     }
 
-    void begin()
+    void begin(float *temperatures, MyHeatRelay *relays)
     {
+        this->relays = relays;
+        this->temperatures = temperatures;
         u8g2.begin();
         u8g2.clearBuffer();
         u8g2.enableUTF8Print();

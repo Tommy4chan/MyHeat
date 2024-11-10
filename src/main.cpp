@@ -2,42 +2,31 @@
 #include <MyHeatTelebot.h>
 #include <MyHeatDevice.h>
 #include <LittleFS.h>
+#include <MyHeatUtils.h>
+#include <MyHeatWeb.h>
+#include <MyHeatWifi.h>
 
-#define XSTR(x) #x
-#define STR(x) XSTR(x)
-
-MyHeatDevice myHeatDevice;
-
-unsigned long wifiReconnectTick = 0;
+MyHeatDevice& myHeatDevice = MyHeatDevice::getInstance();
+MyHeatWifi& myHeatWifi = MyHeatWifi::getInstance();
 
 void setup()
 {
 	Serial.begin(115200);
-
-	WiFi.begin(STR(WIFI_SSID), STR(WIFI_PASSWORD));
-	delay(2000);
-
-	configTime(NTP_OFFSET, NTP_DAYLIGHT_OFFSET, STR(NTP_SERVER));
-
-	LittleFS.begin();
-
+	LittleFS.begin(true);
+	
+	myHeatWifi.begin();
 	myHeatDevice.begin();
-	MyHeatTelebot::begin(STR(TELEGRAM_BOT_TOKEN), &myHeatDevice);
+	MyHeatTelebot::begin();
+	MyHeatWeb::begin(&myHeatDevice, &myHeatWifi);
 }
 
 void loop()
 {
-	if ((WiFi.status() != WL_CONNECTED) && (millis() - wifiReconnectTick >= 30000))
+	if (myHeatWifi.isConnected())
 	{
-		Serial.println("Reconnecting to WiFi...");
-		WiFi.disconnect();
-		WiFi.reconnect();
-		wifiReconnectTick = millis();
-	}
-	
-	if (WiFi.status() == WL_CONNECTED) {
 		MyHeatTelebot::tick();
 	}
-	
+
+	myHeatWifi.tick();
 	myHeatDevice.tick();
 }

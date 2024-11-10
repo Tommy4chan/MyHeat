@@ -1,7 +1,10 @@
 #pragma once
 
-#include <GyverDBFile.h>
+#include <Arduino.h>
 #include <LittleFS.h>
+#include <map>
+#include "MyHeatSave.h"
+#include "StringUtils.h"
 
 namespace MyHeatTelebot
 {
@@ -27,14 +30,16 @@ namespace MyHeatTelebot
         byte tempValue2;
     };
 
-    inline GyverDBFile usersDB(&LittleFS, "/users.bin");
+    inline std::map<String, User> users;
 
-    bool isUserRegistered(Text chatId);
-    bool isUserInputMode(Text chatId);
-    void registerUser(Text chat_id);
-    void setUserScreen(Text chat_id, ScreenType type);
-    void setUserInputMode(Text chat_id, bool inputMode);
-    void setUserTempValue1(Text chat_id, byte tempValue1);
-    void setUserTempValue2(Text chat_id, byte tempValue2);
-    User getUser(Text chat_id);
+    void loadUsers();
+    bool isUserRegistered(String chatId);
+    bool isUserInputMode(String chatId);
+    void registerUser(String chatId);
+    void setUserScreen(String chatId, ScreenType type);
+    void setUserInputMode(String chatId, bool inputMode);
+    void setUserTempValue1(String chatId, byte tempValue1);
+    void setUserTempValue2(String chatId, byte tempValue2);
+    User getUser(String chatId);
+    void saveUser(String chatId);
 }

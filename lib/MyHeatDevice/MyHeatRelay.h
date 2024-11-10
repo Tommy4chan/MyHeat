@@ -47,6 +47,11 @@ public:
         mode = (mode + 1) % 3;
     }
 
+    void setMode(byte mode)
+    {
+        this->mode = mode;
+    }
+
     void setIsActive(bool isActive)
     {
         this->isActive = isActive;
