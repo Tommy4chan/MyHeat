@@ -23,9 +23,15 @@ namespace MyHeatUtils
 
     String getCurrentDateAndTime()
     {
-        time_t now = time(nullptr);
+        struct tm timeinfo;
+        if (!getLocalTime(&timeinfo, 100))
+        {
+            Serial.println("Failed to obtain time");
+            return F("Помилка отримання часу\n\n");
+        }
+
         char buffer[20];
-        strftime(buffer, 20, "%d.%m.%Y %H:%M:%S", localtime(&now));
+        strftime(buffer, sizeof(buffer), "%d.%m.%Y %H:%M:%S", &timeinfo);
         return String(buffer) + "\n\n";
     }
 
@@ -53,10 +59,7 @@ namespace MyHeatUtils
 
     bool isTimeDefault()
     {
-        time_t now;
-        time(&now);
         struct tm timeinfo;
-        gmtime_r(&now, &timeinfo);
-        return (timeinfo.tm_year == (1970 - 1900));
+        return !getLocalTime(&timeinfo, 100);
     }
 }

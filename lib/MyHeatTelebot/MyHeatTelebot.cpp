@@ -5,13 +5,6 @@
 
 namespace MyHeatTelebot
 {
-    FastBot2 bot;
-
-    MyHeatDevice& getMyHeatDevice()
-    {
-        return MyHeatDevice::getInstance();
-    }
-
     void begin()
     {
         bot.setToken(STR(TELEGRAM_BOT_TOKEN));
@@ -98,7 +91,6 @@ namespace MyHeatTelebot
 
     void handleMessage(fb::Update &u)
     {
-        MyHeatDevice &myHeatDevice = getMyHeatDevice();
         Text chat_id = u.message().chat().id();
         String messageDecoded = u.message().text().decodeUnicode(); // temp solution, need to fix (maybe bug in FastBot2)
         Text message = messageDecoded;                              // temp solution, need to fix (maybe bug in FastBot2)
@@ -146,7 +138,6 @@ namespace MyHeatTelebot
     {
         fb::QueryRead q = u.query();
 
-        MyHeatDevice &myHeatDevice = getMyHeatDevice();
         Text chat_id = q.message().chat().id();
         Text callback = getCallbackFromQuery(q.data());
         int value = getValueFromQuery(q.data());
@@ -392,7 +383,6 @@ namespace MyHeatTelebot
             }
             else
             {
-                MyHeatDevice &myHeatDevice = getMyHeatDevice();
                 myHeatDevice.setCustomFunctionDeltaValue(user.tempValue1, user.tempValue2, u.message().text().toFloat());
                 setUserScreen(chat_id, ScreenType::FUNCTION_SCREEN);
                 msg.text = getFunctionScreenText(myHeatDevice.getCustomFunction(user.tempValue1), user.tempValue1);

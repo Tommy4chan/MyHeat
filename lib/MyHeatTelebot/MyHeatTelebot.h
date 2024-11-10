@@ -8,8 +8,8 @@
 
 namespace MyHeatTelebot
 {
-    extern FastBot2 bot;
-    MyHeatDevice& getMyHeatDevice();
+    inline FastBot2 bot;
+    inline MyHeatDevice& myHeatDevice = MyHeatDevice::getInstance();
 
     void begin();
     void tick();

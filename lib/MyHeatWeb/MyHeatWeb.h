@@ -7,8 +7,8 @@
 namespace MyHeatWeb
 {
     inline AsyncWebServer server(80);
-    inline MyHeatDevice *myHeatDevicePtr = nullptr;
-    inline MyHeatWifi *myHeatWifiPtr = nullptr;
+    inline MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
+    inline MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
 
-    void begin(MyHeatDevice *myHeatDevicePtr, MyHeatWifi *myHeatWifiPtr);
+    void begin();
 }

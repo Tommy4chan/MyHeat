@@ -17,7 +17,7 @@ void setup()
 	myHeatWifi.begin();
 	myHeatDevice.begin();
 	MyHeatTelebot::begin();
-	MyHeatWeb::begin(&myHeatDevice, &myHeatWifi);
+	MyHeatWeb::begin();
 }
 
 void loop()

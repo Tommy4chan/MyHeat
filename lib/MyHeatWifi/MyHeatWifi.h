@@ -55,12 +55,12 @@ public:
             setAPMode();
         }
 
-        configTime(NTP_OFFSET, NTP_DAYLIGHT_OFFSET, STR(NTP_SERVER));
-
         if (!MDNS.begin(F("esp32-myheat")))
             Serial.println(F("Error setting up MDNS responder!"));
         else
             Serial.println(F("mDNS responder started: esp32-myheat.local\n"));
+
+        configTime(NTP_OFFSET, NTP_DAYLIGHT_OFFSET, STR(NTP_SERVER));
     }
 
     void tick()
@@ -70,12 +70,11 @@ public:
             if ((WiFi.status() != WL_CONNECTED) && (millis() - wifiReconnectTick >= WIFI_RECONNECT_INTERVAL))
             {
                 Serial.println("Reconnecting to WiFi...");
-                WiFi.disconnect();
                 WiFi.reconnect();
                 wifiReconnectTick = millis();
             }
 
-            if (WiFi.status() == WL_CONNECTED && (MyHeatUtils::isTimeDefault() || (millis() - ntpSyncTick >= NTP_SYNC_INTERVAL)))
+            if (WiFi.status() == WL_CONNECTED && (millis() - ntpSyncTick >= NTP_SYNC_INTERVAL || (MyHeatUtils::isTimeDefault() && millis() - ntpSyncTick >= 5000)))
             {
                 Serial.println("Syncing time...");
                 configTime(NTP_OFFSET, NTP_DAYLIGHT_OFFSET, STR(NTP_SERVER));
