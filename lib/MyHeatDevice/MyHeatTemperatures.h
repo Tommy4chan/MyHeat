@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MYHEATTEMPERATURES_H
+#define MYHEATTEMPERATURES_H
+
 #include <Arduino.h>
 #include "MyHeatSave.h"
 #include <LittleFS.h>
@@ -113,3 +115,4 @@ public:
         return temperatures;
     }
 };
+#endif

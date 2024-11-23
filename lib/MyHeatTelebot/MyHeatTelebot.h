@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MYHEATTELEBOT_H
+#define MYHEATTELEBOT_H
+
 #include <FastBot2.h>
 #include "Menu.h"
 #include "Message.h"
@@ -21,3 +23,4 @@ namespace MyHeatTelebot
     void handleUserRegistration(fb::Update &u);
     void handleUserInput(fb::Update &u);
 }
+#endif

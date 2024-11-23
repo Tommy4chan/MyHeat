@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MYHEATHARDWAREIO_H
+#define MYHEATHARDWAREIO_H
 
 #include <Arduino.h>
 #include <U8g2lib.h>
@@ -144,3 +145,4 @@ public:
         handleEncoder();
     }
 };
+#endif

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MYHEATWEB_H
+#define MYHEATWEB_H
+
 #include <LittleFS.h>
 #include <ESPAsyncWebServer.h>
 #include <MyHeatDevice.h>
@@ -12,3 +14,4 @@ namespace MyHeatWeb
 
     void begin();
 }
+#endif

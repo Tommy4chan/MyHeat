@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MYHEATRELAYS_H
+#define MYHEATRELAYS_H
+
 #include <Arduino.h>
 #include "MyHeatRelay.h"
 #include "MyHeatSave.h"
@@ -93,3 +95,4 @@ public:
         }
     }
 };
+#endif

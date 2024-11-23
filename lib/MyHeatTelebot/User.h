@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MYHEATTELEBOTUSER_H
+#define MYHEATTELEBOTUSER_H
 
 #include <Arduino.h>
 #include <LittleFS.h>
@@ -43,3 +44,4 @@ namespace MyHeatTelebot
     User getUser(String chatId);
     void saveUser(String chatId);
 }
+#endif

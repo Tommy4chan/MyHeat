@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MYHEATTELEBOTMENU_H
+#define MYHEATTELEBOTMENU_H
 
 #include <FastBot2.h>
 #include "MyHeatUtils.h"
@@ -22,3 +23,4 @@ namespace MyHeatTelebot
     fb::InlineMenu &getFunctionChangeRelayInlineMenu();
     fb::InlineMenu &getCancelFunctionInlineMenu();
 }
+#endif

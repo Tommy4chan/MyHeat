@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MYHEATDEVICE_H
+#define MYHEATDEVICE_H
+
 #include <Arduino.h>
 #include <LittleFS.h>
 #include "MyHeatTemperatures.h"
@@ -30,3 +32,5 @@ public:
     void begin();
     void tick();
 };
+
+#endif

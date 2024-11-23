@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MYHEATUTILS_H
+#define MYHEATUTILS_H
 
 #include <Arduino.h>
 
@@ -11,3 +12,4 @@ namespace MyHeatUtils
     bool isFloat(const String& str);
     bool isTimeDefault();
 }
+#endif

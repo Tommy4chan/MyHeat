@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import Settings from './components/Settings';
+import SettingsPage from './pages/SettingsPage';
 import Navbar from './components/Navbar';
-import Dashboard from './components/Dashboard';
-import Wifi from './components/Wifi';
+import DashboardPage from './pages/DashboardPage';
+import Wifi from './pages/Wifi';
+import TemperaturesPage from './pages/TemperaturesPage';
+import RelaysPage from './pages/RelaysPage';
+import FunctionsPage from './pages/FunctionsPage';
 
 function App() {
   const [page, setPage] = useState('dashboard');
@@ -10,13 +13,14 @@ function App() {
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-gray-200">
       <Navbar setPage={setPage}/>
-      <div className="container mx-auto p-6 h-full">
-        {page === 'dashboard' && <Dashboard />}
+      <div className="container mx-auto h-full mt-6">
+        {page === 'dashboard' && <DashboardPage />}
+        {page === 'temperatures' && <TemperaturesPage />}
+        {page === 'relays' && <RelaysPage />}
+        {page === 'functions' && <FunctionsPage />}
         {page === 'wifi' && <Wifi />}
-        {page === 'settings' && <Settings />}
+        {page === 'settings' && <SettingsPage />}
       </div>
-
-
   </div>
   )
 }

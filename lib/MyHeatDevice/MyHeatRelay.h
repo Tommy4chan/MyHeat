@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MYHEATRELAY_H
+#define MYHEATRELAY_H
+
 #include <Arduino.h>
 
 class MyHeatRelay
@@ -6,7 +8,7 @@ class MyHeatRelay
 private:
     byte mode;
     byte pin;
-    bool isTriggerOnHigh;
+    bool isActiveOnHigh;
     bool isActive;
 
     void setPin(byte pin)
@@ -16,13 +18,13 @@ private:
         updateState();
     }
 
-    void setTrigger(bool isTriggerOnHigh)
+    void setTrigger(bool isActiveOnHigh)
     {
-        this->isTriggerOnHigh = isTriggerOnHigh;
+        this->isActiveOnHigh = isActiveOnHigh;
     }
 
     void updateState() {
-        digitalWrite(pin, isActive == isTriggerOnHigh);
+        digitalWrite(pin, isActive == isActiveOnHigh);
     }
 
 public:
@@ -30,14 +32,14 @@ public:
     {
         pin = 0;
         mode = 0;
-        isTriggerOnHigh = false;
+        isActiveOnHigh = false;
         isActive = false;
     }
 
-    void begin(byte pin, bool isTriggerOnHigh)
+    void begin(byte pin, bool isActiveOnHigh)
     {
         setPin(pin);
-        setTrigger(isTriggerOnHigh);
+        setTrigger(isActiveOnHigh);
         setIsActive(false);
         updateState();
     }
@@ -68,3 +70,4 @@ public:
         return isActive;
     }
 };
+#endif

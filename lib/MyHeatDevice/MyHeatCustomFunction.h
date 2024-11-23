@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MYHEATCUSTOMFUNCTION_H
+#define MYHEATCUSTOMFUNCTION_H
+
 #include <Arduino.h>
 
 class MyHeatCustomFunction
@@ -89,3 +91,4 @@ public:
         return this->isActive;
     }
 };
+#endif

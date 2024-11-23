@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const Settings = () => {
+const Wifi = () => {
   const [ssid, setSsid] = useState('');
   const [password, setPassword] = useState('');
 
@@ -71,4 +71,4 @@ const Settings = () => {
   );
 }
 
-export default Settings
+export default Wifi

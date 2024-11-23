@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MYHEATWIFI_H
+#define MYHEATWIFI_H
+
 #include <Arduino.h>
 #include <WiFi.h>
 #include <LittleFS.h>
@@ -147,3 +149,4 @@ public:
         WiFi.mode(WIFI_MODE_STA);
     }
 };
+#endif

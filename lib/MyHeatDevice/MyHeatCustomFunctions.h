@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MYHEATCUSTOMFUNCTIONS_H
+#define MYHEATCUSTOMFUNCTIONS_H
 #include <Arduino.h>
 #include "MyHeatCustomFunction.h"
 #include "MyHeatSave.h"
@@ -121,3 +122,4 @@ public:
         }
     }
 };
+#endif

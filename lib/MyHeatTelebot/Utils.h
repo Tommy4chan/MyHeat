@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MYHEATTELEBOTUTILS_H
+#define MYHEATTELEBOTUTILS_H
 
 #include <Arduino.h>
 #include <StringUtils.h>
@@ -16,3 +17,4 @@ namespace MyHeatTelebot
     byte getValueFromQuery(String query);
     void setFunctionScreen(fb::TextEdit &msg, MyHeatCustomFunction customFunction, byte functionIndex);
 }
+#endif

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MYHEATSAVE_H
+#define MYHEATSAVE_H
+
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <FS.h>
@@ -89,3 +91,4 @@ public:
         return true;
     }
 };
+#endif

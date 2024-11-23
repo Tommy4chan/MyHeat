@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const Settings = () => {
+const SettingsPage = () => {
 
   return (
     <>
@@ -13,4 +13,4 @@ const Settings = () => {
   );
 }
 
-export default Settings
+export default SettingsPage
