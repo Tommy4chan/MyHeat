@@ -1,16 +1,16 @@
-import { useState } from "react";
+import Bot from "../components/settings/Bot"
+import Hardware from "../components/settings/Hardware"
+import Wifi from "../components/settings/wifi"
 
 const SettingsPage = () => {
 
   return (
-    <>
-      <h1 className="text-3xl font-semibold mb-6">Settings</h1>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      
-      </div>
-    </>
-  );
+    <div className="grid grid-cols-1 lg:grid-cols-3 items-start gap-6">
+      <Wifi />
+      <Bot />
+      <Hardware />
+    </div>
+  )
 }
 
 export default SettingsPage

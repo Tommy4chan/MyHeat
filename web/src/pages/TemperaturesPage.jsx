@@ -17,7 +17,7 @@ const TemperaturesPage = () => {
   }, []);
 
   return (
-    <div className="flex items-start gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 items-start gap-6">
       <Temperatures isDeleteVisible={true} />
       <ColumnBlock>
         <h2 className="font-semibold text-2xl">Виявлені датчики</h2>
@@ -28,7 +28,7 @@ const TemperaturesPage = () => {
             >
               Датчик {index + 1}: {temperatureSensor.join(':')}
             </p>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-col md:flex-row">
               <BasicSelect
                 defaultValue={0}
                 options={Array.from({ length: temperatures.length }, (_, i) => ({ value: i, text: `T${i}` }))}

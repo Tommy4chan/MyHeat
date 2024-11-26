@@ -25,7 +25,7 @@ const Temperatures = ({ isDeleteVisible = false }) => {
   return (
     <ColumnBlock>
       <h2 className="font-semibold text-2xl">Температура</h2>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {temperatures?.map((temperature) => (
           <DarkWrapperBlock className="justify-between" key={temperature.id}>
             <p
@@ -34,10 +34,7 @@ const Temperatures = ({ isDeleteVisible = false }) => {
               T{temperature.id}: {temperature.value === -127 ? "Н\\Д" : `${temperature.value}°C`}
             </p>
             {isDeleteVisible && (
-              <div>
-                <BasicButton buttonText={'Видалити'} color="red" />
-              </div>
-
+              <BasicButton buttonText={'Видалити'} color="red" />
             )}
           </DarkWrapperBlock>
         ))}

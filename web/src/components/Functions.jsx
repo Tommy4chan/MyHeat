@@ -5,12 +5,14 @@ import ColumnBlock from "./ui/ColumnBlock";
 
 const Functions = () => {
   const [customFunctions, setCustomFunctions] = useState([]);
+  const maxTemperatureSensors = 4;
 
   useEffect(() => {
     const customFunction = [{
       sign: 2,
       temperatureIndex: [0, 3],
-      deltaValue: [-3, -20],
+      deltaValueSign: [0, 1],
+      deltaValue: [3, 20],
       relayIndex: 3,
       isEnabled: true,
       isActive: false,
@@ -18,6 +20,7 @@ const Functions = () => {
     {
       sign: 0,
       temperatureIndex: [2, 4],
+      deltaValueSign: [0, 0],
       deltaValue: [0, 20],
       relayIndex: 1,
       isEnabled: true,
@@ -26,8 +29,9 @@ const Functions = () => {
     {
       sign: 1,
       temperatureIndex: [2, 1],
+      deltaValueSign: [0, 1],
       deltaValue: [5, 0],
-      relayIndex: 0,
+      relayIndex: 1,
       isEnabled: false,
       isActive: false,
     }];
@@ -35,21 +39,25 @@ const Functions = () => {
     setCustomFunctions(customFunction);
   }, []);
 
-  const getTemperatureText = (temperatureIndex, deltaValue) => {
-    let result = `T${temperatureIndex + 1}`;
+  const getTemperatureText = (customFunctionIndex, temperatureIndex) => {
+    let result = "";
+    if (customFunctions[customFunctionIndex].temperatureIndex[temperatureIndex] !== maxTemperatureSensors)
+      result = `T${customFunctions[customFunctionIndex].temperatureIndex[temperatureIndex]}`;
 
-    if (deltaValue !== 0)
-      result += deltaValue > 0 ? ` + ${deltaValue}` : ` - ${Math.abs(deltaValue)}`;
+    if (customFunctions[customFunctionIndex].deltaValue[temperatureIndex] !== 0) {
+      result += customFunctions[customFunctionIndex].deltaValueSign[temperatureIndex] ? customFunctions[customFunctionIndex].temperatureIndex[temperatureIndex] === maxTemperatureSensors ? '' : ' + ' : ' - ';
+      result += customFunctions[customFunctionIndex].deltaValue[temperatureIndex];
+    }
 
     return result;
   };
 
-  const getCustomFunctionText = (customFunction) => {
-    const temperatureText1 = getTemperatureText(customFunction.temperatureIndex[0], customFunction.deltaValue[0]);
-    const temperatureText2 = getTemperatureText(customFunction.temperatureIndex[1], customFunction.deltaValue[1]);
+  const getCustomFunctionText = (customFunctionIndex) => {
+    const temperatureText1 = getTemperatureText(customFunctionIndex, 0);
+    const temperatureText2 = getTemperatureText(customFunctionIndex, 1);
     let customSign = '<';
 
-    switch (customFunction.sign) {
+    switch (customFunctions[customFunctionIndex].sign) {
       case 1:
         customSign = '=';
       case 2:
@@ -68,7 +76,7 @@ const Functions = () => {
           <DarkWrapperBlock className='justify-between' key={index}>
             <div>
               <p className="text-lg text-gray-300">
-                Функція {index}: {getCustomFunctionText(customFunction)}
+                Функція {index}: {getCustomFunctionText(index)}
               </p>
               <p className="text-lg text-gray-300">
                 Реле: Реле {customFunction.relayIndex}

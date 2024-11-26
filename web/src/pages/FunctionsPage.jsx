@@ -77,7 +77,7 @@ const FunctionsPage = () => {
   }
 
   return (
-    <div className="flex items-start gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 items-start gap-6">
       <Functions />
       <ColumnBlock>
         <h2 className="font-semibold text-2xl">Налаштування Функції</h2>
@@ -91,28 +91,33 @@ const FunctionsPage = () => {
           onChange={(e) => setSelectedCustomFunction(e.target.value)}
         />
         <div>
-          <DarkWrapperBlock className='gap-4 flex-col !items-start'>
-            <div className='flex gap-2'>
-              <p className='text-lg text-gray-300'>Умова:</p>
-              <div className='flex justify-center gap-2'>
-                <BasicSelect
-                  value={customFunctions[selectedCustomFunction]?.temperatureIndex[0]}
-                  options={tempSensorsOptions}
-                  onChange={(e) => handleCustomFunctionTemperatureChange(e, 0)}
-                />
-                <BasicSelect
-                  value={customFunctions[selectedCustomFunction]?.deltaValueSign[0]}
-                  options={deltaValueSignOptions}
-                  onChange={(e) => handleCustomFunctionDeltaValueSignChange(e, 0)}
-                />
-                <Input
-                  placeholder='ΔT'
-                  className='w-12'
-                  maxLength={3}
-                  value={customFunctions[selectedCustomFunction]?.deltaValue[0]}
-                  isNumber={true}
-                  onChange={(e) => handleCustomFunctionDeltaValueChange(e, 0)}
-                />
+          <DarkWrapperBlock className='gap-4 md:!flex-col !items-start'>
+            <div className='flex gap-2 flex-col self-center'>
+              <div className='flex flex-col'>
+                <p className='text-lg text-gray-300'>Параметр 1:</p>
+                <div className='flex gap-2'>
+                  <BasicSelect
+                    value={customFunctions[selectedCustomFunction]?.temperatureIndex[0]}
+                    options={tempSensorsOptions}
+                    onChange={(e) => handleCustomFunctionTemperatureChange(e, 0)}
+                  />
+                  <BasicSelect
+                    value={customFunctions[selectedCustomFunction]?.deltaValueSign[0]}
+                    options={deltaValueSignOptions}
+                    onChange={(e) => handleCustomFunctionDeltaValueSignChange(e, 0)}
+                  />
+                  <Input
+                    placeholder='ΔT'
+                    className='w-12'
+                    maxLength={3}
+                    value={customFunctions[selectedCustomFunction]?.deltaValue[0]}
+                    isNumber={true}
+                    onChange={(e) => handleCustomFunctionDeltaValueChange(e, 0)}
+                  />
+                </div>
+              </div>
+              <div className='flex flex-col'>
+                <p className='text-lg text-gray-300'>Знак:</p>
                 <BasicSelect
                   value={customFunctions[selectedCustomFunction]?.sign}
                   options={[
@@ -126,35 +131,46 @@ const FunctionsPage = () => {
                     setCustomFunctions(newCustomFunctions);
                   }}
                 />
+              </div>
+              <div className='flex flex-col'>
+                <p className='text-lg text-gray-300'>Параметр 2:</p>
+                <div className='flex gap-2'>
+                  <BasicSelect
+                    value={customFunctions[selectedCustomFunction]?.temperatureIndex[1]}
+                    options={tempSensorsOptions}
+                    onChange={(e) => handleCustomFunctionTemperatureChange(e, 1)}
+                  />
+                  <BasicSelect
+                    value={customFunctions[selectedCustomFunction]?.deltaValueSign[1]}
+                    options={deltaValueSignOptions}
+                    onChange={(e) => handleCustomFunctionDeltaValueSignChange(e, 1)}
+                  />
+                  <Input
+                    placeholder='ΔT'
+                    className='w-12'
+                    maxLength={3}
+                    value={Math.abs(customFunctions[selectedCustomFunction]?.deltaValue[1])}
+                    isNumber={true}
+                    onChange={(e) => handleCustomFunctionDeltaValueChange(e, 1)}
+                  />
+                </div>
+              </div>
+              <div className='flex flex-col'>
+                <p className='text-lg text-gray-300'>Реле:</p>
                 <BasicSelect
-                  value={customFunctions[selectedCustomFunction]?.temperatureIndex[1]}
-                  options={tempSensorsOptions}
-                  onChange={(e) => handleCustomFunctionTemperatureChange(e, 1)}
-                />
-                <BasicSelect
-                  value={customFunctions[selectedCustomFunction]?.deltaValueSign[1]}
-                  options={deltaValueSignOptions}
-                  onChange={(e) => handleCustomFunctionDeltaValueSignChange(e, 1)}
-                />
-                <Input
-                  placeholder='ΔT'
-                  className='w-12'
-                  maxLength={3}
-                  value={Math.abs(customFunctions[selectedCustomFunction]?.deltaValue[1])}
-                  isNumber={true}
-                  onChange={(e) => handleCustomFunctionDeltaValueChange(e, 1)}
+                  value={customFunctions[selectedCustomFunction]?.relayIndex}
+                  options={[
+                    ...Array.from({ length: maxRelays }, (_, i) => ({ value: i, text: `Реле ${i}` }))
+                  ]}
+                  onChange={(e) => {
+                    const newCustomFunctions = [...customFunctions];
+                    newCustomFunctions[selectedCustomFunction].relayIndex = e.target.value;
+                    setCustomFunctions(newCustomFunctions);
+                  }}
                 />
               </div>
             </div>
-            <div className='flex gap-2'>
-              <p className='text-lg text-gray-300'>Реле:</p>
-              <BasicSelect
-                value={customFunctions[selectedCustomFunction]?.relayIndex}
-                options={[
-                  ...Array.from({ length: maxRelays }, (_, i) => ({ value: i, text: `Реле ${i}` }))
-                ]}
-              />
-            </div>
+
           </DarkWrapperBlock>
         </div>
         <BasicButton buttonText={'Зберегти'} color="purple" />

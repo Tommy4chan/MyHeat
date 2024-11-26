@@ -4,6 +4,7 @@ board = nodemcu-32s
 framework = arduino
 monitor_speed = 115200
 board_build.filesystem = littlefs
+board_build.partitions = esp32_custom_partition_4mb.csv
 lib_deps = 
 	gyverlibs/FastBot2@^1.0.1
     gyverlibs/EncButton@^3.6.3

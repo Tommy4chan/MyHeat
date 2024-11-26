@@ -5,7 +5,7 @@ import Functions from '../components/Functions'
 
 const DashboardPage = () => {
   return (
-    <div className="flex items-start gap-6">
+    <div className="grid grid-cols-1 xl:grid-cols-3 items-start gap-6">
       <Temperatures />
       <Relays />
       <Functions />

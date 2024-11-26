@@ -34,7 +34,7 @@ const Relays = () => {
             <p className="text-lg text-gray-300">
               Реле {index}: {decode(relay.isActive)}
             </p>
-            <div className='flex gap-2'>
+            <div className='flex gap-2 flex-col md:flex-row'>
               <BasicSelect
                 defaultValue={relay.state}
                 options={[

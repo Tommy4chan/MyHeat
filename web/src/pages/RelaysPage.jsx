@@ -18,13 +18,13 @@ const RelaysPage = () => {
 
 
   return (
-    <div className="flex items-start gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 items-start gap-6">
       <Relays />
       <ColumnBlock>
         <h2 className="font-semibold text-2xl">Налаштування реле</h2>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {relays?.map((relay, index) => (
-          <DarkWrapperBlock className="flex-1 flex-col !items-start" key={index}>
+          <DarkWrapperBlock className="md:!flex-col !items-start" key={index}>
             <p
               className="text-lg text-gray-300"
             >
