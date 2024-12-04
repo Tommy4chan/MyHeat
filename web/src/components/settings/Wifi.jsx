@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
-import ColumnBlock from '../ui/ColumnBlock'
-import BasicButton from '../ui/buttons/BasicButton'
+import Button from '../ui/buttons/Button'
 import DarkWrapperBlock from '../ui/DarkWrapperBlock';
 import Input from '../ui/Input';
+import FormColumn from '../ui/FormColumn';
+import SaveButton from '../ui/buttons/SaveButton';
+import FormField from '../ui/FormField';
 
 const Wifi = () => {
   const [ssid, setSsid] = useState('');
@@ -32,8 +34,7 @@ const Wifi = () => {
   };
 
   return (
-    <ColumnBlock>
-      <h2 className='font-semibold text-2xl'>Wifi</h2>
+    <FormColumn title='Wifi'>
       <div className='flex flex-col gap-2 w-full'>
         <h3 className='text-xl'>Доступні мережі:</h3>
         {networks.length === 0 ?
@@ -45,43 +46,39 @@ const Wifi = () => {
                 <p>{network.ssid}</p>
                 <p>{network.signal}db</p>
               </div>
-              <BasicButton
+              <Button
                 buttonText={'Обрати'}
                 onClick={() => setSsid(network.ssid)}
               />
             </DarkWrapperBlock>
           ))
         }
-        <BasicButton buttonText={'Сканувати'} color='indigo' />
+        <Button buttonText={'Сканувати'} color='indigo' />
       </div>
       <div className='flex flex-col gap-2 w-full'>
         <h3 className='text-xl'>Мережа:</h3>
         <DarkWrapperBlock className='md:!flex-col'>
-          <div className='w-full'>
-            <label class='block mb-1 text-sm text-white'>Ім'я:</label>
+          <FormField label="Ім'я">
             <Input className='w-full' value={ssid} onChange={(e) => setSsid(e.target.value)} />
-          </div>
-          <div className='w-full'>
-            <label class='block mb-1 text-sm text-white'>Пароль:</label>
+          </FormField>
+          <FormField label="Пароль">
             <Input className='w-full' value={password} onChange={(e) => setPassword(e.target.value)} />
-          </div>
+          </FormField>
         </DarkWrapperBlock>
       </div>
       <div className='flex flex-col gap-2 w-full'>
         <h3 className='text-xl'>mDns:</h3>
         <DarkWrapperBlock className='md:!flex-col'>
-          <div className='w-full'>
-            <label class='block mb-1 text-sm text-white'>Адреса контролера:</label>
+          <FormField label="Адреса контролера">
             <div className='relative flex items-center rounded focus:outline-none focus:ring transition duration-300 bg-gray-700 hover:bg-gray-800 focus:ring-gray-800'>
               <Input className='w-full !bg-transparent focus:!ring-0 !pe-0' value={mdns} onChange={(e) => setMdns(e.target.value)} />
               <span className='pe-2 flex items-center'>.local</span>
             </div>
-          </div>
+          </FormField>
         </DarkWrapperBlock>
+        <SaveButton />
       </div>
-
-      <BasicButton buttonText={'Зберегти'} color='purple' onClick={handleSubmit}/>
-    </ColumnBlock>
+    </FormColumn>
   )
 }
 

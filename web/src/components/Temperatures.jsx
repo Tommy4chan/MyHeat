@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import DarkWrapperBlock from "./ui/DarkWrapperBlock";
-import BasicButton from "./ui/buttons/BasicButton";
+import Button from "./ui/buttons/Button";
 import ColumnBlock from "./ui/ColumnBlock";
 
 const Temperatures = ({ isDeleteVisible = false }) => {
@@ -34,7 +34,7 @@ const Temperatures = ({ isDeleteVisible = false }) => {
               T{temperature.id}: {temperature.value === -127 ? "Н\\Д" : `${temperature.value}°C`}
             </p>
             {isDeleteVisible && (
-              <BasicButton buttonText={'Видалити'} color="red" />
+              <Button buttonText={'Видалити'} color="red" />
             )}
           </DarkWrapperBlock>
         ))}

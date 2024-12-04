@@ -1,4 +1,4 @@
-const BasicButton = ({onClick, buttonText, color = 'gray', className = ''}) => {
+const Button = ({onClick, buttonText, color = 'gray', className = ''}) => {
 
     let styles = {
         gray: 'bg-gray-700 hover:bg-gray-800 focus:ring-gray-500',
@@ -21,4 +21,4 @@ const BasicButton = ({onClick, buttonText, color = 'gray', className = ''}) => {
     )
 }
 
-export default BasicButton
+export default Button

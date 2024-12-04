@@ -1,69 +1,73 @@
 import { useState } from "react"
-import BasicButton from "../ui/buttons/BasicButton";
 import Input from "../ui/Input";
-import ColumnBlock from "../ui/ColumnBlock";
 import DarkWrapperBlock from "../ui/DarkWrapperBlock";
-import BasicSelect from "../ui/BasicSelect";
+import Select from "../ui/Select";
+import usePinStore from "../../store/pinStore";
+import { handlePinChange } from "../../utils/pinHandler";
+import FormColumn from "../ui/FormColumn";
+import SaveButton from "../ui/buttons/SaveButton";
+import SelectToggle from "../ui/SelectToggle";
+import FormField from "../ui/FormField";
 
 const Hardware = () => {
+  const {
+    getAvailableInputPins,
+    getAvailableOutputPins,
+  } = usePinStore();
+
   const [displayAddress, setDisplayAddress] = useState('');
-  const [sda, setSda] = useState(0);
-  const [scl, setScl] = useState(1);
+  const [i2c, setI2c] = useState([12, 13]);
   const [displaySleep, setDisplaySleep] = useState(0);
 
   const [encoderInvert, setEncoderInvert] = useState(false);
-  const [encoderA, setEncoderA] = useState(2);
-  const [encoderB, setEncoderB] = useState(3);
-  const [encoderBtn, setEncoderBtn] = useState(4);
+  const [encoder, setEncoder] = useState([14, 15, 22]);
 
-  const pins = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+  const handleI2cPinChange = (e, pinIndex) => {
+    handlePinChange(e, setI2c, i2c, pinIndex);
+  }
+
+  const handleEncoderPinChange = (e, pinIndex) => {
+    handlePinChange(e, setEncoder, encoder, pinIndex);
+  }
 
   return (
-    <ColumnBlock>
-      <h2 className='font-semibold text-2xl'>Фізичний Ввід\Вивід</h2>
-      <div className='w-full'>
-            <label class='block mb-1 text-sm text-white'>Увімкнений:</label>
-            <BasicSelect
-              options={[
-                { value: 'false', text: 'Ні' },
-                { value: 'true', text: 'Так' }
-              ]}
-              className='w-full'
-              color='light-gray'
-            />
-          </div>
+    <FormColumn title='Фізичний Ввід\Вивід'>
+      <FormField label='Увімкнений'>
+        <SelectToggle
+          value={true}
+          onChange={(e) => { }}
+          className='w-full'
+          color="light-gray"
+        />
+      </FormField>
       <div className='flex flex-col gap-2 w-full'>
         <h3 className='text-xl'>Екран:</h3>
         <DarkWrapperBlock className='md:!flex-col'>
           <div className="flex w-full gap-2">
-            <div className='w-full'>
-              <label class='block mb-1 text-sm text-white'>Адреса екрану:</label>
+            <FormField label='Адреса екрану'>
               <Input className='w-full' value={displayAddress} onChange={(e) => setDisplayAddress(e.target.value)} />
-            </div>
-            <div className='w-full'>
-              <label class='block mb-1 text-sm text-white'>Сон (секунди):</label>
+            </FormField>
+            <FormField label='Сон (секунди)'>
               <Input className='w-full' value={displaySleep} onChange={(e) => setDisplaySleep(e.target.value)} isNumber={true} />
-            </div>
+            </FormField>
           </div>
           <div className="flex w-full gap-2">
-            <div className='w-full'>
-              <label class='block mb-1 text-sm text-white'>SDA:</label>
-              <BasicSelect
-                value={sda}
-                onChange={(e) => setSda(e.target.value)}
-                options={Array.from({ length: pins.length }, (_, i) => ({ value: i, text: `D${i}` }))}
+            <FormField label='SDA'>
+              <Select
+                value={i2c[0]}
+                options={getAvailableOutputPins(i2c[0])}
+                onChange={(e) => handleI2cPinChange(e, 0)}
                 className={'w-full'}
               />
-            </div>
-            <div className='w-full'>
-              <label class='block mb-1 text-sm text-white'>SCL:</label>
-              <BasicSelect
-                value={scl}
-                onChange={(e) => setScl(e.target.value)}
-                options={Array.from({ length: pins.length }, (_, i) => ({ value: i, text: `D${i}` }))}
+            </FormField>
+            <FormField label='SCL'>
+              <Select
+                value={i2c[1]}
+                options={getAvailableOutputPins(i2c[1])}
+                onChange={(e) => handleI2cPinChange(e, 1)}
                 className={'w-full'}
               />
-            </div>
+            </FormField>
           </div>
 
         </DarkWrapperBlock>
@@ -72,53 +76,45 @@ const Hardware = () => {
       <div className='flex flex-col gap-2 w-full'>
         <h3 className='text-xl'>Енкодер:</h3>
         <DarkWrapperBlock className='md:!flex-col'>
-        <div className='w-full'>
-            <label class='block mb-1 text-sm text-white'>Інвертувати:</label>
-            <BasicSelect
+          <FormField label='Інвертувати'>
+            <SelectToggle
               value={encoderInvert}
               onChange={(e) => setEncoderInvert(e.target.value)}
-              options={[
-                { value: 'false', text: 'Ні' },
-                { value: 'true', text: 'Так' }
-              ]}
-              className={'w-full'}
+              className='w-full'
             />
-          </div>
+          </FormField>
           <div className="flex w-full gap-2">
-            <div className='w-full'>
-              <label class='block mb-1 text-sm text-white'>A:</label>
-              <BasicSelect
-                value={encoderA}
-                onChange={(e) => setEncoderA(e.target.value)}
-                options={Array.from({ length: pins.length }, (_, i) => ({ value: i, text: `D${i}` }))}
+            <FormField label='CLK'>
+              <Select
+                value={encoder[0]}
+                onChange={(e) => handleEncoderPinChange(e, 0)}
+                options={getAvailableInputPins(encoder[0])}
                 className={'w-full'}
               />
-            </div>
-            <div className='w-full'>
-              <label class='block mb-1 text-sm text-white'>B:</label>
-              <BasicSelect
-                value={encoderB}
-                onChange={(e) => setEncoderB(e.target.value)}
-                options={Array.from({ length: pins.length }, (_, i) => ({ value: i, text: `D${i}` }))}
+            </FormField>
+            <FormField label='DT'>
+              <Select
+                value={encoder[1]}
+                onChange={(e) => handleEncoderPinChange(e, 1)}
+                options={getAvailableInputPins(encoder[1])}
                 className={'w-full'}
               />
-            </div>
-            <div className='w-full'>
-              <label class='block mb-1 text-sm text-white'>BTN:</label>
-              <BasicSelect
-                value={encoderBtn}
-                onChange={(e) => setEncoderBtn(e.target.value)}
-                options={Array.from({ length: pins.length }, (_, i) => ({ value: i, text: `D${i}` }))}
+            </FormField>
+            <FormField label='SW'>
+              <Select
+                value={encoder[2]}
+                onChange={(e) => handleEncoderPinChange(e, 2)}
+                options={getAvailableInputPins(encoder[2])}
                 className={'w-full'}
               />
-            </div>
+            </FormField>
           </div>
 
         </DarkWrapperBlock>
       </div>
 
-      <BasicButton buttonText={'Зберегти'} color='purple' />
-    </ColumnBlock>
+      <SaveButton />
+    </FormColumn>
   )
 }
 

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import Temperatures from "../components/Temperatures"
 import DarkWrapperBlock from "../components/ui/DarkWrapperBlock";
-import BasicButton from "../components/ui/buttons/BasicButton";
-import BasicSelect from "../components/ui/BasicSelect";
+import Button from "../components/ui/buttons/Button";
+import Select from "../components/ui/Select";
 import ColumnBlock from "../components/ui/ColumnBlock";
+import SaveButton from "../components/ui/buttons/SaveButton";
 
 const TemperaturesPage = () => {
   const [temperatures, setTemperatures] = useState([]);
@@ -29,15 +30,15 @@ const TemperaturesPage = () => {
               Датчик {index + 1}: {temperatureSensor.join(':')}
             </p>
             <div className="flex gap-2 flex-col md:flex-row">
-              <BasicSelect
+              <Select
                 defaultValue={0}
                 options={Array.from({ length: temperatures.length }, (_, i) => ({ value: i, text: `T${i}` }))}
               />
-              <BasicButton buttonText={'Зберегти'} color="purple" />
+              <SaveButton />
             </div>
           </DarkWrapperBlock>
         ))}
-        <BasicButton buttonText={'Виявити датчики'} color="indigo" />
+        <Button buttonText={'Виявити датчики'} color="indigo" />
       </ColumnBlock>
     </div>
   )

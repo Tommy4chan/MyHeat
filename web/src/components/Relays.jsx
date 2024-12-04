@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import BasicSelect from './ui/BasicSelect';
+import Select from './ui/Select';
 import DarkWrapperBlock from './ui/DarkWrapperBlock';
-import BasicButton from './ui/buttons/BasicButton';
+import Button from './ui/buttons/Button';
 import ColumnBlock from './ui/ColumnBlock';
+import SaveButton from './ui/buttons/SaveButton';
 
 const Relays = () => {
   const [relays, setRelays] = useState([]);
@@ -35,7 +36,7 @@ const Relays = () => {
               Реле {index}: {decode(relay.isActive)}
             </p>
             <div className='flex gap-2 flex-col md:flex-row'>
-              <BasicSelect
+              <Select
                 defaultValue={relay.state}
                 options={[
                   { value: 0, text: "Вимкнено" },
@@ -43,7 +44,7 @@ const Relays = () => {
                   { value: 2, text: "Авто" },
                 ]}
               />
-              <BasicButton buttonText={'Зберегти'} color='purple' />
+              <SaveButton />
             </div>
 
           </DarkWrapperBlock>

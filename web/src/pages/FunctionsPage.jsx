@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import Functions from '../components/Functions'
 import ColumnBlock from '../components/ui/ColumnBlock'
-import BasicSelect from '../components/ui/BasicSelect';
+import Select from '../components/ui/Select';
 import DarkWrapperBlock from '../components/ui/DarkWrapperBlock';
-import BasicButton from '../components/ui/buttons/BasicButton';
+import Button from '../components/ui/buttons/Button';
 import Input from '../components/ui/Input';
+import SaveButton from '../components/ui/buttons/SaveButton';
 
 const FunctionsPage = () => {
   const [customFunctions, setCustomFunctions] = useState([]);
@@ -81,7 +82,7 @@ const FunctionsPage = () => {
       <Functions />
       <ColumnBlock>
         <h2 className="font-semibold text-2xl">Налаштування Функції</h2>
-        <BasicSelect
+        <Select
           value={selectedCustomFunction}
           options={[
             ...Array.from({ length: customFunctions.length }, (_, i) => ({ value: i, text: `Функція ${i}` })),
@@ -96,12 +97,12 @@ const FunctionsPage = () => {
               <div className='flex flex-col'>
                 <p className='text-lg text-gray-300'>Параметр 1:</p>
                 <div className='flex gap-2'>
-                  <BasicSelect
+                  <Select
                     value={customFunctions[selectedCustomFunction]?.temperatureIndex[0]}
                     options={tempSensorsOptions}
                     onChange={(e) => handleCustomFunctionTemperatureChange(e, 0)}
                   />
-                  <BasicSelect
+                  <Select
                     value={customFunctions[selectedCustomFunction]?.deltaValueSign[0]}
                     options={deltaValueSignOptions}
                     onChange={(e) => handleCustomFunctionDeltaValueSignChange(e, 0)}
@@ -118,7 +119,7 @@ const FunctionsPage = () => {
               </div>
               <div className='flex flex-col'>
                 <p className='text-lg text-gray-300'>Знак:</p>
-                <BasicSelect
+                <Select
                   value={customFunctions[selectedCustomFunction]?.sign}
                   options={[
                     { value: 0, text: '<' },
@@ -135,12 +136,12 @@ const FunctionsPage = () => {
               <div className='flex flex-col'>
                 <p className='text-lg text-gray-300'>Параметр 2:</p>
                 <div className='flex gap-2'>
-                  <BasicSelect
+                  <Select
                     value={customFunctions[selectedCustomFunction]?.temperatureIndex[1]}
                     options={tempSensorsOptions}
                     onChange={(e) => handleCustomFunctionTemperatureChange(e, 1)}
                   />
-                  <BasicSelect
+                  <Select
                     value={customFunctions[selectedCustomFunction]?.deltaValueSign[1]}
                     options={deltaValueSignOptions}
                     onChange={(e) => handleCustomFunctionDeltaValueSignChange(e, 1)}
@@ -157,7 +158,7 @@ const FunctionsPage = () => {
               </div>
               <div className='flex flex-col'>
                 <p className='text-lg text-gray-300'>Реле:</p>
-                <BasicSelect
+                <Select
                   value={customFunctions[selectedCustomFunction]?.relayIndex}
                   options={[
                     ...Array.from({ length: maxRelays }, (_, i) => ({ value: i, text: `Реле ${i}` }))
@@ -173,7 +174,7 @@ const FunctionsPage = () => {
 
           </DarkWrapperBlock>
         </div>
-        <BasicButton buttonText={'Зберегти'} color="purple" />
+        <SaveButton />
       </ColumnBlock>
     </div>
   )

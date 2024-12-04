@@ -1,5 +1,4 @@
-const BasicSelect = ({ value, options, color = 'gray', onChange, className }) => {
-
+const Select = ({ value, options, color = 'gray', onChange, className }) => {
     const styles = {
         gray: 'bg-gray-700 hover:bg-gray-800 focus:ring-gray-800',
         'light-gray': 'bg-gray-600 hover:bg-gray-700 focus:ring-gray-700',
@@ -18,4 +17,4 @@ const BasicSelect = ({ value, options, color = 'gray', onChange, className }) =>
     )
 }
 
-export default BasicSelect
+export default Select

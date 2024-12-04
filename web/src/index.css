@@ -1,3 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+  .masonry {
+    @apply gap-6;
+    column-gap: 1.5rem;
+    column-count: 1;
+  }
+  @screen lg {
+    .masonry {
+      column-count: 3;
+    }
+  }
+  .break-inside {
+    break-inside: avoid;
+    @apply mb-6
+  }
+}

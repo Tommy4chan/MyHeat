@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import BasicButton from "./ui/buttons/BasicButton";
+import Button from "./ui/buttons/Button";
 import DarkWrapperBlock from "./ui/DarkWrapperBlock";
 import ColumnBlock from "./ui/ColumnBlock";
 
@@ -88,7 +88,7 @@ const Functions = () => {
                 </p>
               </div>
             </div>
-            <BasicButton
+            <Button
               buttonText={customFunction.isEnabled ? 'Вимкнути' : 'Увімкнути'}
               color={customFunction.isEnabled ? 'red' : 'green'}
             />

@@ -1,14 +1,20 @@
 import Bot from "../components/settings/Bot"
 import Hardware from "../components/settings/Hardware"
-import Wifi from "../components/settings/wifi"
+import Device from "../components/settings/Device"
+import NTP from "../components/settings/NTP"
+import Wifi from "../components/settings/Wifi"
+import Temperature from "../components/settings/Temperature"
 
 const SettingsPage = () => {
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 items-start gap-6">
+    <div className="masonry">
       <Wifi />
       <Bot />
       <Hardware />
+      <NTP />
+      <Temperature />
+      <Device />
     </div>
   )
 }
