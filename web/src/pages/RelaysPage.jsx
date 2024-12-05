@@ -7,10 +7,14 @@ import ColumnBlock from "../components/ui/ColumnBlock";
 import usePinStore from "../store/pinStore";
 import { handlePinChange } from "../utils/pinHandler";
 import FormField from "../components/ui/FormField";
+import WrapperBlock from "../components/ui/WrapperBlock";
+import Input from "../components/ui/Input";
+import SaveButton from "../components/ui/buttons/SaveButton";
 
 const RelaysPage = () => {
   const [relaysParameters, setRelaysParameters] = useState([]);
   const [relaysPins, setRelaysPins] = useState([]);
+  const [relaysCount, setRelaysCount] = useState(4);
 
   const {
     getAvailableOutputPins,
@@ -32,6 +36,17 @@ const RelaysPage = () => {
       <Relays />
       <ColumnBlock>
         <h2 className="font-semibold text-2xl">Налаштування реле</h2>
+          <DarkWrapperBlock className="md:!flex-col">
+            <FormField label='Кількість реле'>
+              <Input
+                value={relaysCount}
+                onChange={(e) => setRelaysCount(e.target.value)}
+                isNumber={true}
+                maxLength={2}
+                className='w-full'
+              />
+            </FormField>
+          </DarkWrapperBlock>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {relaysParameters.map((relay, index) => (
             <DarkWrapperBlock className="md:!flex-col !items-start" key={index}>
@@ -59,7 +74,7 @@ const RelaysPage = () => {
             </DarkWrapperBlock>
           ))}
         </div>
-        <Button buttonText={'Зберегти'} color="purple" />
+        <SaveButton />
       </ColumnBlock>
     </div>
   )

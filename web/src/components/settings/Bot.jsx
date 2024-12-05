@@ -5,6 +5,7 @@ import SaveButton from "../ui/buttons/SaveButton";
 import FormColumn from "../ui/FormColumn";
 import FormField from "../ui/FormField";
 import SelectToggle from "../ui/SelectToggle";
+import WrapperBlock from "../ui/WrapperBlock";
 
 const Bot = () => {
   const [botToken, setBotToken] = useState('');
@@ -13,7 +14,7 @@ const Bot = () => {
 
   return (
     <FormColumn title='Телеграм бот'>
-      <div className='flex flex-col gap-2 w-full'>
+      <WrapperBlock>
         <DarkWrapperBlock className='md:!flex-col'>
           <FormField label='Токен'>
             <Input className='w-full' value={botToken} onChange={(e) => setBotToken(e.target.value)} />
@@ -29,7 +30,7 @@ const Bot = () => {
             />
           </FormField>
         </DarkWrapperBlock>
-      </div>
+      </WrapperBlock>
       <SaveButton />
     </FormColumn>
   )

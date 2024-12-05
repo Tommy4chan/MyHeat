@@ -8,6 +8,7 @@ import FormColumn from "../ui/FormColumn";
 import SaveButton from "../ui/buttons/SaveButton";
 import SelectToggle from "../ui/SelectToggle";
 import FormField from "../ui/FormField";
+import WrapperBlock from "../ui/WrapperBlock";
 
 const Hardware = () => {
   const {
@@ -40,7 +41,7 @@ const Hardware = () => {
           color="light-gray"
         />
       </FormField>
-      <div className='flex flex-col gap-2 w-full'>
+      <WrapperBlock>
         <h3 className='text-xl'>Екран:</h3>
         <DarkWrapperBlock className='md:!flex-col'>
           <div className="flex w-full gap-2">
@@ -71,9 +72,9 @@ const Hardware = () => {
           </div>
 
         </DarkWrapperBlock>
-      </div>
+      </WrapperBlock>
 
-      <div className='flex flex-col gap-2 w-full'>
+      <WrapperBlock>
         <h3 className='text-xl'>Енкодер:</h3>
         <DarkWrapperBlock className='md:!flex-col'>
           <FormField label='Інвертувати'>
@@ -111,7 +112,7 @@ const Hardware = () => {
           </div>
 
         </DarkWrapperBlock>
-      </div>
+      </WrapperBlock>
 
       <SaveButton />
     </FormColumn>

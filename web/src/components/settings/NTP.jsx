@@ -1,23 +1,26 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import DarkWrapperBlock from "../ui/DarkWrapperBlock"
 import Input from "../ui/Input"
 import Select from "../ui/Select"
 import FormColumn from "../ui/FormColumn"
 import SaveButton from "../ui/buttons/SaveButton"
 import FormField from "../ui/FormField"
+import WrapperBlock from "../ui/WrapperBlock"
 
 const NTP = () => {
   const [ntpServer, setNtpServer] = useState('');
   const [timeZone, setTimeZone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
 
-  const timeZoneOptions = Intl.supportedValuesOf('timeZone').map(tz => ({
-    value: tz,
-    text: tz.replace('_', ' ')
-  }));
+  const timeZoneOptions = useMemo(() => {
+    return Intl.supportedValuesOf('timeZone').map(tz => ({
+      value: tz,
+      text: tz.replace('_', ' ')
+    }));
+  }, []);
 
   return (
     <FormColumn title='NTP'>
-      <div className='flex flex-col gap-2 w-full'>
+      <WrapperBlock>
         <DarkWrapperBlock className='md:!flex-col'>
           <FormField label='Сервер'>
             <Input className='w-full' value={ntpServer} onChange={(e) => setNtpServer(e.target.value)} />
@@ -31,7 +34,7 @@ const NTP = () => {
             />
           </FormField>
         </DarkWrapperBlock>
-      </div>
+      </WrapperBlock>
 
       <SaveButton />
     </FormColumn>

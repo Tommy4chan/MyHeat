@@ -5,6 +5,7 @@ import Input from '../ui/Input';
 import FormColumn from '../ui/FormColumn';
 import SaveButton from '../ui/buttons/SaveButton';
 import FormField from '../ui/FormField';
+import WrapperBlock from '../ui/WrapperBlock';
 
 const Wifi = () => {
   const [ssid, setSsid] = useState('');
@@ -35,7 +36,7 @@ const Wifi = () => {
 
   return (
     <FormColumn title='Wifi'>
-      <div className='flex flex-col gap-2 w-full'>
+      <WrapperBlock>
         <h3 className='text-xl'>Доступні мережі:</h3>
         {networks.length === 0 ?
           <DarkWrapperBlock><p>Мереж не знайдено</p></DarkWrapperBlock>
@@ -54,8 +55,8 @@ const Wifi = () => {
           ))
         }
         <Button buttonText={'Сканувати'} color='indigo' />
-      </div>
-      <div className='flex flex-col gap-2 w-full'>
+      </WrapperBlock>
+      <WrapperBlock>
         <h3 className='text-xl'>Мережа:</h3>
         <DarkWrapperBlock className='md:!flex-col'>
           <FormField label="Ім'я">
@@ -65,8 +66,8 @@ const Wifi = () => {
             <Input className='w-full' value={password} onChange={(e) => setPassword(e.target.value)} />
           </FormField>
         </DarkWrapperBlock>
-      </div>
-      <div className='flex flex-col gap-2 w-full'>
+      </WrapperBlock>
+      <WrapperBlock>
         <h3 className='text-xl'>mDns:</h3>
         <DarkWrapperBlock className='md:!flex-col'>
           <FormField label="Адреса контролера">
@@ -76,8 +77,8 @@ const Wifi = () => {
             </div>
           </FormField>
         </DarkWrapperBlock>
-        <SaveButton />
-      </div>
+      </WrapperBlock>
+      <SaveButton />
     </FormColumn>
   )
 }

@@ -5,6 +5,11 @@ import Button from "../components/ui/buttons/Button";
 import Select from "../components/ui/Select";
 import ColumnBlock from "../components/ui/ColumnBlock";
 import SaveButton from "../components/ui/buttons/SaveButton";
+import WrapperBlock from "../components/ui/WrapperBlock";
+import usePinStore from "../store/pinStore";
+import { handlePinChange } from "../utils/pinHandler";
+import FormField from "../components/ui/FormField";
+import Input from "../components/ui/Input";
 
 const TemperaturesPage = () => {
   const [temperatures, setTemperatures] = useState([]);
@@ -17,11 +22,47 @@ const TemperaturesPage = () => {
     setTemperatureSensors([[40, 255, 6, 61, 132, 22, 3, 89], [39, 255, 2, 32, 211, 76, 9, 33]]);
   }, []);
 
+  const {
+    getAvailableInputPins,
+  } = usePinStore();
+
+  const [temperaturePin, setTemperaturePin] = useState(21);
+  const [temperatureSensorsCount, setTemperatureSensorsCount] = useState(1);
+
+  const handleTemperaturePinChange = (e) => {
+    handlePinChange(e, setTemperaturePin, temperaturePin);
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 items-start gap-6">
       <Temperatures isDeleteVisible={true} />
       <ColumnBlock>
-        <h2 className="font-semibold text-2xl">Виявлені датчики</h2>
+        <h2 className="font-semibold text-2xl">Датчики температури</h2>
+        <WrapperBlock>
+          <h3 className='text-xl'>Налаштування:</h3>
+          <DarkWrapperBlock className="md:!flex-col">
+            <FormField label='Пін'>
+              <Select
+                value={temperaturePin}
+                options={getAvailableInputPins(temperaturePin)}
+                onChange={handleTemperaturePinChange}
+                className='w-full'
+              />
+            </FormField>
+            <FormField label='Кількість датчиків'>
+              <Input
+                value={temperatureSensorsCount}
+                onChange={(e) => setTemperatureSensorsCount(e.target.value)}
+                isNumber={true}
+                maxLength={3}
+                className='w-full'
+              />
+            </FormField>
+          </DarkWrapperBlock>
+          <SaveButton />
+        </WrapperBlock>
+        <WrapperBlock>
+        <h3 className='text-xl'>Датчики:</h3>
         {temperatureSensors?.map((temperatureSensor, index) => (
           <DarkWrapperBlock className="justify-between" key={index}>
             <p
@@ -39,6 +80,7 @@ const TemperaturesPage = () => {
           </DarkWrapperBlock>
         ))}
         <Button buttonText={'Виявити датчики'} color="indigo" />
+        </WrapperBlock>
       </ColumnBlock>
     </div>
   )
