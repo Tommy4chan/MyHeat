@@ -150,13 +150,16 @@ namespace MyHeatTelebot
             setUserScreen(chat_id, ScreenType::TEMP_DISCOVER_SCREEN);
             byte addressesCount = myHeatDevice.discoverTemperatureSensor();
 
-            if (addressesCount) {
+            if (addressesCount)
+            {
                 msg.text = F("\nДатчики виявлено");
                 msg.setInlineMenu(getDiscoveredTemperatureSensorsInlineMenu(addressesCount, myHeatDevice.getDiscoveredTemperatureSensorAddresses()));
-            } else {
+            }
+            else
+            {
                 msg.text = F("Датчик не виявлено");
             }
-            
+
             break;
         }
         case su::SH("deleteTemperatureSensor"):
@@ -178,11 +181,13 @@ namespace MyHeatTelebot
         case su::SH("setTemperatureIndex"):
         {
             User user = getUser(chat_id);
-            if (user.screenType == ScreenType::TEMP_DISCOVER_SCREEN) {
+            if (user.screenType == ScreenType::TEMP_DISCOVER_SCREEN)
+            {
                 myHeatDevice.setTemperatureSensorAddress(value, user.tempValue1);
                 msg.text = F("Датчик встановлено \n\n");
             }
-            else if (user.screenType == ScreenType::TEMP_DELETE_SCREEN) {
+            else if (user.screenType == ScreenType::TEMP_DELETE_SCREEN)
+            {
                 myHeatDevice.deleteTemperatureSensorAddress(value);
                 msg.text = F("Датчик видалено \n\n");
             }

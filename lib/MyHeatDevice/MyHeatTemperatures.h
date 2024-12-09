@@ -114,5 +114,13 @@ public:
     {
         return temperatures;
     }
+
+    float getTemperature(byte index)
+    {
+        if (index == TN_INDEX)
+            return 0;
+
+        return temperatures[index];
+    }
 };
 #endif

@@ -1,18 +1,11 @@
-import React, { useEffect, useState } from 'react'
 import Select from './ui/Select';
 import DarkWrapperBlock from './ui/DarkWrapperBlock';
-import Button from './ui/buttons/Button';
 import ColumnBlock from './ui/ColumnBlock';
 import SaveButton from './ui/buttons/SaveButton';
+import useRelayStore from '../store/relayStore';
 
 const Relays = () => {
-  const [relays, setRelays] = useState([]);
-
-  useEffect(() => {
-    const fetchedRelays = [{ state: 1, isActive: true }, { state: 2, isActive: false }, { state: 2, isActive: false }, { state: 0, isActive: true }];
-
-    setRelays(fetchedRelays);
-  }, []);
+  const { relays } = useRelayStore();
 
   const decode = (state) => {
     switch (Number(state)) {
@@ -37,7 +30,7 @@ const Relays = () => {
             </p>
             <div className='flex gap-2 flex-col md:flex-row'>
               <Select
-                defaultValue={relay.state}
+                value={relay.mode}
                 options={[
                   { value: 0, text: "Вимкнено" },
                   { value: 1, text: "Увімкнено" },

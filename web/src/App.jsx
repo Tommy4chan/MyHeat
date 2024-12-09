@@ -6,14 +6,17 @@ import TemperaturesPage from './pages/TemperaturesPage';
 import RelaysPage from './pages/RelaysPage';
 import FunctionsPage from './pages/FunctionsPage';
 import usePinStore from './store/pinStore';
+import useWebSocketStore from './store/websocketStore';
 
 function App() {
   const [page, setPage] = useState('dashboard');
 
   const { initializePins } = usePinStore();
+  const connect = useWebSocketStore(state => state.connect);
 
   useEffect(() => {
     initializePins();
+    connect();
   }, []);
 
   return (

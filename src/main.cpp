@@ -29,4 +29,5 @@ void loop()
 
 	myHeatWifi.tick();
 	myHeatDevice.tick();
+	MyHeatWeb::tick();
 }

@@ -4,13 +4,14 @@
 #include "MyHeatCustomFunction.h"
 #include "MyHeatSave.h"
 #include <LittleFS.h>
+#include "MyHeatTemperatures.h"
 
 class MyHeatCustomFunctions : public MyHeatSaveInterface
 {
 private:
     MyHeatCustomFunction customFunctions[FUNCTION_COUNT];
     MyHeatSave *customFunctionsData;
-    float *temperatures;
+    MyHeatTemperatures *temperatures;
 
     void serialize(JsonDocument &doc)
     {
@@ -43,7 +44,7 @@ private:
     }
 
 public:
-    void begin(float *temperatures)
+    void begin(MyHeatTemperatures *temperatures)
     {
         this->temperatures = temperatures;
         customFunctionsData = new MyHeatSave(&LittleFS, "/customFunctions.json", this);
@@ -94,8 +95,8 @@ public:
     {
         for (int i = 0; i < FUNCTION_COUNT; i++)
         {
-            float tempA = temperatures[customFunctions[i].getTemperatureIndex(0)] + customFunctions[i].getDeltaValue(0);
-            float tempB = temperatures[customFunctions[i].getTemperatureIndex(1)] + customFunctions[i].getDeltaValue(1);
+            float tempA = temperatures->getTemperature(customFunctions[i].getTemperatureIndex(0)) + customFunctions[i].getDeltaValue(0);
+            float tempB = temperatures->getTemperature(customFunctions[i].getTemperatureIndex(1)) + customFunctions[i].getDeltaValue(1);
 
             if (!customFunctions[i].getIsEnabled())
             {

@@ -8,7 +8,7 @@ namespace MyHeatTelebot
 
         for (int i = 0; i < 2; i++)
         {
-            if (customFunction.getTemperatureIndex(i) == TEMPERATURE_COUNT)
+            if (customFunction.getTemperatureIndex(i) == TN_INDEX)
             {
                 result[i] += String(customFunction.getDeltaValue(i));
             }

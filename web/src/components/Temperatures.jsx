@@ -1,26 +1,10 @@
-import { useEffect, useState } from "react";
 import DarkWrapperBlock from "./ui/DarkWrapperBlock";
 import Button from "./ui/buttons/Button";
 import ColumnBlock from "./ui/ColumnBlock";
+import useTemperatureStore from "../store/temperatureStore";
 
 const Temperatures = ({ isDeleteVisible = false }) => {
-  const [temperatures, setTemperatures] = useState([]);
-
-  useEffect(() => {
-    const fetchedTemperatures = [76.34, 72.12, 45.88, -127, -127, -3.12];
-    const half = Math.ceil(fetchedTemperatures.length / 2);
-
-    let formattedTemperatures = [];
-
-    for (let i = 0; i < half; i++) {
-      formattedTemperatures.push({ id: i, value: fetchedTemperatures[i] });
-      if (half + i < fetchedTemperatures.length) {
-        formattedTemperatures.push({ id: half + i, value: fetchedTemperatures[half + i] });
-      }
-    }
-
-    setTemperatures(formattedTemperatures);
-  }, []);
+  const { temperatures } = useTemperatureStore();
 
   return (
     <ColumnBlock>

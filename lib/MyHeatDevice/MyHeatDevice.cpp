@@ -5,7 +5,7 @@ void MyHeatDevice::begin()
     MyHeatTemperatures::begin();
 
     updateTemperature();
-    MyHeatCustomFunctions::begin(getTemperatures());
+    MyHeatCustomFunctions::begin(this);
     MyHeatRelays::begin(getCustomFunctions());
     updateRelays();
 

@@ -1,52 +1,21 @@
-import { useEffect, useState } from "react";
 import Button from "./ui/buttons/Button";
 import DarkWrapperBlock from "./ui/DarkWrapperBlock";
 import ColumnBlock from "./ui/ColumnBlock";
+import useFunctionStore from "../store/functionStore";
 
 const Functions = () => {
-  const [customFunctions, setCustomFunctions] = useState([]);
-  const maxTemperatureSensors = 4;
+  const { functions } = useFunctionStore();
 
-  useEffect(() => {
-    const customFunction = [{
-      sign: 2,
-      temperatureIndex: [0, 3],
-      deltaValueSign: [0, 1],
-      deltaValue: [3, 20],
-      relayIndex: 3,
-      isEnabled: true,
-      isActive: false,
-    },
-    {
-      sign: 0,
-      temperatureIndex: [2, 4],
-      deltaValueSign: [0, 0],
-      deltaValue: [0, 20],
-      relayIndex: 1,
-      isEnabled: true,
-      isActive: false,
-    },
-    {
-      sign: 1,
-      temperatureIndex: [2, 1],
-      deltaValueSign: [0, 1],
-      deltaValue: [5, 0],
-      relayIndex: 1,
-      isEnabled: false,
-      isActive: false,
-    }];
-
-    setCustomFunctions(customFunction);
-  }, []);
+  const tnIndex = 255;
 
   const getTemperatureText = (customFunctionIndex, temperatureIndex) => {
     let result = "";
-    if (customFunctions[customFunctionIndex].temperatureIndex[temperatureIndex] !== maxTemperatureSensors)
-      result = `T${customFunctions[customFunctionIndex].temperatureIndex[temperatureIndex]}`;
+    if (functions[customFunctionIndex].temperatureIndex[temperatureIndex] !== tnIndex)
+      result = `T${functions[customFunctionIndex].temperatureIndex[temperatureIndex]}`;
 
-    if (customFunctions[customFunctionIndex].deltaValue[temperatureIndex] !== 0) {
-      result += customFunctions[customFunctionIndex].deltaValueSign[temperatureIndex] ? customFunctions[customFunctionIndex].temperatureIndex[temperatureIndex] === maxTemperatureSensors ? '' : ' + ' : ' - ';
-      result += customFunctions[customFunctionIndex].deltaValue[temperatureIndex];
+    if (functions[customFunctionIndex].deltaValue[temperatureIndex] !== 0) {
+      result += functions[customFunctionIndex].deltaValueSign[temperatureIndex] ? functions[customFunctionIndex].temperatureIndex[temperatureIndex] === tnIndex ? '' : ' + ' : ' - ';
+      result += functions[customFunctionIndex].deltaValue[temperatureIndex];
     }
 
     return result;
@@ -57,7 +26,7 @@ const Functions = () => {
     const temperatureText2 = getTemperatureText(customFunctionIndex, 1);
     let customSign = '<';
 
-    switch (customFunctions[customFunctionIndex].sign) {
+    switch (functions[customFunctionIndex].sign) {
       case 1:
         customSign = '=';
       case 2:
@@ -65,14 +34,13 @@ const Functions = () => {
     }
 
     return `${temperatureText1} ${customSign} ${temperatureText2}`;
-
   }
 
   return (
     <ColumnBlock>
       <h2 className="font-semibold text-2xl">Функції</h2>
       <div className="flex flex-col gap-4">
-        {customFunctions?.map((customFunction, index) => (
+        {functions?.map((customFunction, index) => (
           <DarkWrapperBlock className='justify-between' key={index}>
             <div>
               <p className="text-lg text-gray-300">

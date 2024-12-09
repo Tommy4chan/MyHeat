@@ -120,7 +120,7 @@ namespace MyHeatTelebot
             }
         }
 
-        inlineMenu.addButton(F("TN"), "functionSetTemp_" + String(TEMPERATURE_COUNT));
+        inlineMenu.addButton(F("TN"), "functionSetTemp_" + String(TN_INDEX));
 
         return inlineMenu;
     }

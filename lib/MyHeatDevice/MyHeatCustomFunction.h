@@ -7,9 +7,9 @@ class MyHeatCustomFunction
 {
 private:
     byte sign;
-    byte temperatureIndex[2];
+    unsigned char temperatureIndex[2];
     float deltaValue[2];
-    byte relayIndex;
+    unsigned char relayIndex;
     bool isEnabled;
     bool isActive;
 
