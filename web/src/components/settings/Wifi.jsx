@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Button from '../ui/buttons/Button'
 import DarkWrapperBlock from '../ui/DarkWrapperBlock';
 import Input from '../ui/Input';
@@ -6,17 +6,30 @@ import FormColumn from '../ui/FormColumn';
 import SaveButton from '../ui/buttons/SaveButton';
 import FormField from '../ui/FormField';
 import WrapperBlock from '../ui/WrapperBlock';
+import useSettingStore from '../../store/settingStore';
 
 const Wifi = () => {
   const [ssid, setSsid] = useState('');
   const [password, setPassword] = useState('');
+
+  const { setWifiCredentials, getWifiSettings, startWifiScan, wifiSettings, scannedWifiNetworks } = useSettingStore();
+
+  useEffect(() => {
+    getWifiSettings();
+  }, []);
+
+  useEffect(() => {
+    setSsid(wifiSettings.ssid);
+    setPassword(wifiSettings.password);
+  }, [wifiSettings]);
+
   const [mdns, setMdns] = useState('');
 
-  const [networks, setNetworks] = useState([
-    { id: 1, ssid: 'www.matrixtel.net', signal: 80 },
-    { id: 2, ssid: 'Network 2', signal: 60 },
-    { id: 3, ssid: 'Network 3', signal: 40 },
-  ]);
+  const [networks, setNetworks] = useState([]);
+
+  useEffect(() => {
+    setNetworks(scannedWifiNetworks);
+  }, [scannedWifiNetworks]);
 
   const handleSubmit = () => {
     const request = async () => {
@@ -45,7 +58,7 @@ const Wifi = () => {
             <DarkWrapperBlock key={network.id}>
               <div className='flex justify-between w-full'>
                 <p>{network.ssid}</p>
-                <p>{network.signal}db</p>
+                <p>{network.rssi}dBm</p>
               </div>
               <Button
                 buttonText={'Обрати'}
@@ -54,7 +67,7 @@ const Wifi = () => {
             </DarkWrapperBlock>
           ))
         }
-        <Button buttonText={'Сканувати'} color='indigo' />
+        <Button buttonText={'Сканувати'} color='indigo' onClick={startWifiScan} />
       </WrapperBlock>
       <WrapperBlock>
         <h3 className='text-xl'>Мережа:</h3>
@@ -78,7 +91,7 @@ const Wifi = () => {
           </FormField>
         </DarkWrapperBlock>
       </WrapperBlock>
-      <SaveButton />
+      <SaveButton onClick={() => setWifiCredentials(ssid, password)}/>
     </FormColumn>
   )
 }

@@ -30,16 +30,32 @@ private:
         wifi[1] = doc["wifi_password"].as<String>();
     }
 
+    void setAPMode()
+    {
+        WiFi.disconnect();
+        WiFi.softAP(F("MyHeat"), F("12345678"));
+        WiFi.mode(WIFI_MODE_AP);
+    }
+
+    void setSTAMode()
+    {
+        WiFi.softAPdisconnect();
+        WiFi.disconnect();
+        WiFi.begin(wifi[0], wifi[1]);
+        WiFi.mode(WIFI_MODE_STA);
+    }
+
     MyHeatWifi() {};
 
 public:
-    static MyHeatWifi& getInstance() {
+    static MyHeatWifi &getInstance()
+    {
         static MyHeatWifi instance;
         return instance;
     }
 
-    MyHeatWifi(const MyHeatWifi&) = delete;
-    MyHeatWifi& operator=(const MyHeatWifi&) = delete;
+    MyHeatWifi(const MyHeatWifi &) = delete;
+    MyHeatWifi &operator=(const MyHeatWifi &) = delete;
 
     void begin()
     {
@@ -69,14 +85,14 @@ public:
     {
         if (WiFi.getMode() != WIFI_MODE_AP)
         {
-            if ((WiFi.status() != WL_CONNECTED) && (millis() - wifiReconnectTick >= WIFI_RECONNECT_INTERVAL))
+            if ((WiFi.status() != WL_CONNECTED && isScanCompleted() != -1) && (millis() - wifiReconnectTick >= WIFI_RECONNECT_INTERVAL))
             {
                 Serial.println("Reconnecting to WiFi...");
                 WiFi.reconnect();
                 wifiReconnectTick = millis();
             }
 
-            if (WiFi.status() == WL_CONNECTED && (millis() - ntpSyncTick >= NTP_SYNC_INTERVAL || (MyHeatUtils::isTimeDefault() && millis() - ntpSyncTick >= 5000)))
+            if (WiFi.status() == WL_CONNECTED && (millis() - ntpSyncTick >= NTP_SYNC_INTERVAL || (MyHeatUtils::isTimeDefault() && millis() - ntpSyncTick >= 10000)))
             {
                 Serial.println("Syncing time...");
                 configTime(NTP_OFFSET, NTP_DAYLIGHT_OFFSET, STR(NTP_SERVER));
@@ -134,19 +150,28 @@ public:
         }
     }
 
-    void setAPMode()
+    void startWifiScan()
     {
-        WiFi.disconnect();
-        WiFi.softAP(F("MyHeat"), F("12345678"));
-        WiFi.mode(WIFI_MODE_AP);
+        WiFi.scanNetworks(true);
     }
 
-    void setSTAMode()
+    int isScanCompleted()
     {
-        WiFi.softAPdisconnect();
-        WiFi.disconnect();
-        WiFi.begin(wifi[0], wifi[1]);
-        WiFi.mode(WIFI_MODE_STA);
+        return WiFi.scanComplete();
+    }
+
+    JsonDocument getNetworks()
+    {
+        int networksCount = WiFi.scanComplete();
+        
+        JsonDocument networks;
+        for (int i = 0; i < networksCount; i++)
+        {
+            networks["payload"][i]["ssid"] = WiFi.SSID(i);
+            networks["payload"][i]["rssi"] = WiFi.RSSI(i);
+        }
+        WiFi.scanDelete();
+        return networks;
     }
 };
 #endif

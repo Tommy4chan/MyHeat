@@ -39,6 +39,10 @@ namespace MyHeatWeb
             sendRelaysData();
             sendFunctionsData();
         }
+        else if (type == WS_EVT_DATA)
+        {
+            handleWebSocketMessage(client, arg, data, len);
+        }
         else if (type == WS_EVT_DISCONNECT)
         {
             Serial.printf("WebSocket client #%u disconnected\n", client->id());
@@ -50,6 +54,43 @@ namespace MyHeatWeb
         else if (type == WS_EVT_PONG)
         {
             Serial.printf("WebSocket client #%u pong received\n", client->id());
+        }
+    }
+
+    void handleWebSocketMessage(AsyncWebSocketClient *client, void *arg, uint8_t *data, size_t len)
+    {
+        AwsFrameInfo *info = (AwsFrameInfo *)arg;
+        if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT)
+        {
+            JsonDocument received;
+            deserializeJson(received, data, len);
+
+            String messageType = received["messageType"].as<String>();
+            JsonObject payload = received["payload"].as<JsonObject>();
+
+            JsonDocument response;
+            response["messageType"] = messageType + "Response";
+
+            if (messageType == "setWifi")
+            {
+                myHeatWifi.setWifiCredentials(payload["ssid"], payload["password"]);
+            }
+            else if (messageType == "getWifiSettings")
+            {
+                response["payload"]["ssid"] = myHeatWifi.getSSID();
+                response["payload"]["password"] = myHeatWifi.getPassword();
+            }
+            else if (messageType == "startWifiScan") {
+                myHeatWifi.startWifiScan();
+            }
+            else {
+                response["error"] = "Unknown message type";
+            }
+
+            String responseString;
+            serializeJson(response, responseString);
+
+            client->text(responseString);
         }
     }
 
@@ -112,6 +153,10 @@ namespace MyHeatWeb
 
         if (websocket.count() > 0 && now - lastSend > 1000)
         {
+            if(myHeatWifi.isScanCompleted() >= 0)
+            {
+                sendDataToClients(myHeatWifi.getNetworks(), F("wifiScanData"));
+            }
             sendTemperaturesData();
             sendRelaysData();
             sendFunctionsData();

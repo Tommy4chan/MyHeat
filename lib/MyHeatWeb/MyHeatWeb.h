@@ -20,6 +20,7 @@ namespace MyHeatWeb
 
     void setupWebsocket();
     void wsEventHandler(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
+    void handleWebSocketMessage(AsyncWebSocketClient *client, void *arg, uint8_t *data, size_t len);
 
     void sendTemperaturesData();
     void sendRelaysData();
