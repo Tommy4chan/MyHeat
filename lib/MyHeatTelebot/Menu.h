@@ -4,6 +4,7 @@
 #include <FastBot2.h>
 #include "MyHeatUtils.h"
 #include "MyHeatRelay.h"
+#include "MyHeatDevice.h"
 
 namespace MyHeatTelebot
 {
@@ -14,7 +15,7 @@ namespace MyHeatTelebot
 
     fb::InlineMenu &getRelayInlineMenu(MyHeatRelay *relaysPtr);
     fb::InlineMenu &getTemperatureInlineMenu();
-    fb::InlineMenu &getDiscoveredTemperatureSensorsInlineMenu(byte count, uint8_t addresses[][8]);
+    fb::InlineMenu &getDiscoveredTemperatureSensorsInlineMenu(byte count, uint8_t **addresses);
     fb::InlineMenu &getTemperatureIndexesInlineMenu();
     fb::InlineMenu &getFunctionListInlineMenu();
     fb::InlineMenu &getFunctionInlineMenu();

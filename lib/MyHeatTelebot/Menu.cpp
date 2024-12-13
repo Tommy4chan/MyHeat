@@ -34,7 +34,7 @@ namespace MyHeatTelebot
         return inlineMenu;
     }
 
-    fb::InlineMenu &getDiscoveredTemperatureSensorsInlineMenu(byte count, uint8_t addresses[][8]) 
+    fb::InlineMenu &getDiscoveredTemperatureSensorsInlineMenu(byte count, uint8_t **addresses) 
     {
         inlineMenu = fb::InlineMenu();
 
@@ -54,10 +54,12 @@ namespace MyHeatTelebot
     {
         inlineMenu = fb::InlineMenu();
 
-        for (byte i = 0; i < TEMPERATURE_COUNT; i++)
+        char temperatureCount = MyHeatDevice::getInstance().getTemperatureCount();
+
+        for (byte i = 0; i < temperatureCount; i++)
         {
             inlineMenu.addButton("T" + String(i), "setTemperatureIndex_" + String(i));
-            if (i % 2 != 0 && i != TEMPERATURE_COUNT - 1)
+            if (i % 2 != 0 && i != temperatureCount - 1)
             {
                 inlineMenu.newRow();
             }
@@ -111,7 +113,7 @@ namespace MyHeatTelebot
     {
         inlineMenu = fb::InlineMenu();
 
-        for (byte i = 0; i < TEMPERATURE_COUNT; i++)
+        for (byte i = 0; i < MyHeatDevice::getInstance().getTemperatureCount(); i++)
         {
             inlineMenu.addButton("T" + String(i), "functionSetTemp_" + String(i));
             if (i % 2 != 0)

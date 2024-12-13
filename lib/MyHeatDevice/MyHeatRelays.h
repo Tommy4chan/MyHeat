@@ -4,7 +4,6 @@
 #include <Arduino.h>
 #include "MyHeatRelay.h"
 #include "MyHeatSave.h"
-#include "MyHeatCustomFunction.h"
 #include <LittleFS.h>
 
 class MyHeatRelays : public MyHeatSaveInterface
@@ -12,7 +11,6 @@ class MyHeatRelays : public MyHeatSaveInterface
 private:
     MyHeatRelay relays[RELAY_COUNT];
     MyHeatSave *relaysData;
-    MyHeatCustomFunction *customFunctions;
 
     void initRelays()
     {
@@ -42,9 +40,8 @@ private:
     }
 
 public:
-    void begin(MyHeatCustomFunction *customFunctions)
+    void begin()
     {
-        this->customFunctions = customFunctions;
         relaysData = new MyHeatSave(&LittleFS, "/relays.json", this);
         relaysData->read();
         initRelays();
@@ -64,35 +61,6 @@ public:
     {
         relays[relayIndex].changeMode();
         relaysData->save();
-    }
-
-    void updateRelays()
-    {
-        bool isSetRelayActive[RELAY_COUNT] = {false};
-
-        for (int i = 0; i < FUNCTION_COUNT; i++)
-        {
-            if (customFunctions[i].getIsEnabled())
-            {
-                isSetRelayActive[customFunctions[i].getRelayIndex()] = isSetRelayActive[customFunctions[i].getRelayIndex()] || customFunctions[i].getIsActive();
-            }
-        }
-
-        for (int i = 0; i < RELAY_COUNT; i++)
-        {
-            if (relays[i].getMode() == 0)
-            {
-                relays[i].setIsActive(false);
-            }
-            else if (relays[i].getMode() == 1)
-            {
-                relays[i].setIsActive(true);
-            }
-            else
-            {
-                relays[i].setIsActive(isSetRelayActive[i]);
-            }
-        }
     }
 };
 #endif

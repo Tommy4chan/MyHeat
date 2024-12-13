@@ -163,7 +163,7 @@ public:
     JsonDocument getNetworks()
     {
         int networksCount = WiFi.scanComplete();
-        
+
         JsonDocument networks;
         for (int i = 0; i < networksCount; i++)
         {

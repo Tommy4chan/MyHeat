@@ -18,7 +18,7 @@ namespace MyHeatTelebot
     {
         String text = MyHeatUtils::getCurrentDateAndTime();
 
-        for (byte i = 0; i < TEMPERATURE_COUNT; i++)
+        for (byte i = 0; i < MyHeatDevice::getInstance().getTemperatureCount(); i++)
         {
             text += "T" + String(i) + ": " + (temperatures[i] == -127 ? "не визначено" : String(temperatures[i])) + "°C\n";
         }

@@ -10,17 +10,22 @@
 class MyHeatTemperatures : public MyHeatSaveInterface
 {
 private:
-    uint8_t temperatureSensorsAddresses[TEMPERATURE_COUNT][8];
-    uint8_t discoveredTemperatureSensorsAddresses[TEMPERATURE_COUNT][8];
+    uint8_t **temperatureSensorsAddresses;
+    uint8_t **discoveredTemperatureSensorsAddresses;
     MyHeatSave *temperatureSensorData;
 
-    float temperatures[TEMPERATURE_COUNT];
+    float *temperatures;
+    byte temperatureCount;
+    byte temperaturePin;
     OneWire oneWire;
     DallasTemperature temperatureSensors;
 
     void serialize(JsonDocument &doc)
     {
-        for (int i = 0; i < TEMPERATURE_COUNT; i++)
+        doc[F("temperaturePin")] = temperaturePin;
+        doc[F("temperatureCount")] = temperatureCount;
+
+        for (int i = 0; i < temperatureCount; i++)
         {
             for (int j = 0; j < 8; j++)
             {
@@ -31,7 +36,10 @@ private:
 
     void deserialize(JsonDocument &doc)
     {
-        for (int i = 0; i < TEMPERATURE_COUNT; i++)
+        temperaturePin = doc[F("temperaturePin")];
+        relocateMemory(doc[F("temperatureCount")]);
+
+        for (int i = 0; i < temperatureCount; i++)
         {
             for (int j = 0; j < 8; j++)
             {
@@ -40,15 +48,64 @@ private:
         }
     }
 
+    void relocateMemory(byte newCount)
+    {
+        uint8_t oldTemperatureSensorsAddresses[temperatureCount][8]{};
+
+        for (byte i = 0; i < temperatureCount; i++)
+        {
+            memcpy(oldTemperatureSensorsAddresses[i], temperatureSensorsAddresses[i], 8);
+        }
+
+        for (byte i = 0; i < temperatureCount; i++)
+        {
+            delete[] temperatureSensorsAddresses[i];
+            delete[] discoveredTemperatureSensorsAddresses[i];
+        }
+        delete[] temperatureSensorsAddresses;
+        delete[] discoveredTemperatureSensorsAddresses;
+        delete[] temperatures;
+
+        temperatureSensorsAddresses = new uint8_t *[newCount];
+        discoveredTemperatureSensorsAddresses = new uint8_t *[newCount];
+        temperatures = new float[newCount];
+        for (byte i = 0; i < newCount; i++)
+        {
+            temperatureSensorsAddresses[i] = new uint8_t[8]{};
+
+            if (i < temperatureCount)
+            {
+                memcpy(temperatureSensorsAddresses[i], oldTemperatureSensorsAddresses[i], 8);
+            }
+
+            discoveredTemperatureSensorsAddresses[i] = new uint8_t[8]{};
+            temperatures[i] = -127.00;
+        }
+
+        temperatureCount = newCount;
+    }
+
 public:
-    MyHeatTemperatures() : oneWire(TEMPERATURE_PIN), temperatureSensors(&oneWire) {};
+    MyHeatTemperatures() : oneWire(), temperatureSensors() {
+        temperatureCount = 0;
+        temperaturePin = 23;
+        temperatureSensorsAddresses = nullptr;
+        discoveredTemperatureSensorsAddresses = nullptr;
+        temperatures = nullptr;
+    };
 
     void begin()
     {
-        temperatureSensors.begin();
-        temperatureSensors.setWaitForConversion(false);
         temperatureSensorData = new MyHeatSave(&LittleFS, "/temperatureSensors.json", this);
         temperatureSensorData->read();
+
+        oneWire = OneWire(temperaturePin);
+        temperatureSensors.setOneWire(&oneWire);
+        temperatureSensors.setWaitForConversion(false);
+        temperatureSensors.begin();
+
+        setTemperatureCount(2);
+
         temperatureSensors.requestTemperatures();
         delay(1000);
     }
@@ -61,7 +118,7 @@ public:
         while (oneWire.search(address))
         {
             bool flag = false;
-            for (int i = 0; i < TEMPERATURE_COUNT; i++)
+            for (int i = 0; i < temperatureCount; i++)
             {
                 if (memcmp(temperatureSensorsAddresses[i], address, 8) == 0)
                 {
@@ -91,19 +148,19 @@ public:
         temperatureSensorData->save();
     }
 
-    uint8_t (*getDiscoveredTemperatureSensorAddresses())[8]
+    uint8_t **getDiscoveredTemperatureSensorAddresses()
     {
         return discoveredTemperatureSensorsAddresses;
     }
 
-    uint8_t (*getTemperatureSensorAddresses())[8]
+    uint8_t **getTemperatureSensorAddresses()
     {
         return temperatureSensorsAddresses;
     }
 
     void updateTemperature()
     {
-        for (byte i = 0; i < TEMPERATURE_COUNT; i++)
+        for (byte i = 0; i < temperatureCount; i++)
         {
             temperatures[i] = temperatureSensors.getTempC(temperatureSensorsAddresses[i]);
         }
@@ -121,6 +178,32 @@ public:
             return 0;
 
         return temperatures[index];
+    }
+
+    void setTemperaturePin(byte newPin)
+    {
+        temperaturePin = newPin;
+        oneWire = OneWire(temperaturePin);
+        temperatureSensors.setOneWire(&oneWire);
+        temperatureSensors.setWaitForConversion(false);
+        temperatureSensors.begin();
+        temperatureSensorData->save();
+    }
+
+    void setTemperatureCount(byte newCount)
+    {
+        relocateMemory(newCount);
+        temperatureSensorData->save();
+    }
+
+    byte getTemperatureCount()
+    {
+        return temperatureCount;
+    }
+
+    byte getTemperaturePin()
+    {
+        return temperaturePin;
     }
 };
 #endif

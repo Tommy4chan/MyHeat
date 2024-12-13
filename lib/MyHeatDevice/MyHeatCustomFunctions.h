@@ -4,14 +4,12 @@
 #include "MyHeatCustomFunction.h"
 #include "MyHeatSave.h"
 #include <LittleFS.h>
-#include "MyHeatTemperatures.h"
 
 class MyHeatCustomFunctions : public MyHeatSaveInterface
 {
 private:
     MyHeatCustomFunction customFunctions[FUNCTION_COUNT];
     MyHeatSave *customFunctionsData;
-    MyHeatTemperatures *temperatures;
 
     void serialize(JsonDocument &doc)
     {
@@ -44,9 +42,8 @@ private:
     }
 
 public:
-    void begin(MyHeatTemperatures *temperatures)
+    void begin()
     {
-        this->temperatures = temperatures;
         customFunctionsData = new MyHeatSave(&LittleFS, "/customFunctions.json", this);
         customFunctionsData->read();
     }
@@ -89,38 +86,6 @@ public:
     {
         customFunctions[functionIndex].setRelayIndex(relayIndex);
         customFunctionsData->save();
-    }
-
-    void checkCustomFunctions()
-    {
-        for (int i = 0; i < FUNCTION_COUNT; i++)
-        {
-            float tempA = temperatures->getTemperature(customFunctions[i].getTemperatureIndex(0)) + customFunctions[i].getDeltaValue(0);
-            float tempB = temperatures->getTemperature(customFunctions[i].getTemperatureIndex(1)) + customFunctions[i].getDeltaValue(1);
-
-            if (!customFunctions[i].getIsEnabled())
-            {
-                customFunctions[i].setIsActive(false);
-                continue;
-            }
-
-            if (customFunctions[i].getSign() == 0 && tempA < tempB)
-            {
-                customFunctions[i].setIsActive(true);
-            }
-            else if (customFunctions[i].getSign() == 1 && tempA == tempB)
-            {
-                customFunctions[i].setIsActive(true);
-            }
-            else if (customFunctions[i].getSign() == 2 && tempA > tempB)
-            {
-                customFunctions[i].setIsActive(true);
-            }
-            else
-            {
-                customFunctions[i].setIsActive(false);
-            }
-        }
     }
 };
 #endif

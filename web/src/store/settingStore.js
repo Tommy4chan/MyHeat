@@ -9,7 +9,7 @@ const useSettingStore = create((set) => ({
     const message = {
       messageType: "setWifi",
       payload: { ssid, password },
-    }
+    };
     useWebSocketStore.getState().sendMessage("setWifiCredentials", message);
   },
 
@@ -33,7 +33,6 @@ const useSettingStore = create((set) => ({
 
     set({ scannedWifiNetworks: data.payload });
   },
-  
 }));
 
 useWebSocketStore.subscribe(

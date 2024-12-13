@@ -80,10 +80,12 @@ namespace MyHeatWeb
                 response["payload"]["ssid"] = myHeatWifi.getSSID();
                 response["payload"]["password"] = myHeatWifi.getPassword();
             }
-            else if (messageType == "startWifiScan") {
+            else if (messageType == "startWifiScan")
+            {
                 myHeatWifi.startWifiScan();
             }
-            else {
+            else
+            {
                 response["error"] = "Unknown message type";
             }
 
@@ -106,7 +108,7 @@ namespace MyHeatWeb
     void sendTemperaturesData()
     {
         JsonDocument temperaturesData;
-        copyArray(myHeatDevice.getTemperatures(), TEMPERATURE_COUNT, temperaturesData[F("temperatures")]);
+        copyArray(myHeatDevice.getTemperatures(), myHeatDevice.getTemperatureCount(), temperaturesData[F("temperatures")]);
 
         sendDataToClients(temperaturesData, F("temperaturesData"));
     }
@@ -153,7 +155,7 @@ namespace MyHeatWeb
 
         if (websocket.count() > 0 && now - lastSend > 1000)
         {
-            if(myHeatWifi.isScanCompleted() >= 0)
+            if (myHeatWifi.isScanCompleted() >= 0)
             {
                 sendDataToClients(myHeatWifi.getNetworks(), F("wifiScanData"));
             }

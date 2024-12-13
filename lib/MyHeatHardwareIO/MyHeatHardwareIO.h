@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <U8g2lib.h>
 #include <EncButton.h>
+#include "MyHeatTemperatures.h"
 #include "MyHeatRelay.h"
 #include "MyHeatUtils.h"
 #include "MyHeatWifi.h"
@@ -15,15 +16,11 @@
 #include <Wire.h>
 #endif
 
-constexpr byte MAX_TEMPERATURE_SCREENS = ceil(TEMPERATURE_COUNT / 3);
-constexpr byte MAX_RELAY_SCREENS = RELAY_COUNT;
-constexpr byte MAX_SCREENS = MAX_TEMPERATURE_SCREENS + MAX_RELAY_SCREENS;
-
 class MyHeatHardwareIO
 {
 private:
     U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2;
-    float *temperatures;
+    MyHeatTemperatures *temperatures;
     MyHeatRelay *relays;
     EncButton eb;
     byte menuIndex;
@@ -31,19 +28,28 @@ private:
     uint32_t screenPowerSaveTimer;
     bool isScreenOn;
 
+    byte maxTemperatureScreens;
+    byte maxRelayScreens;
+    byte maxScreens;
+
     void showTemperature()
     {
         byte cursor = 24;
-        for (byte i = 3 * menuIndex; i < ceil(TEMPERATURE_COUNT / (MAX_TEMPERATURE_SCREENS - menuIndex)); i++)
+        byte temperatureIndexStart = 3 * menuIndex;
+        byte temperatureIndexEnd = ceil((float) temperatures->getTemperatureCount() / (maxTemperatureScreens - menuIndex));
+
+        for (byte i = temperatureIndexStart; i < temperatureIndexEnd; i++)
         {
+            float temperature = temperatures->getTemperature(i);
+
             u8g2.print("T" + String(i) + ":");
-            if (temperatures[i] == -127.00)
+            if (temperature == -127.00)
             {
                 u8g2.print(F(" Н/Д"));
             }
             else
             {
-                u8g2.print(String(temperatures[i]));
+                u8g2.print(String(temperature));
                 u8g2.setFont(u8g2_font_10x20_tn);
                 u8g2.print(F("°"));
                 u8g2.setFont(u8g2_font_10x20_t_cyrillic);
@@ -56,7 +62,7 @@ private:
 
     void showRelay()
     {
-        byte relayIndex = menuIndex - MAX_TEMPERATURE_SCREENS;
+        byte relayIndex = menuIndex - maxTemperatureScreens;
         u8g2.print(F("Реле "));
         u8g2.print(String(relayIndex) + ":");
         u8g2.setCursor(0, 40);
@@ -69,7 +75,7 @@ private:
     {
         if (eb.turn())
         {
-            menuIndex = (menuIndex + eb.dir() + MAX_SCREENS) % MAX_SCREENS;
+            menuIndex = (menuIndex + eb.dir() + maxScreens) % maxScreens;
 
             updateScreenManual();
         }
@@ -84,7 +90,7 @@ private:
     }
 
     void updateScreenManual()
-    {
+    {        
         isScreenOn = true;
         screenPowerSaveTimer = millis();
         updateScreen();
@@ -96,12 +102,12 @@ private:
         u8g2.setPowerSave(false);
         u8g2.setCursor(0, 24);
 
-        if (menuIndex < MAX_TEMPERATURE_SCREENS)
+        if (menuIndex < maxTemperatureScreens)
         {
             u8g2.setFont(u8g2_font_10x20_t_cyrillic);
             showTemperature();
         }
-        else if (menuIndex >= MAX_TEMPERATURE_SCREENS && menuIndex < MAX_SCREENS)
+        else if (menuIndex >= maxTemperatureScreens && menuIndex < maxScreens)
         {
             u8g2.setFont(u8g2_font_8x13_t_cyrillic);
             showRelay();
@@ -117,7 +123,7 @@ public:
         this->isScreenOn = true;
     }
 
-    void begin(float *temperatures, MyHeatRelay *relays)
+    void begin(MyHeatTemperatures *temperatures, MyHeatRelay *relays)
     {
         this->relays = relays;
         this->temperatures = temperatures;
@@ -125,6 +131,7 @@ public:
         u8g2.clearBuffer();
         u8g2.enableUTF8Print();
         u8g2.sendBuffer();
+        reevaluateScreensCount();
     }
 
     void tick()
@@ -143,6 +150,13 @@ public:
 
         eb.tick();
         handleEncoder();
+    }
+
+    void reevaluateScreensCount()
+    {
+        maxTemperatureScreens = ceil((float) temperatures->getTemperatureCount() / 3);
+        maxRelayScreens = RELAY_COUNT;
+        maxScreens = maxTemperatureScreens + maxRelayScreens;
     }
 };
 #endif
