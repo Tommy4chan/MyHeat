@@ -6,11 +6,11 @@ const useSettingStore = create((set) => ({
   scannedWifiNetworks: [],
 
   setWifiCredentials: (ssid, password) => {
-    const message = {
-      messageType: "setWifi",
-      payload: { ssid, password },
+    const payload = {
+      ssid, 
+      password,
     };
-    useWebSocketStore.getState().sendMessage("setWifiCredentials", message);
+    useWebSocketStore.getState().sendMessage("setWifi", payload);
   },
 
   startWifiScan: () => {

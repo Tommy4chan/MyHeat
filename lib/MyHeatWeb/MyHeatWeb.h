@@ -25,6 +25,7 @@ namespace MyHeatWeb
     void sendTemperaturesData();
     void sendRelaysData();
     void sendFunctionsData();
+    void sendUsedPinsData();
     void sendDataToClients(JsonDocument data, String messageType);
 
     void tick();

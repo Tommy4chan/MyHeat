@@ -104,8 +104,6 @@ public:
         temperatureSensors.setWaitForConversion(false);
         temperatureSensors.begin();
 
-        setTemperatureCount(2);
-
         temperatureSensors.requestTemperatures();
         delay(1000);
     }

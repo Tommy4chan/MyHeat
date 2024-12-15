@@ -10,27 +10,72 @@ import usePinStore from "../store/pinStore";
 import { handlePinChange } from "../utils/pinHandler";
 import FormField from "../components/ui/FormField";
 import Input from "../components/ui/Input";
+import useTemperatureStore from "../store/temperatureStore";
 
 const TemperaturesPage = () => {
-  const [temperatures, setTemperatures] = useState([]);
-  const [temperatureSensors, setTemperatureSensors] = useState([]);
-
-  useEffect(() => {
-    const fetchedTemperatures = [76.34, 72.12, 45.88, -127, -127, -3.12];
-
-    setTemperatures(fetchedTemperatures);
-    setTemperatureSensors([[40, 255, 6, 61, 132, 22, 3, 89], [39, 255, 2, 32, 211, 76, 9, 33]]);
-  }, []);
-
   const {
     getAvailableInputPins,
   } = usePinStore();
 
-  const [temperaturePin, setTemperaturePin] = useState(21);
+  const {
+    temperatureSettings,
+    getTemperatureSensorSettings,
+    setTemperatureSensorSettings,
+    getDiscoveredTemperatureSensors,
+    discoveredTemperatureSensors,
+    setTemperatureSensor,
+  } = useTemperatureStore();
+
+  const [temperaturePin, setTemperaturePin] = useState(0);
   const [temperatureSensorsCount, setTemperatureSensorsCount] = useState(1);
+  const [temperatureOptions, setTemperatureOptions] = useState([]);
+  const [temperatureSensorsAddresses, setTemperatureSensorsAddresses] = useState([]);
+
+  useEffect(() => {
+    getTemperatureSensorSettings();
+  }, []);
+
+  useEffect(() => {
+    setTemperatureSensorsAddresses(discoveredTemperatureSensors);
+  }, [discoveredTemperatureSensors]);
+
+  useEffect(() => {
+    setTemperaturePin(temperatureSettings['temperaturePin']);
+    setTemperatureSensorsCount(temperatureSettings['temperatureCount']);
+    setTemperatureOptions(Array.from({ length: temperatureSensorsCount }, (_, i) => ({ value: i, text: `T${i}` })));
+  }, [temperatureSettings]);
 
   const handleTemperaturePinChange = (e) => {
     handlePinChange(e, setTemperaturePin, temperaturePin);
+  }
+
+  const handleSettingsSave = () => {
+    setTemperatureSensorSettings(
+      temperaturePin,
+      temperatureSensorsCount,
+    );
+
+    setTemperatureOptions(Array.from({ length: temperatureSensorsCount }, (_, i) => ({ value: i, text: `T${i}` })));
+  }
+
+  const handleSensorTempIndexChange = (e, sensorAddressIndex) => {
+    setTemperatureSensorsAddresses(temperatureSensorsAddresses.map((sensor) => {
+      if (sensor.id === sensorAddressIndex) {
+        return {
+          ...sensor,
+          tempIndex: e.target.value,
+        }
+      }
+    }));
+  };
+
+  const handleSensorSave = (index) => {
+    const sensorAddressIndex = temperatureSensorsAddresses[index].id;
+    const tempIndex = temperatureSensorsAddresses[index].tempIndex;
+    
+    setTemperatureSensorsAddresses(temperatureSensorsAddresses.filter((sensor) => sensor.id !== sensorAddressIndex));
+
+    setTemperatureSensor(tempIndex, sensorAddressIndex);
   }
 
   return (
@@ -59,27 +104,28 @@ const TemperaturesPage = () => {
               />
             </FormField>
           </DarkWrapperBlock>
-          <SaveButton />
+          <SaveButton onClick={handleSettingsSave} />
         </WrapperBlock>
         <WrapperBlock>
-        <h3 className='text-xl'>Датчики:</h3>
-        {temperatureSensors?.map((temperatureSensor, index) => (
-          <DarkWrapperBlock className="justify-between" key={index}>
-            <p
-              className="text-lg text-gray-300"
-            >
-              Датчик {index + 1}: {temperatureSensor.join(':')}
-            </p>
-            <div className="flex gap-2 flex-col md:flex-row">
-              <Select
-                defaultValue={0}
-                options={Array.from({ length: temperatures.length }, (_, i) => ({ value: i, text: `T${i}` }))}
-              />
-              <SaveButton />
-            </div>
-          </DarkWrapperBlock>
-        ))}
-        <Button buttonText={'Виявити датчики'} color="indigo" />
+          <h3 className='text-xl'>Датчики:</h3>
+          {temperatureSensorsAddresses?.map((temperatureSensor, index) => (
+            <DarkWrapperBlock className="justify-between" key={temperatureSensor.id}>
+              <p
+                className="text-lg text-gray-300"
+              >
+                Датчик {index}: {temperatureSensor.address}
+              </p>
+              <div className="flex gap-2 flex-col md:flex-row">
+                <Select
+                  value={temperatureSensor.tempIndex}
+                  options={temperatureOptions}
+                  onChange={(e) => handleSensorTempIndexChange(e, temperatureSensor.id)}
+                />
+                <SaveButton onClick={() => handleSensorSave(index)} />
+              </div>
+            </DarkWrapperBlock>
+          ))}
+          <Button buttonText={'Виявити датчики'} color="indigo" onClick={getDiscoveredTemperatureSensors} />
         </WrapperBlock>
       </ColumnBlock>
     </div>

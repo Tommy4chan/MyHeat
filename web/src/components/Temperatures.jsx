@@ -4,7 +4,7 @@ import ColumnBlock from "./ui/ColumnBlock";
 import useTemperatureStore from "../store/temperatureStore";
 
 const Temperatures = ({ isDeleteVisible = false }) => {
-  const { temperatures } = useTemperatureStore();
+  const { temperatures, removeTemperatureSensor } = useTemperatureStore();
 
   return (
     <ColumnBlock>
@@ -18,7 +18,7 @@ const Temperatures = ({ isDeleteVisible = false }) => {
               T{temperature.id}: {temperature.value === -127 ? "Н\\Д" : `${temperature.value}°C`}
             </p>
             {isDeleteVisible && (
-              <Button buttonText={'Видалити'} color="red" />
+              <Button buttonText={'Видалити'} color="red" onClick={() => removeTemperatureSensor(temperature.id)}/>
             )}
           </DarkWrapperBlock>
         ))}

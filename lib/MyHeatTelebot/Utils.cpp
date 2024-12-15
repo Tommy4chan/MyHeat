@@ -14,7 +14,15 @@ namespace MyHeatTelebot
             }
             else
             {
-                result[i] += "T" + String(customFunction.getTemperatureIndex(i));
+                if (customFunction.getTemperatureIndex(i) == T_UNKNOWN)
+                {
+                    result[i] += "Н/Д";
+                }
+                else
+                {
+                    result[i] += "T" + String(customFunction.getTemperatureIndex(i));
+                }
+
                 if (customFunction.getDeltaValue(i) != 0)
                 {
                     if (customFunction.getDeltaValue(i) > 0)
@@ -27,23 +35,32 @@ namespace MyHeatTelebot
         }
 
         String sign(char(60 + customFunction.getSign()));
+        String isValidText = "";
 
-        return "Функція " + String(functionIndex + 1) + ": \n" +
+        if (!customFunction.isValid())
+        {
+            isValidText = "Неіснуючий датчик температури або реле!!!\n";
+        }
+
+        return isValidText + "Функція " + String(functionIndex + 1) + ": \n" +
                result[0] + " " + sign + " " + result[1] +
-               "\nРеле: Реле " + String(customFunction.getRelayIndex()) + 
+               "\nРеле: Реле " + String(customFunction.getRelayIndex()) +
                "\nСтан: " + MyHeatUtils::getConvertedStateToText(customFunction.getIsEnabled()) +
                "\nАктивна: " + MyHeatUtils::getConvertedActiveToText(customFunction.getIsActive()) + "\n\n";
     }
 
-    Text getCallbackFromQuery(Text query) {
+    Text getCallbackFromQuery(Text query)
+    {
         return query.indexOf("_") == -1 ? query : query.substring(0, query.indexOf("_"));
     }
 
-    byte getValueFromQuery(String query) {
+    byte getValueFromQuery(String query)
+    {
         return query.substring(query.indexOf("_") + 1).toInt();
     }
 
-    void setFunctionScreen(fb::TextEdit &msg, MyHeatCustomFunction customFunction, byte functionIndex) {
+    void setFunctionScreen(fb::TextEdit &msg, MyHeatCustomFunction customFunction, byte functionIndex)
+    {
         setUserScreen(msg.chatID, ScreenType::FUNCTION_SCREEN);
         msg.text = getConvertedFunctionToText(customFunction, functionIndex);
         msg.setInlineMenu(getFunctionInlineMenu());

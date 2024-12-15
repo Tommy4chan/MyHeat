@@ -17,7 +17,6 @@ private:
         {
             doc[F("functions")][i][F("sign")] = customFunctions[i].getSign();
             doc[F("functions")][i][F("isEnabled")] = customFunctions[i].getIsEnabled();
-            doc[F("functions")][i][F("isActive")] = customFunctions[i].getIsActive();
             doc[F("functions")][i][F("temperatureIndex")][0] = customFunctions[i].getTemperatureIndex(0);
             doc[F("functions")][i][F("temperatureIndex")][1] = customFunctions[i].getTemperatureIndex(1);
             doc[F("functions")][i][F("deltaValue")][0] = customFunctions[i].getDeltaValue(0);
@@ -32,7 +31,6 @@ private:
         {
             customFunctions[i].setSign(doc[F("functions")][i][F("sign")]);
             customFunctions[i].setIsEnabled(doc[F("functions")][i][F("isEnabled")]);
-            customFunctions[i].setIsActive(doc[F("functions")][i][F("isActive")]);
             customFunctions[i].setTemperatureIndex(0, doc[F("functions")][i][F("temperatureIndex")][0]);
             customFunctions[i].setTemperatureIndex(1, doc[F("functions")][i][F("temperatureIndex")][1]);
             customFunctions[i].setDeltaValue(0, doc[F("functions")][i][F("deltaValue")][0]);
@@ -58,33 +56,41 @@ public:
         return customFunctions;
     }
 
-    void setCustomFunctionIsEnabled(byte functionIndex)
+    void toggleCustomFunctionIsEnabled(byte functionIndex)
     {
+        if(!customFunctions[functionIndex].isValid())
+            return;
+
         customFunctions[functionIndex].toggleIsEnabled();
-        customFunctionsData->save();
+        saveFunctions();
     }
 
     void setCustomFunctionSign(byte functionIndex, byte sign)
     {
         customFunctions[functionIndex].setSign(sign);
-        customFunctionsData->save();
+        saveFunctions();
     }
 
     void setCustomFunctionTemperatureIndex(byte functionIndex, byte tempIndex, byte tempSensorIndex)
     {
         customFunctions[functionIndex].setTemperatureIndex(tempIndex, tempSensorIndex);
-        customFunctionsData->save();
+        saveFunctions();
     }
 
     void setCustomFunctionDeltaValue(byte functionIndex, byte deltaValueIndex, float deltaValue)
     {
         customFunctions[functionIndex].setDeltaValue(deltaValueIndex, deltaValue);
-        customFunctionsData->save();
+        saveFunctions();
     }
 
     void setCustomFunctionRelayIndex(byte functionIndex, byte relayIndex)
     {
         customFunctions[functionIndex].setRelayIndex(relayIndex);
+        saveFunctions();
+    }
+
+    void saveFunctions()
+    {
         customFunctionsData->save();
     }
 };

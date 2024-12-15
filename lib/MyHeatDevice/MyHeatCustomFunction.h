@@ -7,9 +7,9 @@ class MyHeatCustomFunction
 {
 private:
     byte sign;
-    unsigned char temperatureIndex[2];
+    byte temperatureIndex[2];
     float deltaValue[2];
-    unsigned char relayIndex;
+    byte relayIndex;
     bool isEnabled;
     bool isActive;
 
@@ -54,6 +54,11 @@ public:
     void toggleIsEnabled()
     {
         this->isEnabled = !this->isEnabled;
+    }
+
+    bool isValid()
+    {
+        return this->temperatureIndex[0] != T_UNKNOWN && this->temperatureIndex[1] != T_UNKNOWN && this->relayIndex != RELAY_UNKNOWN;
     }
 
     void setIsActive(bool isActive)

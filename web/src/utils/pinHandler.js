@@ -1,12 +1,5 @@
 import usePinStore from "../store/pinStore";
 
-/**
- * Generic handler for pin changes.
- * @param {Event} e - Event object from the input.
- * @param {function} setState - State setter function from useState.
- * @param {Array} currentPins - Current pins array from state.
- * @param {number} pinIndex - Index of the pin being changed.
- */
 export const handlePinChange = (e, setState, currentPins, pinIndex = null) => {
   const newPin = parseInt(e.target.value);
   const oldPin = Array.isArray(currentPins)

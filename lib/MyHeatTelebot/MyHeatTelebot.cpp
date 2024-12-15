@@ -214,7 +214,7 @@ namespace MyHeatTelebot
         {
             User user = getUser(chat_id);
 
-            myHeatDevice.setCustomFunctionIsEnabled(user.tempValue1);
+            myHeatDevice.toggleCustomFunctionIsEnabled(user.tempValue1);
 
             setFunctionScreen(msg, myHeatDevice.getCustomFunction(user.tempValue1), user.tempValue1);
             break;

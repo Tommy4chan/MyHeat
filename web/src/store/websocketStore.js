@@ -51,7 +51,7 @@ const useWebSocketStore = create(subscribeWithSelector((set, get) => ({
       socket.send(
         JSON.stringify({
           messageType,
-          ...payload,
+          payload,
         })
       );
     } else {

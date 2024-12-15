@@ -5,20 +5,7 @@ namespace MyHeatWeb
     void begin()
     {
         server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
-
-        AsyncCallbackJsonWebHandler *handler = new AsyncCallbackJsonWebHandler("/api/wifi/set", [](AsyncWebServerRequest *request, JsonVariant &json)
-                                                                               {
-            const JsonObject& jsonObj = json.as<JsonObject>();
-            myHeatWifi.setWifiCredentials(jsonObj["ssid"], jsonObj["password"]);
-            request->send(200, "text/plain", "Wifi settings updated"); });
-
-        server.addHandler(handler);
-
-        server.on("/api/wifi/get", HTTP_GET, [](AsyncWebServerRequest *request)
-                  { request->send(200, "application/json", "{\"ssid\":\"" + myHeatWifi.getSSID() + "\",\"password\":\"" + myHeatWifi.getPassword() + "\"}"); });
-
         setupWebsocket();
-
         server.begin();
     }
 
@@ -35,6 +22,7 @@ namespace MyHeatWeb
             Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
             client->ping();
 
+            sendUsedPinsData();
             sendTemperaturesData();
             sendRelaysData();
             sendFunctionsData();
@@ -84,6 +72,31 @@ namespace MyHeatWeb
             {
                 myHeatWifi.startWifiScan();
             }
+            else if (messageType == "getDiscoveredTemperatureSensors") {
+                byte count = myHeatDevice.discoverTemperatureSensor();
+                uint8_t **addresses = myHeatDevice.getDiscoveredTemperatureSensorAddresses();
+                
+                for (int i = 0; i < count; i++)
+                {
+                    response["payload"]["discoveredTemperatureSensors"][i] = MyHeatUtils::getAddressToString(addresses[i]);
+                }
+            }
+            else if (messageType == "setTemperatureSensor") {
+                myHeatDevice.setTemperatureSensorAddress(payload["tempIndex"], payload["sensorAddressIndex"]);
+            }
+            else if (messageType == "deleteTemperatureSensor") {
+                myHeatDevice.deleteTemperatureSensorAddress(payload["tempIndex"]);
+            }
+            else if (messageType == "getTemperatureSensorSettings") {
+                response["payload"]["temperaturePin"] = myHeatDevice.getTemperaturePin();
+                response["payload"]["temperatureCount"] = myHeatDevice.getTemperatureCount();
+            }
+            else if (messageType == "setTemperatureSensorSettings") {
+                myHeatDevice.setTemperaturePin(payload["temperaturePin"]);
+                myHeatDevice.setTemperatureCount(payload["temperatureCount"]);
+
+                myHeatDevice.validateCustomFunctions();
+            }
             else
             {
                 response["error"] = "Unknown message type";
@@ -125,6 +138,26 @@ namespace MyHeatWeb
         }
 
         sendDataToClients(relaysData, F("relaysData"));
+    }
+
+    void sendUsedPinsData()
+    {
+        JsonDocument usedPinsData;
+        byte relayPinsArray[] = RELAY_PINS;
+
+        usedPinsData[F("usedPins")][0] = myHeatDevice.getTemperaturePin();
+        usedPinsData[F("usedPins")][1] = ENC_A;
+        usedPinsData[F("usedPins")][2] = ENC_B;
+        usedPinsData[F("usedPins")][3] = ENC_BTN;
+        usedPinsData[F("usedPins")][4] = OLED_SCL;
+        usedPinsData[F("usedPins")][5] = OLED_SDA;
+
+        for (int i = 0; i < RELAY_COUNT; i++)
+        {
+            usedPinsData[F("usedPins")][i + 6] = relayPinsArray[i];
+        }
+
+        sendDataToClients(usedPinsData, F("usedPinsData"));
     }
 
     void sendFunctionsData()

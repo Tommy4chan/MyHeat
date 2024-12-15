@@ -7,41 +7,79 @@ void MyHeatDevice::begin()
     updateTemperature();
     MyHeatCustomFunctions::begin();
     MyHeatRelays::begin();
+
+    validateCustomFunctions();
+    checkCustomFunctions();
     updateRelays();
 
     hardwareIO.begin(this, getRelays());
 }
 
-void MyHeatDevice::checkCustomFunctions()
+void MyHeatDevice::validateCustomFunctions()
 {
+    MyHeatCustomFunction *customFunctions = getCustomFunctions();
+
     for (int i = 0; i < FUNCTION_COUNT; i++)
     {
-        MyHeatCustomFunction customFunction = getCustomFunction(i);
+        bool isInvalid = false;
 
-        float tempA = getTemperature(customFunction.getTemperatureIndex(0)) + customFunction.getDeltaValue(0);
-        float tempB = getTemperature(customFunction.getTemperatureIndex(1)) + customFunction.getDeltaValue(1);
-
-        if (!customFunction.getIsEnabled())
+        if (customFunctions[i].getTemperatureIndex(0) >= getTemperatureCount() && customFunctions[i].getTemperatureIndex(0) != TN_INDEX)
         {
-            customFunction.setIsActive(false);
+            customFunctions[i].setTemperatureIndex(0, T_UNKNOWN);
+            isInvalid = true;
+        }
+
+        if (customFunctions[i].getTemperatureIndex(1) >= getTemperatureCount() && customFunctions[i].getTemperatureIndex(1) != TN_INDEX)
+        {
+            customFunctions[i].setTemperatureIndex(1, T_UNKNOWN);
+            isInvalid = true;
+        }
+
+        if (customFunctions[i].getRelayIndex() >= RELAY_COUNT)
+        {
+            customFunctions[i].setRelayIndex(RELAY_UNKNOWN);
+            isInvalid = true;
+        }
+
+        if (isInvalid)
+        {
+            customFunctions[i].setIsEnabled(false);
+        }
+    }
+
+    saveFunctions();
+}
+
+void MyHeatDevice::checkCustomFunctions()
+{
+    MyHeatCustomFunction *customFunctions = getCustomFunctions();
+
+    for (int i = 0; i < FUNCTION_COUNT; i++)
+    {
+        float tempA = getTemperature(customFunctions[i].getTemperatureIndex(0)) + customFunctions[i].getDeltaValue(0);
+        float tempB = getTemperature(customFunctions[i].getTemperatureIndex(1)) + customFunctions[i].getDeltaValue(1);
+
+        if (!customFunctions[i].getIsEnabled())
+        {
+            customFunctions[i].setIsActive(false);
             continue;
         }
 
-        if (customFunction.getSign() == 0 && tempA < tempB)
+        if (customFunctions[i].getSign() == 0 && tempA < tempB)
         {
-            customFunction.setIsActive(true);
+            customFunctions[i].setIsActive(true);
         }
-        else if (customFunction.getSign() == 1 && tempA == tempB)
+        else if (customFunctions[i].getSign() == 1 && tempA == tempB)
         {
-            customFunction.setIsActive(true);
+            customFunctions[i].setIsActive(true);
         }
-        else if (customFunction.getSign() == 2 && tempA > tempB)
+        else if (customFunctions[i].getSign() == 2 && tempA > tempB)
         {
-            customFunction.setIsActive(true);
+            customFunctions[i].setIsActive(true);
         }
         else
         {
-            customFunction.setIsActive(false);
+            customFunctions[i].setIsActive(false);
         }
     }
 }
@@ -49,32 +87,30 @@ void MyHeatDevice::checkCustomFunctions()
 void MyHeatDevice::updateRelays()
 {
     bool isSetRelayActive[RELAY_COUNT] = {false};
+    MyHeatCustomFunction *customFunctions = getCustomFunctions();
+    MyHeatRelay *relays = getRelays();
 
     for (int i = 0; i < FUNCTION_COUNT; i++)
     {
-        MyHeatCustomFunction customFunction = getCustomFunction(i);
-
-        if (customFunction.getIsEnabled())
+        if (customFunctions[i].getIsEnabled())
         {
-            isSetRelayActive[customFunction.getRelayIndex()] = isSetRelayActive[customFunction.getRelayIndex()] || customFunction.getIsActive();
+            isSetRelayActive[customFunctions[i].getRelayIndex()] = isSetRelayActive[customFunctions[i].getRelayIndex()] || customFunctions[i].getIsActive();
         }
     }
 
     for (int i = 0; i < RELAY_COUNT; i++)
     {
-        MyHeatRelay relay = getRelay(i);
-
-        if (relay.getMode() == 0)
+        if (relays[i].getMode() == 0)
         {
-            relay.setIsActive(false);
+            relays[i].setIsActive(false);
         }
-        else if (relay.getMode() == 1)
+        else if (relays[i].getMode() == 1)
         {
-            relay.setIsActive(true);
+            relays[i].setIsActive(true);
         }
         else
         {
-            relay.setIsActive(isSetRelayActive[i]);
+            relays[i].setIsActive(isSetRelayActive[i]);
         }
     }
 }

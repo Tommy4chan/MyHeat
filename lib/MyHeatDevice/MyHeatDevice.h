@@ -30,6 +30,7 @@ public:
     MyHeatDevice& operator=(const MyHeatDevice&) = delete;
 
     void begin();
+    void validateCustomFunctions();
     void checkCustomFunctions();
     void updateRelays();
     void tick();

@@ -20,7 +20,7 @@ namespace MyHeatTelebot
 
         for (byte i = 0; i < MyHeatDevice::getInstance().getTemperatureCount(); i++)
         {
-            text += "T" + String(i) + ": " + (temperatures[i] == -127 ? "не визначено" : String(temperatures[i])) + "°C\n";
+            text += "T" + String(i) + ": " + (temperatures[i] == -127 ? "не визначено" : (String(temperatures[i])) + "°C") + "\n";
         }
 
         return text;
