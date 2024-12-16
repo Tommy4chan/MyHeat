@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import Temperatures from "../components/Temperatures"
 import DarkWrapperBlock from "../components/ui/DarkWrapperBlock";
 import Button from "../components/ui/buttons/Button";
@@ -19,64 +19,78 @@ const TemperaturesPage = () => {
 
   const {
     temperatureSettings,
-    getTemperatureSensorSettings,
-    setTemperatureSensorSettings,
+    getTemperatureSensorsSettings,
+    setTemperatureSensorsSettings,
     getDiscoveredTemperatureSensors,
     discoveredTemperatureSensors,
     setTemperatureSensor,
   } = useTemperatureStore();
 
-  const [temperaturePin, setTemperaturePin] = useState(0);
-  const [temperatureSensorsCount, setTemperatureSensorsCount] = useState(1);
-  const [temperatureOptions, setTemperatureOptions] = useState([]);
-  const [temperatureSensorsAddresses, setTemperatureSensorsAddresses] = useState([]);
+  const [settings, setSettings] = useState({
+    temperaturePin: 0,
+    temperatureCount: 1,
+  });
+
+  const [temperatureSensors, setTemperatureSensors] = useState([]);
+
+  const temperatureOptions = useMemo(
+    () =>
+      Array.from({ length: temperatureSettings.temperatureCount }, (_, i) => ({
+        value: i,
+        text: `T${i}`,
+      })),
+    [temperatureSettings.temperatureCount]
+  );
 
   useEffect(() => {
-    getTemperatureSensorSettings();
+    getTemperatureSensorsSettings();
   }, []);
 
   useEffect(() => {
-    setTemperatureSensorsAddresses(discoveredTemperatureSensors);
+    setTemperatureSensors(discoveredTemperatureSensors);
   }, [discoveredTemperatureSensors]);
 
   useEffect(() => {
-    setTemperaturePin(temperatureSettings['temperaturePin']);
-    setTemperatureSensorsCount(temperatureSettings['temperatureCount']);
-    setTemperatureOptions(Array.from({ length: temperatureSensorsCount }, (_, i) => ({ value: i, text: `T${i}` })));
+    setSettings({
+      temperaturePin: temperatureSettings.temperaturePin,
+      temperatureCount: temperatureSettings.temperatureCount,
+    });
   }, [temperatureSettings]);
 
-  const handleTemperaturePinChange = (e) => {
-    handlePinChange(e, setTemperaturePin, temperaturePin);
-  }
+  const handleSettingsChange = useCallback((key) => (e) =>{
+    setSettings((prev) => ({ ...prev, [key]: e.target.value }));
+  }, []);
 
-  const handleSettingsSave = () => {
-    setTemperatureSensorSettings(
-      temperaturePin,
-      temperatureSensorsCount,
+  const handleSettingsSave = useCallback(() => {
+    setTemperatureSensorsSettings(
+      settings.temperaturePin,
+      settings.temperatureCount
     );
+  }, [settings]);
 
-    setTemperatureOptions(Array.from({ length: temperatureSensorsCount }, (_, i) => ({ value: i, text: `T${i}` })));
-  }
+  const handleSensorTempIndexChange = useCallback(
+    (sensorAddressIndex) => (e) => {
+      setTemperatureSensors((prev) =>
+        prev.map((sensor) =>
+          sensor.id === sensorAddressIndex
+            ? { ...sensor, tempIndex: e.target.value }
+            : sensor
+        )
+      );
+    },
+    []
+  );
 
-  const handleSensorTempIndexChange = (e, sensorAddressIndex) => {
-    setTemperatureSensorsAddresses(temperatureSensorsAddresses.map((sensor) => {
-      if (sensor.id === sensorAddressIndex) {
-        return {
-          ...sensor,
-          tempIndex: e.target.value,
-        }
-      }
-    }));
-  };
-
-  const handleSensorSave = (index) => {
-    const sensorAddressIndex = temperatureSensorsAddresses[index].id;
-    const tempIndex = temperatureSensorsAddresses[index].tempIndex;
-    
-    setTemperatureSensorsAddresses(temperatureSensorsAddresses.filter((sensor) => sensor.id !== sensorAddressIndex));
-
-    setTemperatureSensor(tempIndex, sensorAddressIndex);
-  }
+  const handleSensorSave = useCallback(
+    (index) => () => {
+      const sensor = temperatureSensors[index];
+      setTemperatureSensors((prev) =>
+        prev.filter((_, i) => i !== index)
+      );
+      setTemperatureSensor(sensor.tempIndex, sensor.id);
+    },
+    [temperatureSensors, setTemperatureSensor]
+  );
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 items-start gap-6">
@@ -88,16 +102,16 @@ const TemperaturesPage = () => {
           <DarkWrapperBlock className="md:!flex-col">
             <FormField label='Пін'>
               <Select
-                value={temperaturePin}
-                options={getAvailableInputPins(temperaturePin)}
-                onChange={handleTemperaturePinChange}
+                value={settings.temperaturePin}
+                options={getAvailableInputPins(settings.temperaturePin)}
+                onChange={handleSettingsChange("temperaturePin")}
                 className='w-full'
               />
             </FormField>
             <FormField label='Кількість датчиків'>
               <Input
-                value={temperatureSensorsCount}
-                onChange={(e) => setTemperatureSensorsCount(e.target.value)}
+                value={settings.temperatureCount}
+                onChange={handleSettingsChange("temperatureCount")}
                 isNumber={true}
                 maxLength={3}
                 className='w-full'
@@ -108,7 +122,7 @@ const TemperaturesPage = () => {
         </WrapperBlock>
         <WrapperBlock>
           <h3 className='text-xl'>Датчики:</h3>
-          {temperatureSensorsAddresses?.map((temperatureSensor, index) => (
+          {temperatureSensors?.map((temperatureSensor, index) => (
             <DarkWrapperBlock className="justify-between" key={temperatureSensor.id}>
               <p
                 className="text-lg text-gray-300"
@@ -119,9 +133,9 @@ const TemperaturesPage = () => {
                 <Select
                   value={temperatureSensor.tempIndex}
                   options={temperatureOptions}
-                  onChange={(e) => handleSensorTempIndexChange(e, temperatureSensor.id)}
+                  onChange={handleSensorTempIndexChange(temperatureSensor.id)}
                 />
-                <SaveButton onClick={() => handleSensorSave(index)} />
+                <SaveButton onClick={handleSensorSave(index)} />
               </div>
             </DarkWrapperBlock>
           ))}

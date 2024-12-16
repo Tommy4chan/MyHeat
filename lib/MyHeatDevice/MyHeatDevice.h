@@ -31,6 +31,7 @@ public:
 
     void begin();
     void validateCustomFunctions();
+    void updateTemperatureSensorsSettings(byte pin, byte count);
     void checkCustomFunctions();
     void updateRelays();
     void tick();

@@ -87,15 +87,12 @@ namespace MyHeatWeb
             else if (messageType == "deleteTemperatureSensor") {
                 myHeatDevice.deleteTemperatureSensorAddress(payload["tempIndex"]);
             }
-            else if (messageType == "getTemperatureSensorSettings") {
+            else if (messageType == "getTemperatureSensorsSettings") {
                 response["payload"]["temperaturePin"] = myHeatDevice.getTemperaturePin();
                 response["payload"]["temperatureCount"] = myHeatDevice.getTemperatureCount();
             }
-            else if (messageType == "setTemperatureSensorSettings") {
-                myHeatDevice.setTemperaturePin(payload["temperaturePin"]);
-                myHeatDevice.setTemperatureCount(payload["temperatureCount"]);
-
-                myHeatDevice.validateCustomFunctions();
+            else if (messageType == "setTemperatureSensorsSettings") {
+                myHeatDevice.updateTemperatureSensorsSettings(payload["temperaturePin"], payload["temperatureCount"]);
             }
             else
             {

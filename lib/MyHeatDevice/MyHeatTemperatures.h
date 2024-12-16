@@ -137,13 +137,13 @@ public:
     void setTemperatureSensorAddress(byte tempIndex, byte sensorAddressIndex)
     {
         memcpy(temperatureSensorsAddresses[tempIndex], discoveredTemperatureSensorsAddresses[sensorAddressIndex], 8);
-        temperatureSensorData->save();
+        save();
     }
 
     void deleteTemperatureSensorAddress(byte tempIndex)
     {
         memset(temperatureSensorsAddresses[tempIndex], 0, 8);
-        temperatureSensorData->save();
+        save();
     }
 
     uint8_t **getDiscoveredTemperatureSensorAddresses()
@@ -156,10 +156,13 @@ public:
         return temperatureSensorsAddresses;
     }
 
-    void updateTemperature()
+    void updateTemperatures()
     {
         for (byte i = 0; i < temperatureCount; i++)
         {
+            if (temperatureSensorsAddresses[i][0] == 0)
+                continue;
+                
             temperatures[i] = temperatureSensors.getTempC(temperatureSensorsAddresses[i]);
         }
         temperatureSensors.requestTemperatures();
@@ -185,13 +188,11 @@ public:
         temperatureSensors.setOneWire(&oneWire);
         temperatureSensors.setWaitForConversion(false);
         temperatureSensors.begin();
-        temperatureSensorData->save();
     }
 
     void setTemperatureCount(byte newCount)
     {
         relocateMemory(newCount);
-        temperatureSensorData->save();
     }
 
     byte getTemperatureCount()
@@ -202,6 +203,11 @@ public:
     byte getTemperaturePin()
     {
         return temperaturePin;
+    }
+
+    void save()
+    {
+        temperatureSensorData->save();
     }
 };
 #endif

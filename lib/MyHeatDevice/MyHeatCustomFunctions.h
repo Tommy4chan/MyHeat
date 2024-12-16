@@ -62,34 +62,34 @@ public:
             return;
 
         customFunctions[functionIndex].toggleIsEnabled();
-        saveFunctions();
+        save();
     }
 
     void setCustomFunctionSign(byte functionIndex, byte sign)
     {
         customFunctions[functionIndex].setSign(sign);
-        saveFunctions();
+        save();
     }
 
     void setCustomFunctionTemperatureIndex(byte functionIndex, byte tempIndex, byte tempSensorIndex)
     {
         customFunctions[functionIndex].setTemperatureIndex(tempIndex, tempSensorIndex);
-        saveFunctions();
+        save();
     }
 
     void setCustomFunctionDeltaValue(byte functionIndex, byte deltaValueIndex, float deltaValue)
     {
         customFunctions[functionIndex].setDeltaValue(deltaValueIndex, deltaValue);
-        saveFunctions();
+        save();
     }
 
     void setCustomFunctionRelayIndex(byte functionIndex, byte relayIndex)
     {
         customFunctions[functionIndex].setRelayIndex(relayIndex);
-        saveFunctions();
+        save();
     }
 
-    void saveFunctions()
+    void save()
     {
         customFunctionsData->save();
     }

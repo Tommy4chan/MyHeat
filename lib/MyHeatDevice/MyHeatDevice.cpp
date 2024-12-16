@@ -4,7 +4,7 @@ void MyHeatDevice::begin()
 {
     MyHeatTemperatures::begin();
 
-    updateTemperature();
+    updateTemperatures();
     MyHeatCustomFunctions::begin();
     MyHeatRelays::begin();
 
@@ -47,7 +47,17 @@ void MyHeatDevice::validateCustomFunctions()
         }
     }
 
-    saveFunctions();
+    MyHeatCustomFunctions::save();
+}
+
+void MyHeatDevice::updateTemperatureSensorsSettings(byte pin, byte count)
+{
+    setTemperaturePin(pin);
+    setTemperatureCount(count);
+    MyHeatTemperatures::save();
+
+    hardwareIO.reevaluateScreensCount();
+    validateCustomFunctions();
 }
 
 void MyHeatDevice::checkCustomFunctions()
@@ -56,14 +66,24 @@ void MyHeatDevice::checkCustomFunctions()
 
     for (int i = 0; i < FUNCTION_COUNT; i++)
     {
-        float tempA = getTemperature(customFunctions[i].getTemperatureIndex(0)) + customFunctions[i].getDeltaValue(0);
-        float tempB = getTemperature(customFunctions[i].getTemperatureIndex(1)) + customFunctions[i].getDeltaValue(1);
 
         if (!customFunctions[i].getIsEnabled())
         {
             customFunctions[i].setIsActive(false);
             continue;
         }
+
+        float tempA = getTemperature(customFunctions[i].getTemperatureIndex(0));
+        float tempB = getTemperature(customFunctions[i].getTemperatureIndex(1));
+
+        if (tempA == -127.00 || tempB == -127.00)
+        {
+            customFunctions[i].setIsActive(false);
+            continue;
+        }
+
+        tempA += customFunctions[i].getDeltaValue(0);
+        tempB += customFunctions[i].getDeltaValue(1);
 
         if (customFunctions[i].getSign() == 0 && tempA < tempB)
         {
@@ -126,7 +146,7 @@ void MyHeatDevice::tick()
     if (millis() - tickTimerSecondary >= 1000)
     {
         tickTimerSecondary = millis();
-        updateTemperature();
+        updateTemperatures();
         updateRelays();
     }
 

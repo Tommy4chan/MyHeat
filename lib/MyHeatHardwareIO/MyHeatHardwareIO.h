@@ -36,7 +36,7 @@ private:
     {
         byte cursor = 24;
         byte temperatureIndexStart = 3 * menuIndex;
-        byte temperatureIndexEnd = ceil((float) temperatures->getTemperatureCount() / (maxTemperatureScreens - menuIndex));
+        byte temperatureIndexEnd = min((byte)(temperatureIndexStart + 3), temperatures->getTemperatureCount());
 
         for (byte i = temperatureIndexStart; i < temperatureIndexEnd; i++)
         {
