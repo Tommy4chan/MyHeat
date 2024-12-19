@@ -18,6 +18,8 @@ private:
     MyHeatHardwareIO hardwareIO;
     uint32_t tickTimerMain;
     uint32_t tickTimerSecondary;
+    bool *isSetRelayActive;
+    void initIsSetRelayActive();
     MyHeatDevice() {};
 
 public:
@@ -32,6 +34,8 @@ public:
     void begin();
     void validateCustomFunctions();
     void updateTemperatureSensorsSettings(byte pin, byte count);
+    void updateRelayCount(byte count);
+    void updateRelaysSettings(JsonObject payload);
     void checkCustomFunctions();
     void updateRelays();
     void tick();

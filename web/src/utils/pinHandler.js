@@ -7,7 +7,6 @@ export const handlePinChange = (e, setState, currentPins, pinIndex = null) => {
     : currentPins;
 
   const { handlePinChange } = usePinStore.getState();
-
   const success = handlePinChange(oldPin, newPin);
 
   if (success) {

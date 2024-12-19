@@ -8,11 +8,25 @@ void MyHeatDevice::begin()
     MyHeatCustomFunctions::begin();
     MyHeatRelays::begin();
 
+    initIsSetRelayActive(); 
+
     validateCustomFunctions();
     checkCustomFunctions();
     updateRelays();
 
-    hardwareIO.begin(this, getRelays());
+    hardwareIO.begin(this, this);
+}
+
+void MyHeatDevice::initIsSetRelayActive() 
+{
+    byte size = getRelayCount();
+    delete[] isSetRelayActive;
+
+    isSetRelayActive = new bool[size];
+    for (int i = 0; i < size; i++)
+    {
+        isSetRelayActive[i] = false;
+    }
 }
 
 void MyHeatDevice::validateCustomFunctions()
@@ -35,7 +49,7 @@ void MyHeatDevice::validateCustomFunctions()
             isInvalid = true;
         }
 
-        if (customFunctions[i].getRelayIndex() >= RELAY_COUNT)
+        if (customFunctions[i].getRelayIndex() >= getRelayCount())
         {
             customFunctions[i].setRelayIndex(RELAY_UNKNOWN);
             isInvalid = true;
@@ -60,13 +74,31 @@ void MyHeatDevice::updateTemperatureSensorsSettings(byte pin, byte count)
     validateCustomFunctions();
 }
 
+void MyHeatDevice::updateRelayCount(byte count)
+{
+    setRelayCount(count);
+
+    initIsSetRelayActive();
+    hardwareIO.reevaluateScreensCount();
+    validateCustomFunctions();
+}
+
+void MyHeatDevice::updateRelaysSettings(JsonObject payload)
+{
+    for (int i = 0; i < getRelayCount(); i++)
+    {
+        setRelaySettings(i, payload["relays"][i]["pin"], payload["relays"][i]["isActiveOnHigh"]);
+    }
+
+    MyHeatRelays::save();
+}
+
 void MyHeatDevice::checkCustomFunctions()
 {
     MyHeatCustomFunction *customFunctions = getCustomFunctions();
 
     for (int i = 0; i < FUNCTION_COUNT; i++)
     {
-
         if (!customFunctions[i].getIsEnabled())
         {
             customFunctions[i].setIsActive(false);
@@ -106,7 +138,6 @@ void MyHeatDevice::checkCustomFunctions()
 
 void MyHeatDevice::updateRelays()
 {
-    bool isSetRelayActive[RELAY_COUNT] = {false};
     MyHeatCustomFunction *customFunctions = getCustomFunctions();
     MyHeatRelay *relays = getRelays();
 
@@ -118,7 +149,7 @@ void MyHeatDevice::updateRelays()
         }
     }
 
-    for (int i = 0; i < RELAY_COUNT; i++)
+    for (int i = 0; i < getRelayCount(); i++)
     {
         if (relays[i].getMode() == 0)
         {
@@ -132,6 +163,8 @@ void MyHeatDevice::updateRelays()
         {
             relays[i].setIsActive(isSetRelayActive[i]);
         }
+
+        isSetRelayActive[i] = false;
     }
 }
 

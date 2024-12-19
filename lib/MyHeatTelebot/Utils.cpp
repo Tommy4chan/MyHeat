@@ -36,15 +36,21 @@ namespace MyHeatTelebot
 
         String sign(char(60 + customFunction.getSign()));
         String isValidText = "";
+        String relayText = "Реле " + String(customFunction.getRelayIndex());
 
         if (!customFunction.isValid())
         {
             isValidText = "Неіснуючий датчик температури або реле!!!\n";
         }
 
+        if (customFunction.getRelayIndex() == RELAY_UNKNOWN)
+        {
+            relayText = "Н/Д";
+        }
+
         return isValidText + "Функція " + String(functionIndex + 1) + ": \n" +
                result[0] + " " + sign + " " + result[1] +
-               "\nРеле: Реле " + String(customFunction.getRelayIndex()) +
+               "\nРеле: " + relayText +
                "\nСтан: " + MyHeatUtils::getConvertedStateToText(customFunction.getIsEnabled()) +
                "\nАктивна: " + MyHeatUtils::getConvertedActiveToText(customFunction.getIsActive()) + "\n\n";
     }

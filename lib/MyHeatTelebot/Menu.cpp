@@ -14,7 +14,7 @@ namespace MyHeatTelebot
     {
         inlineMenu = fb::InlineMenu();
 
-        for (byte i = 0; i < RELAY_COUNT; i++)
+        for (byte i = 0; i < MyHeatDevice::getInstance().getRelayCount(); i++)
         {
             inlineMenu.addButton("Реле " + String(i) + ": " + MyHeatUtils::getConvertedStateToText(relaysPtr[i].getMode()), "relay_" + String(i)).newRow();
         }
@@ -54,7 +54,7 @@ namespace MyHeatTelebot
     {
         inlineMenu = fb::InlineMenu();
 
-        char temperatureCount = MyHeatDevice::getInstance().getTemperatureCount();
+        byte temperatureCount = MyHeatDevice::getInstance().getTemperatureCount();
 
         for (byte i = 0; i < temperatureCount; i++)
         {
@@ -131,10 +131,12 @@ namespace MyHeatTelebot
     {
         inlineMenu = fb::InlineMenu();
 
-        for (byte i = 0; i < RELAY_COUNT; i++)
+        byte relayCount = MyHeatDevice::getInstance().getRelayCount(); 
+
+        for (byte i = 0; i < relayCount; i++)
         {
             inlineMenu.addButton("Реле " + String(i), "functionSetRelay_" + String(i));
-            if (i % 2 != 0 && i != RELAY_COUNT - 1)
+            if (i % 2 != 0 && i != relayCount - 1)
             {
                 inlineMenu.newRow();
             }

@@ -72,27 +72,56 @@ namespace MyHeatWeb
             {
                 myHeatWifi.startWifiScan();
             }
-            else if (messageType == "getDiscoveredTemperatureSensors") {
+            else if (messageType == "getDiscoveredTemperatureSensors")
+            {
                 byte count = myHeatDevice.discoverTemperatureSensor();
                 uint8_t **addresses = myHeatDevice.getDiscoveredTemperatureSensorAddresses();
-                
+
                 for (int i = 0; i < count; i++)
                 {
                     response["payload"]["discoveredTemperatureSensors"][i] = MyHeatUtils::getAddressToString(addresses[i]);
                 }
             }
-            else if (messageType == "setTemperatureSensor") {
+            else if (messageType == "setTemperatureSensor")
+            {
                 myHeatDevice.setTemperatureSensorAddress(payload["tempIndex"], payload["sensorAddressIndex"]);
             }
-            else if (messageType == "deleteTemperatureSensor") {
+            else if (messageType == "deleteTemperatureSensor")
+            {
                 myHeatDevice.deleteTemperatureSensorAddress(payload["tempIndex"]);
             }
-            else if (messageType == "getTemperatureSensorsSettings") {
+            else if (messageType == "getTemperatureSensorsSettings")
+            {
                 response["payload"]["temperaturePin"] = myHeatDevice.getTemperaturePin();
                 response["payload"]["temperatureCount"] = myHeatDevice.getTemperatureCount();
             }
-            else if (messageType == "setTemperatureSensorsSettings") {
+            else if (messageType == "setTemperatureSensorsSettings")
+            {
                 myHeatDevice.updateTemperatureSensorsSettings(payload["temperaturePin"], payload["temperatureCount"]);
+            }
+            else if (messageType == "getRelaysSettings")
+            {
+                for (int i = 0; i < myHeatDevice.getRelayCount(); i++)
+                {
+                    response["payload"]["relays"][i]["pin"] = myHeatDevice.getRelay(i).getPin();
+                    response["payload"]["relays"][i]["isActiveOnHigh"] = myHeatDevice.getRelay(i).getIsActiveOnHigh();
+                }
+            }
+            else if (messageType == "setRelayMode")
+            {
+                myHeatDevice.setRelayMode(payload["relayIndex"], payload["relayMode"]);
+            }
+            else if (messageType == "setRelaysSettings")
+            {
+                myHeatDevice.updateRelaysSettings(payload);
+            }
+            else if (messageType == "setRelayCount")
+            {
+                myHeatDevice.updateRelayCount(payload["relayCount"]);
+            }
+            else if (messageType == "getRelayCount")
+            {
+                response["payload"]["relayCount"] = myHeatDevice.getRelayCount();
             }
             else
             {
@@ -127,7 +156,7 @@ namespace MyHeatWeb
     {
         JsonDocument relaysData;
 
-        for (int i = 0; i < RELAY_COUNT; i++)
+        for (int i = 0; i < myHeatDevice.getRelayCount(); i++)
         {
             MyHeatRelay relay = myHeatDevice.getRelay(i);
             relaysData[F("relays")][i][F("mode")] = relay.getMode();
@@ -140,7 +169,6 @@ namespace MyHeatWeb
     void sendUsedPinsData()
     {
         JsonDocument usedPinsData;
-        byte relayPinsArray[] = RELAY_PINS;
 
         usedPinsData[F("usedPins")][0] = myHeatDevice.getTemperaturePin();
         usedPinsData[F("usedPins")][1] = ENC_A;
@@ -149,9 +177,9 @@ namespace MyHeatWeb
         usedPinsData[F("usedPins")][4] = OLED_SCL;
         usedPinsData[F("usedPins")][5] = OLED_SDA;
 
-        for (int i = 0; i < RELAY_COUNT; i++)
+        for (int i = 0; i < myHeatDevice.getRelayCount(); i++)
         {
-            usedPinsData[F("usedPins")][i + 6] = relayPinsArray[i];
+            usedPinsData[F("usedPins")][i + 6] = myHeatDevice.getRelay(i).getPin();
         }
 
         sendDataToClients(usedPinsData, F("usedPinsData"));

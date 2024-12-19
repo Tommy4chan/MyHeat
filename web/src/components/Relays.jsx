@@ -3,9 +3,11 @@ import DarkWrapperBlock from './ui/DarkWrapperBlock';
 import ColumnBlock from './ui/ColumnBlock';
 import SaveButton from './ui/buttons/SaveButton';
 import useRelayStore from '../store/relayStore';
+import { useEffect, useState } from 'react';
 
 const Relays = () => {
-  const { relays } = useRelayStore();
+  const { relays, setRelayMode } = useRelayStore();
+  const [relaysMode, setRelaysMode] = useState([]);
 
   const decode = (state) => {
     switch (Number(state)) {
@@ -16,6 +18,37 @@ const Relays = () => {
       case 2:
         return "Авто";
     }
+  }
+
+  useEffect(() => {
+    const newRelaysMode = relays.map((relay, index) => {
+      const currentMode = relaysMode[index];
+      
+      if (currentMode?.isChangedByUser) {
+        if(currentMode.mode === relay.mode) {
+          return {...currentMode, isChangedByUser: false};
+        }
+        return currentMode;
+      }
+      
+      return {
+        mode: relay.mode,
+        isChangedByUser: false
+      };
+    });
+
+    setRelaysMode(newRelaysMode);
+  }, [relays]);
+
+  const handleSetRelayMode = (index) => () => {
+    setRelayMode(index, relaysMode[index].mode);
+  }
+
+  const handleRelayModeChange = (index) => (e) => {
+    const newRelaysMode = [...relaysMode];
+    newRelaysMode[index].mode = e.target.value;
+    newRelaysMode[index].isChangedByUser = true;
+    setRelaysMode(newRelaysMode);
   }
 
   return (
@@ -30,14 +63,15 @@ const Relays = () => {
             </p>
             <div className='flex gap-2 flex-col md:flex-row'>
               <Select
-                value={relay.mode}
+                value={relaysMode[index]?.mode}
                 options={[
                   { value: 0, text: "Вимкнено" },
                   { value: 1, text: "Увімкнено" },
                   { value: 2, text: "Авто" },
                 ]}
+                onChange={handleRelayModeChange(index)}
               />
-              <SaveButton />
+              <SaveButton onClick={handleSetRelayMode(index)} />
             </div>
 
           </DarkWrapperBlock>

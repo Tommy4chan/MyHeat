@@ -6,7 +6,7 @@ namespace MyHeatTelebot
     {
         String text = "";
 
-        for (byte i = 0; i < RELAY_COUNT; i++)
+        for (byte i = 0; i < MyHeatDevice::getInstance().getRelayCount(); i++)
         {
             text += "Реле " + String(i) + ": \n" + "Активне: " + MyHeatUtils::getConvertedActiveToText(relaysPtr[i].getIsActive()) + "\n\n";
         }

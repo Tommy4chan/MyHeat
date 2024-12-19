@@ -57,9 +57,18 @@ const TemperaturesPage = () => {
     });
   }, [temperatureSettings]);
 
-  const handleSettingsChange = useCallback((key) => (e) =>{
-    setSettings((prev) => ({ ...prev, [key]: e.target.value }));
-  }, []);
+  const handleSettingsChange = (key) => (e) => {
+    if (key === "temperaturePin") {
+      handlePinChange(e, handleTemperaturePinChange, settings.temperaturePin);
+    }
+    else {
+      setSettings((prev) => ({ ...prev, [key]: e.target.value }));
+    }
+  };
+
+  const handleTemperaturePinChange = useCallback((newPin) => {
+    setSettings({ ...settings, temperaturePin: newPin });
+  }, [settings]);
 
   const handleSettingsSave = useCallback(() => {
     setTemperatureSensorsSettings(

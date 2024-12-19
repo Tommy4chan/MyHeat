@@ -15,7 +15,7 @@ const Temperatures = ({ isDeleteVisible = false }) => {
             <p
               className="text-lg text-gray-300"
             >
-              T{temperature.id}: {temperature.value === -127 ? "Н\\Д" : `${temperature.value}°C`}
+              T{temperature.id}: {temperature.value === '-127.00' ? "Н\\Д" : `${temperature.value}°C`}
             </p>
             {isDeleteVisible && (
               <Button buttonText={'Видалити'} color="red" onClick={() => removeTemperatureSensor(temperature.id)}/>

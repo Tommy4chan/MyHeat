@@ -9,42 +9,73 @@
 class MyHeatRelays : public MyHeatSaveInterface
 {
 private:
-    MyHeatRelay relays[RELAY_COUNT];
+    MyHeatRelay *relays;
     MyHeatSave *relaysData;
-
-    void initRelays()
-    {
-        byte relayPinsArray[] = RELAY_PINS;
-        bool relayTriggerArray[] = RELAY_TRIGGER;
-
-        for (int i = 0; i < RELAY_COUNT; i++)
-        {
-            relays[i].begin(relayPinsArray[i], relayTriggerArray[i]);
-        }
-    }
+    byte relayCount;
 
     void serialize(JsonDocument &doc)
     {
-        for (int i = 0; i < RELAY_COUNT; i++)
+        doc[F("relayCount")] = relayCount;
+
+        for (int i = 0; i < relayCount; i++)
         {
             doc[F("relays")][i][F("mode")] = relays[i].getMode();
+            doc[F("relays")][i][F("pin")] = relays[i].getPin();
+            doc[F("relays")][i][F("isActiveOnHigh")] = relays[i].getIsActiveOnHigh();
         }
     }
 
     void deserialize(JsonDocument &doc)
     {
-        for (int i = 0; i < RELAY_COUNT; i++)
+        realocateMemory(doc[F("relayCount")]);
+
+        for (int i = 0; i < relayCount; i++)
         {
             relays[i].setMode(doc[F("relays")][i][F("mode")]);
+            relays[i].begin(doc[F("relays")][i][F("pin")], doc[F("relays")][i][F("isActiveOnHigh")]);
         }
     }
 
+    void realocateMemory(byte newCount)
+    {
+        MyHeatRelay *oldRelays = nullptr;
+        if (relays != nullptr)
+        {
+            oldRelays = new MyHeatRelay[relayCount];
+            for (byte i = 0; i < relayCount; i++)
+            {
+                oldRelays[i] = relays[i];
+            }
+        }
+
+        delete[] relays;
+
+        relays = new MyHeatRelay[newCount];
+        if (oldRelays != nullptr)
+        {
+            byte copyCount = min(relayCount, newCount);
+            for (byte i = 0; i < copyCount; i++)
+            {
+                relays[i] = oldRelays[i];
+            }
+
+            delete[] oldRelays;
+        }
+
+        relayCount = newCount;
+    }
+
 public:
+    MyHeatRelays()
+    {
+        relayCount = 0;
+        relays = nullptr;
+    }
+
     void begin()
     {
         relaysData = new MyHeatSave(&LittleFS, "/relays.json", this);
         relaysData->read();
-        initRelays();
     }
 
     MyHeatRelay getRelay(byte relayIndex)
@@ -57,9 +88,36 @@ public:
         return relays;
     }
 
+    void setRelayMode(byte relayIndex, byte mode)
+    {
+        relays[relayIndex].setMode(mode);
+        save();
+    }
+
     void changeRelayMode(byte relayIndex)
     {
         relays[relayIndex].changeMode();
+        save();
+    }
+
+    void setRelaySettings(byte relayIndex, byte newPin, bool isActiveOnHigh)
+    {
+        relays[relayIndex].begin(newPin, isActiveOnHigh);
+    }
+
+    void setRelayCount(byte newCount)
+    {
+        realocateMemory(newCount);
+        save();
+    }
+
+    byte getRelayCount()
+    {
+        return relayCount;
+    }
+
+    void save()
+    {
         relaysData->save();
     }
 };

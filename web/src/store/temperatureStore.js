@@ -15,11 +15,11 @@ const useTemperatureStore = create((set) => ({
     let formattedTemperatures = [];
 
     for (let i = 0; i < half; i++) {
-      formattedTemperatures.push({ id: i, value: fetchedTemperatures[i] });
+      formattedTemperatures.push({ id: i, value: fetchedTemperatures[i].toFixed(2) });
       if (half + i < fetchedTemperatures.length) {
         formattedTemperatures.push({
           id: half + i,
-          value: fetchedTemperatures[half + i],
+          value: fetchedTemperatures[half + i].toFixed(2),
         });
       }
     }

@@ -15,7 +15,6 @@ private:
     {
         this->pin = pin;
         pinMode(pin, OUTPUT);
-        updateState();
     }
 
     void setTrigger(bool isActiveOnHigh)
@@ -68,6 +67,16 @@ public:
     bool getIsActive()
     {
         return isActive;
+    }
+
+    byte getPin()
+    {
+        return pin;
+    }
+
+    bool getIsActiveOnHigh()
+    {
+        return isActiveOnHigh;
     }
 };
 #endif

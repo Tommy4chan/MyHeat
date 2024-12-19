@@ -21,7 +21,7 @@ class MyHeatHardwareIO
 private:
     U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2;
     MyHeatTemperatures *temperatures;
-    MyHeatRelay *relays;
+    MyHeatRelays *relays;
     EncButton eb;
     byte menuIndex;
     uint32_t screenUpdateTimer;
@@ -63,12 +63,13 @@ private:
     void showRelay()
     {
         byte relayIndex = menuIndex - maxTemperatureScreens;
+        MyHeatRelay relay = relays->getRelay(relayIndex);
         u8g2.print(F("Реле "));
         u8g2.print(String(relayIndex) + ":");
         u8g2.setCursor(0, 40);
-        u8g2.print("Стан: " + MyHeatUtils::getConvertedStateToText(relays[relayIndex].getMode()));
+        u8g2.print("Стан: " + MyHeatUtils::getConvertedStateToText(relay.getMode()));
         u8g2.setCursor(0, 56);
-        u8g2.print("Активне: " + MyHeatUtils::getConvertedActiveToText(relays[relayIndex].getIsActive()));
+        u8g2.print("Активне: " + MyHeatUtils::getConvertedActiveToText(relay.getIsActive()));
     }
 
     void handleEncoder()
@@ -123,7 +124,7 @@ public:
         this->isScreenOn = true;
     }
 
-    void begin(MyHeatTemperatures *temperatures, MyHeatRelay *relays)
+    void begin(MyHeatTemperatures *temperatures, MyHeatRelays *relays)
     {
         this->relays = relays;
         this->temperatures = temperatures;
@@ -155,7 +156,7 @@ public:
     void reevaluateScreensCount()
     {
         maxTemperatureScreens = ceil((float) temperatures->getTemperatureCount() / 3);
-        maxRelayScreens = RELAY_COUNT;
+        maxRelayScreens = relays->getRelayCount();
         maxScreens = maxTemperatureScreens + maxRelayScreens;
     }
 };

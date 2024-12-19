@@ -32,7 +32,8 @@ namespace MyHeatTelebot
         }
 
         File root = LittleFS.open("/users");
-        if (!root || !root.isDirectory()) {
+        if (!root || !root.isDirectory())
+        {
             Serial.println("Failed to open /users directory");
             return;
         }
