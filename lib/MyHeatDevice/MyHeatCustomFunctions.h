@@ -8,12 +8,16 @@
 class MyHeatCustomFunctions : public MyHeatSaveInterface
 {
 private:
-    MyHeatCustomFunction customFunctions[FUNCTION_COUNT];
+    MyHeatCustomFunction *customFunctions;
     MyHeatSave *customFunctionsData;
+
+    byte functionCount;
 
     void serialize(JsonDocument &doc)
     {
-        for (int i = 0; i < FUNCTION_COUNT; i++)
+        doc[F("functionCount")] = functionCount;
+
+        for (int i = 0; i < functionCount; i++)
         {
             doc[F("functions")][i][F("sign")] = customFunctions[i].getSign();
             doc[F("functions")][i][F("isEnabled")] = customFunctions[i].getIsEnabled();
@@ -27,7 +31,9 @@ private:
 
     void deserialize(JsonDocument &doc)
     {
-        for (int i = 0; i < FUNCTION_COUNT; i++)
+        realocateMemory(doc[F("functionCount")]);
+
+        for (int i = 0; i < functionCount; i++)
         {
             customFunctions[i].setSign(doc[F("functions")][i][F("sign")]);
             customFunctions[i].setIsEnabled(doc[F("functions")][i][F("isEnabled")]);
@@ -39,7 +45,42 @@ private:
         }
     }
 
+    void realocateMemory(byte newFunctionCount)
+    {
+        MyHeatCustomFunction *oldFunctions = nullptr;
+        if (customFunctions != nullptr)
+        {
+            oldFunctions = new MyHeatCustomFunction[functionCount];
+            for (byte i = 0; i < functionCount; i++)
+            {
+                oldFunctions[i] = customFunctions[i];
+            }
+        }
+
+        delete[] customFunctions;
+
+        customFunctions = new MyHeatCustomFunction[newFunctionCount];
+        if (oldFunctions != nullptr)
+        {
+            byte copyCount = min(functionCount, newFunctionCount);
+            for (byte i = 0; i < copyCount; i++)
+            {
+                customFunctions[i] = oldFunctions[i];
+            }
+
+            delete[] oldFunctions;
+        }
+
+        functionCount = newFunctionCount;
+    }
+
 public:
+    MyHeatCustomFunctions()
+    {
+        functionCount = 0;
+        customFunctions = nullptr;
+    }
+
     void begin()
     {
         customFunctionsData = new MyHeatSave(&LittleFS, "/customFunctions.json", this);
@@ -58,10 +99,19 @@ public:
 
     void toggleCustomFunctionIsEnabled(byte functionIndex)
     {
-        if(!customFunctions[functionIndex].isValid())
+        if (!customFunctions[functionIndex].isValid())
             return;
 
         customFunctions[functionIndex].toggleIsEnabled();
+        save();
+    }
+
+    void setCustomFunctionIsEnabled(byte functionIndex, bool isEnabled)
+    {
+        if (!customFunctions[functionIndex].isValid())
+            return;
+
+        customFunctions[functionIndex].setIsEnabled(isEnabled);
         save();
     }
 
@@ -87,6 +137,17 @@ public:
     {
         customFunctions[functionIndex].setRelayIndex(relayIndex);
         save();
+    }
+
+    void setCustomFunctionCount(byte newCustomFunctionCount)
+    {
+        realocateMemory(newCustomFunctionCount);
+        save();
+    }
+
+    byte getCustomFunctionCount()
+    {
+        return functionCount;
     }
 
     void save()

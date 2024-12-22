@@ -3,51 +3,56 @@ import DarkWrapperBlock from "./ui/DarkWrapperBlock";
 import ColumnBlock from "./ui/ColumnBlock";
 import useFunctionStore from "../store/functionStore";
 
-const Functions = () => {
-  const { functions } = useFunctionStore();
+const Functions = ({ isTwoCols = false }) => {
+  const { functions, tnIndex, tUnknownIndex, relayUnknownIndex, setFunctionIsEnabled } = useFunctionStore();
 
-  const tnIndex = 255;
-
-  const getTemperatureText = (customFunctionIndex, temperatureIndex) => {
+  const getTemperatureText = (customFunction, temperatureIndex) => {
     let result = "";
-    if (functions[customFunctionIndex].temperatureIndex[temperatureIndex] !== tnIndex)
-      result = `T${functions[customFunctionIndex].temperatureIndex[temperatureIndex]}`;
+    if (customFunction.temperatureIndex[temperatureIndex] !== tnIndex)
+      result = customFunction.temperatureIndex[temperatureIndex] !== tUnknownIndex ? `T${customFunction.temperatureIndex[temperatureIndex]}` : 'Н/Д';
 
-    if (functions[customFunctionIndex].deltaValue[temperatureIndex] !== 0) {
-      result += functions[customFunctionIndex].deltaValueSign[temperatureIndex] ? functions[customFunctionIndex].temperatureIndex[temperatureIndex] === tnIndex ? '' : ' + ' : ' - ';
-      result += functions[customFunctionIndex].deltaValue[temperatureIndex];
+    if (customFunction.deltaValue[temperatureIndex] !== 0) {
+      result += customFunction.deltaValueSign[temperatureIndex] ? customFunction.temperatureIndex[temperatureIndex] === tnIndex ? '' : ' + ' : ' - ';
+      result += customFunction.deltaValue[temperatureIndex];
     }
 
     return result;
   };
 
-  const getCustomFunctionText = (customFunctionIndex) => {
-    const temperatureText1 = getTemperatureText(customFunctionIndex, 0);
-    const temperatureText2 = getTemperatureText(customFunctionIndex, 1);
+  const getCustomFunctionText = (customFunction) => {
+    const temperatureText1 = getTemperatureText(customFunction, 0);
+    const temperatureText2 = getTemperatureText(customFunction, 1);
     let customSign = '<';
 
-    switch (functions[customFunctionIndex].sign) {
+    switch (customFunction.sign) {
       case 1:
         customSign = '=';
+        break;
       case 2:
         customSign = '>';
+        break;
     }
 
+
     return `${temperatureText1} ${customSign} ${temperatureText2}`;
+  }
+  
+  const handleFunctionToggle = (index) => () => {
+    setFunctionIsEnabled(index, !functions[index].isEnabled);
   }
 
   return (
     <ColumnBlock>
       <h2 className="font-semibold text-2xl">Функції</h2>
-      <div className="flex flex-col gap-4">
+      <div className={isTwoCols ? "grid grid-cols-1 lg:grid-cols-2 gap-4" : "flex flex-col gap-4"}>
         {functions?.map((customFunction, index) => (
           <DarkWrapperBlock className='justify-between' key={index}>
             <div>
               <p className="text-lg text-gray-300">
-                Функція {index}: {getCustomFunctionText(index)}
+                Функція {index}: {getCustomFunctionText(customFunction)}
               </p>
               <p className="text-lg text-gray-300">
-                Реле: Реле {customFunction.relayIndex}
+                Реле: {customFunction.relayIndex !== relayUnknownIndex ? `Реле ${customFunction.relayIndex}` : 'Н/Д'}
               </p>
               <div className="flex justify-between gap-2">
                 <p className="text-lg text-gray-300">
@@ -59,6 +64,7 @@ const Functions = () => {
             <Button
               buttonText={customFunction.isEnabled ? 'Вимкнути' : 'Увімкнути'}
               color={customFunction.isEnabled ? 'red' : 'green'}
+              onClick={handleFunctionToggle(index)}
             />
           </DarkWrapperBlock>
         ))}

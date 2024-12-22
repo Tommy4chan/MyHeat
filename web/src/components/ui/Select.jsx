@@ -11,7 +11,7 @@ const Select = ({ value, options, color = 'gray', onChange, className }) => {
             onChange={onChange}
         >
             {options.map((option, index) => (
-                <option key={index} value={option.value}>{option.text}</option>
+                <option key={index} value={option.value} disabled={option?.isDisabled}>{option.text}</option>
             ))}
         </select>
     )

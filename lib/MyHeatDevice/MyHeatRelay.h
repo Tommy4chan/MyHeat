@@ -46,6 +46,7 @@ public:
     void changeMode()
     {        
         mode = (mode + 1) % 3;
+        updateState();
     }
 
     void setMode(byte mode)

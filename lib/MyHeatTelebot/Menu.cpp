@@ -71,8 +71,9 @@ namespace MyHeatTelebot
     fb::InlineMenu &getFunctionListInlineMenu()
     {
         inlineMenu = fb::InlineMenu();
+        byte functionCount = MyHeatDevice::getInstance().getCustomFunctionCount();
 
-        for (byte i = 0; i < FUNCTION_COUNT; i++)
+        for (byte i = 0; i < functionCount; i++)
         {
             inlineMenu.addButton("Функція " + String(i + 1), "function_" + String(i));
             if (i % 2 != 0)
@@ -81,7 +82,7 @@ namespace MyHeatTelebot
             }
         }
 
-        if (FUNCTION_COUNT % 2 != 0)
+        if (functionCount % 2 != 0)
         {
             inlineMenu.newRow();
         }

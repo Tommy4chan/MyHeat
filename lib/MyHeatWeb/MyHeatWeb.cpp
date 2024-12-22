@@ -123,6 +123,13 @@ namespace MyHeatWeb
             {
                 response["payload"]["relayCount"] = myHeatDevice.getRelayCount();
             }
+            else if (messageType == "setFunctionIsEnabled") {
+                myHeatDevice.setCustomFunctionIsEnabled(payload["functionIndex"], payload["isEnabled"]);
+                myHeatDevice.checkCustomFunctions();
+            }
+            else if (messageType == "setFunctionsSettings") {
+                myHeatDevice.updateFunctionsSettings(payload);
+            }
             else
             {
                 response["error"] = "Unknown message type";
@@ -189,7 +196,10 @@ namespace MyHeatWeb
     {
         JsonDocument functionsData;
 
-        for (int i = 0; i < FUNCTION_COUNT; i++)
+        functionsData[F("temperatureCount")] = myHeatDevice.getTemperatureCount();
+        functionsData[F("relayCount")] = myHeatDevice.getRelayCount();
+
+        for (int i = 0; i < myHeatDevice.getCustomFunctionCount(); i++)
         {
             MyHeatCustomFunction function = myHeatDevice.getCustomFunction(i);
 

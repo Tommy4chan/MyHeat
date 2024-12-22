@@ -9,20 +9,25 @@ const useTemperatureStore = create((set) => ({
   processTemperatures: (data) => {
     if (!data?.temperatures) return;
 
-    const fetchedTemperatures = data.temperatures;
-    const half = Math.ceil(fetchedTemperatures.length / 2);
+    // const fetchedTemperatures = data.temperatures;
+    // const half = Math.ceil(fetchedTemperatures.length / 2);
 
-    let formattedTemperatures = [];
+    const formattedTemperatures = data.temperatures.map((temperature, index) => {
+      return {
+        id: index,
+        value: temperature.toFixed(2),
+      };
+    });
 
-    for (let i = 0; i < half; i++) {
-      formattedTemperatures.push({ id: i, value: fetchedTemperatures[i].toFixed(2) });
-      if (half + i < fetchedTemperatures.length) {
-        formattedTemperatures.push({
-          id: half + i,
-          value: fetchedTemperatures[half + i].toFixed(2),
-        });
-      }
-    }
+    // for (let i = 0; i < half; i++) {
+    //   formattedTemperatures.push({ id: i, value: fetchedTemperatures[i].toFixed(2) });
+    //   if (half + i < fetchedTemperatures.length) {
+    //     formattedTemperatures.push({
+    //       id: half + i,
+    //       value: fetchedTemperatures[half + i].toFixed(2),
+    //     });
+    //   }
+    // }
 
     set({ temperatures: formattedTemperatures });
   },

@@ -30,7 +30,7 @@ namespace MyHeatTelebot
     {
         String text = "";
 
-        for (byte i = 0; i < FUNCTION_COUNT; i++)
+        for (byte i = 0; i < MyHeatDevice::getInstance().getCustomFunctionCount(); i++)
         {
             text += getConvertedFunctionToText(customFunctionsPtr[i], i);
         }

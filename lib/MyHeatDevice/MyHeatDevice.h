@@ -36,6 +36,7 @@ public:
     void updateTemperatureSensorsSettings(byte pin, byte count);
     void updateRelayCount(byte count);
     void updateRelaysSettings(JsonObject payload);
+    void updateFunctionsSettings(JsonObject payload);
     void checkCustomFunctions();
     void updateRelays();
     void tick();

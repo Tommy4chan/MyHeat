@@ -33,7 +33,7 @@ void MyHeatDevice::validateCustomFunctions()
 {
     MyHeatCustomFunction *customFunctions = getCustomFunctions();
 
-    for (int i = 0; i < FUNCTION_COUNT; i++)
+    for (int i = 0; i < getCustomFunctionCount(); i++)
     {
         bool isInvalid = false;
 
@@ -93,11 +93,32 @@ void MyHeatDevice::updateRelaysSettings(JsonObject payload)
     MyHeatRelays::save();
 }
 
+void MyHeatDevice::updateFunctionsSettings(JsonObject payload)
+{
+    byte functionCount = payload["functionCount"];
+    setCustomFunctionCount(functionCount);
+    MyHeatCustomFunction *customFunctions = getCustomFunctions();
+
+    for (int i = 0; i < functionCount; i++)
+    {
+        customFunctions[i].setIsEnabled(payload["functions"][i]["isEnabled"]);
+        customFunctions[i].setSign(payload["functions"][i]["sign"]);
+        customFunctions[i].setTemperatureIndex(0, payload["functions"][i]["temperatureIndex"][0]);
+        customFunctions[i].setTemperatureIndex(1, payload["functions"][i]["temperatureIndex"][1]);
+        customFunctions[i].setDeltaValue(0, payload["functions"][i]["deltaValue"][0]);
+        customFunctions[i].setDeltaValue(1, payload["functions"][i]["deltaValue"][1]);
+        customFunctions[i].setRelayIndex(payload["functions"][i]["relayIndex"]);
+    }
+
+    MyHeatCustomFunctions::save();
+    validateCustomFunctions();
+}
+
 void MyHeatDevice::checkCustomFunctions()
 {
     MyHeatCustomFunction *customFunctions = getCustomFunctions();
 
-    for (int i = 0; i < FUNCTION_COUNT; i++)
+    for (int i = 0; i < getCustomFunctionCount(); i++)
     {
         if (!customFunctions[i].getIsEnabled())
         {
@@ -141,7 +162,7 @@ void MyHeatDevice::updateRelays()
     MyHeatCustomFunction *customFunctions = getCustomFunctions();
     MyHeatRelay *relays = getRelays();
 
-    for (int i = 0; i < FUNCTION_COUNT; i++)
+    for (int i = 0; i < getCustomFunctionCount(); i++)
     {
         if (customFunctions[i].getIsEnabled())
         {
