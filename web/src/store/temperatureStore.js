@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import useWebSocketStore from "./websocketStore";
 
-const useTemperatureStore = create((set) => ({
+const useTemperatureStore = create((set, get) => ({
   temperatures: [],
   temperatureSettings: [],
   discoveredTemperatureSensors: [],
@@ -83,6 +83,12 @@ const useTemperatureStore = create((set) => ({
       tempIndex,
       sensorAddressIndex,
     };
+
+    const discoveredTemperatureSensors = get().discoveredTemperatureSensors.filter(
+      (sensor) => sensor.id !== sensorAddressIndex
+    );
+
+    set({ discoveredTemperatureSensors });
 
     useWebSocketStore.getState().sendMessage("setTemperatureSensor", payload);
   },

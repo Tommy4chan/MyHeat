@@ -14,7 +14,7 @@ const FunctionsPage = () => {
   const [customFunctions, setCustomFunctions] = useState([]);
   const [selectedCustomFunction, setSelectedCustomFunction] = useState(0);
 
-  const { functions, tnIndex, tUnknownIndex, relayUnknownIndex, temperatureCount, relayCount } = useFunctionStore();
+  const { functions, tnIndex, tUnknownIndex, relayUnknownIndex, temperatureCount, relayCount, emptyCustomFunction } = useFunctionStore();
 
   useEffect(() => {
     setCustomFunctions(functions);
@@ -45,16 +45,6 @@ const FunctionsPage = () => {
     { value: 0, text: '-' },
     { value: 1, text: '+' }
   ];
-
-  const emptyCustomFunction = {
-    sign: 0,
-    temperatureIndex: [0, 0],
-    deltaValueSign: [0, 0],
-    deltaValue: [0, 0],
-    relayIndex: 0,
-    isEnabled: false,
-    isActive: false,
-  };
 
   const handleCustomFunctionChange = (e) => {
     if (+e.target.value === customFunctions.length) {

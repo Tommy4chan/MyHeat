@@ -33,7 +33,6 @@ const Functions = ({ isTwoCols = false }) => {
         break;
     }
 
-
     return `${temperatureText1} ${customSign} ${temperatureText2}`;
   }
   

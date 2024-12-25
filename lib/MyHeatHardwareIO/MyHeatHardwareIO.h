@@ -91,7 +91,7 @@ private:
     }
 
     void updateScreenManual()
-    {        
+    {
         isScreenOn = true;
         screenPowerSaveTimer = millis();
         updateScreen();
@@ -118,6 +118,13 @@ private:
     }
 
 public:
+    MyHeatHardwareIO(const MyHeatHardwareIO &) = delete;
+    MyHeatHardwareIO &operator=(const MyHeatHardwareIO &) = delete;
+
+    static MyHeatHardwareIO& getInstance() {
+        static MyHeatHardwareIO instance;
+        return instance;
+    }
     MyHeatHardwareIO() : u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE, OLED_SCL, OLED_SDA), eb(ENC_A, ENC_B, ENC_BTN)
     {
         this->menuIndex = 0;
@@ -155,9 +162,10 @@ public:
 
     void reevaluateScreensCount()
     {
-        maxTemperatureScreens = ceil((float) temperatures->getTemperatureCount() / 3);
+        maxTemperatureScreens = ceil((float)temperatures->getTemperatureCount() / 3);
         maxRelayScreens = relays->getRelayCount();
         maxScreens = maxTemperatureScreens + maxRelayScreens;
     }
 };
+
 #endif

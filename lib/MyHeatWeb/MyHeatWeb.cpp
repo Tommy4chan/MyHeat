@@ -59,80 +59,72 @@ namespace MyHeatWeb
             JsonDocument response;
             response["messageType"] = messageType + "Response";
 
-            if (messageType == "setWifi")
+            switch (su::SH(messageType.c_str()))
             {
+            case su::SH("setWifi"):
                 myHeatWifi.setWifiCredentials(payload["ssid"], payload["password"]);
-            }
-            else if (messageType == "getWifiSettings")
-            {
+                break;
+
+            case su::SH("getWifiSettings"):
                 response["payload"]["ssid"] = myHeatWifi.getSSID();
                 response["payload"]["password"] = myHeatWifi.getPassword();
-            }
-            else if (messageType == "startWifiScan")
-            {
-                myHeatWifi.startWifiScan();
-            }
-            else if (messageType == "getDiscoveredTemperatureSensors")
-            {
-                byte count = myHeatDevice.discoverTemperatureSensor();
-                uint8_t **addresses = myHeatDevice.getDiscoveredTemperatureSensorAddresses();
+                break;
 
-                for (int i = 0; i < count; i++)
-                {
-                    response["payload"]["discoveredTemperatureSensors"][i] = MyHeatUtils::getAddressToString(addresses[i]);
-                }
-            }
-            else if (messageType == "setTemperatureSensor")
-            {
-                myHeatDevice.setTemperatureSensorAddress(payload["tempIndex"], payload["sensorAddressIndex"]);
-            }
-            else if (messageType == "deleteTemperatureSensor")
-            {
-                myHeatDevice.deleteTemperatureSensorAddress(payload["tempIndex"]);
-            }
-            else if (messageType == "getTemperatureSensorsSettings")
-            {
-                response["payload"]["temperaturePin"] = myHeatDevice.getTemperaturePin();
-                response["payload"]["temperatureCount"] = myHeatDevice.getTemperatureCount();
-            }
-            else if (messageType == "setTemperatureSensorsSettings")
-            {
-                myHeatDevice.updateTemperatureSensorsSettings(payload["temperaturePin"], payload["temperatureCount"]);
-            }
-            else if (messageType == "getRelaysSettings")
-            {
-                for (int i = 0; i < myHeatDevice.getRelayCount(); i++)
-                {
-                    response["payload"]["relays"][i]["pin"] = myHeatDevice.getRelay(i).getPin();
-                    response["payload"]["relays"][i]["isActiveOnHigh"] = myHeatDevice.getRelay(i).getIsActiveOnHigh();
-                }
-            }
-            else if (messageType == "setRelayMode")
-            {
-                myHeatDevice.setRelayMode(payload["relayIndex"], payload["relayMode"]);
-            }
-            else if (messageType == "setRelaysSettings")
-            {
-                myHeatDevice.updateRelaysSettings(payload);
-            }
-            else if (messageType == "setRelayCount")
-            {
-                myHeatDevice.updateRelayCount(payload["relayCount"]);
-            }
-            else if (messageType == "getRelayCount")
-            {
-                response["payload"]["relayCount"] = myHeatDevice.getRelayCount();
-            }
-            else if (messageType == "setFunctionIsEnabled") {
-                myHeatDevice.setCustomFunctionIsEnabled(payload["functionIndex"], payload["isEnabled"]);
-                myHeatDevice.checkCustomFunctions();
-            }
-            else if (messageType == "setFunctionsSettings") {
-                myHeatDevice.updateFunctionsSettings(payload);
-            }
-            else
-            {
+            case su::SH("startWifiScan"):
+                myHeatWifi.startWifiScan();
+                break;
+
+            case su::SH("getDiscoveredTemperatureSensors"):
+                getDiscoveredTemperatureSensors(response);
+                break;
+
+            case su::SH("setTemperatureSensor"):
+                setTemperatureSensor(payload);
+                break;
+
+            case su::SH("deleteTemperatureSensor"):
+                deleteTemperatureSensor(payload);
+                break;
+
+            case su::SH("getTemperatureSensorsSettings"):
+                getTemperatureSensorsSettings(response);
+                break;
+
+            case su::SH("setTemperatureSensorsSettings"):
+                setTemperatureSensorsSettings(payload);
+                break;
+
+            case su::SH("getRelaysSettings"):
+                getRelaysSettings(response);
+                break;
+
+            case su::SH("setRelayMode"):
+                setRelayMode(payload);
+                break;
+
+            case su::SH("setRelaysSettings"):
+                setRelaysSettings(payload);
+                break;
+
+            case su::SH("setRelayCount"):
+                setRelayCount(payload);
+                break;
+
+            case su::SH("getRelayCount"):
+                getRelayCount(response);
+                break;
+
+            case su::SH("setFunctionIsEnabled"):
+                setFunctionIsEnabled(payload);
+                break;
+
+            case su::SH("setFunctionsSettings"):
+                setFunctionsSettings(payload);
+                break;
+
+            default:
                 response["error"] = "Unknown message type";
+                break;
             }
 
             String responseString;
@@ -153,67 +145,22 @@ namespace MyHeatWeb
 
     void sendTemperaturesData()
     {
-        JsonDocument temperaturesData;
-        copyArray(myHeatDevice.getTemperatures(), myHeatDevice.getTemperatureCount(), temperaturesData[F("temperatures")]);
-
-        sendDataToClients(temperaturesData, F("temperaturesData"));
+        sendDataToClients(getTemperatureSensorsData(), F("temperaturesData"));
     }
 
     void sendRelaysData()
     {
-        JsonDocument relaysData;
-
-        for (int i = 0; i < myHeatDevice.getRelayCount(); i++)
-        {
-            MyHeatRelay relay = myHeatDevice.getRelay(i);
-            relaysData[F("relays")][i][F("mode")] = relay.getMode();
-            relaysData[F("relays")][i][F("isActive")] = relay.getIsActive();
-        }
-
-        sendDataToClients(relaysData, F("relaysData"));
+        sendDataToClients(getRelaysData(), F("relaysData"));
     }
 
     void sendUsedPinsData()
     {
-        JsonDocument usedPinsData;
-
-        usedPinsData[F("usedPins")][0] = myHeatDevice.getTemperaturePin();
-        usedPinsData[F("usedPins")][1] = ENC_A;
-        usedPinsData[F("usedPins")][2] = ENC_B;
-        usedPinsData[F("usedPins")][3] = ENC_BTN;
-        usedPinsData[F("usedPins")][4] = OLED_SCL;
-        usedPinsData[F("usedPins")][5] = OLED_SDA;
-
-        for (int i = 0; i < myHeatDevice.getRelayCount(); i++)
-        {
-            usedPinsData[F("usedPins")][i + 6] = myHeatDevice.getRelay(i).getPin();
-        }
-
-        sendDataToClients(usedPinsData, F("usedPinsData"));
+        sendDataToClients(getUsedPinsData(), F("usedPinsData"));
     }
 
     void sendFunctionsData()
     {
-        JsonDocument functionsData;
-
-        functionsData[F("temperatureCount")] = myHeatDevice.getTemperatureCount();
-        functionsData[F("relayCount")] = myHeatDevice.getRelayCount();
-
-        for (int i = 0; i < myHeatDevice.getCustomFunctionCount(); i++)
-        {
-            MyHeatCustomFunction function = myHeatDevice.getCustomFunction(i);
-
-            functionsData[F("functions")][i][F("sign")] = function.getSign();
-            functionsData[F("functions")][i][F("temperatureIndex")][0] = function.getTemperatureIndex(0);
-            functionsData[F("functions")][i][F("temperatureIndex")][1] = function.getTemperatureIndex(1);
-            functionsData[F("functions")][i][F("deltaValue")][0] = function.getDeltaValue(0);
-            functionsData[F("functions")][i][F("deltaValue")][1] = function.getDeltaValue(1);
-            functionsData[F("functions")][i][F("relayIndex")] = function.getRelayIndex();
-            functionsData[F("functions")][i][F("isEnabled")] = function.getIsEnabled();
-            functionsData[F("functions")][i][F("isActive")] = function.getIsActive();
-        }
-
-        sendDataToClients(functionsData, F("functionsData"));
+        sendDataToClients(getFunctionsData(), F("functionsData"));
     }
 
     void tick()

@@ -15,7 +15,7 @@
 class MyHeatDevice : public MyHeatRelays, public MyHeatCustomFunctions, public MyHeatTemperatures
 {
 private:
-    MyHeatHardwareIO hardwareIO;
+    MyHeatHardwareIO &hardwareIO = MyHeatHardwareIO::getInstance();
     uint32_t tickTimerMain;
     uint32_t tickTimerSecondary;
     bool *isSetRelayActive;
@@ -23,17 +23,17 @@ private:
     MyHeatDevice() {};
 
 public:
-    static MyHeatDevice& getInstance() {
+    static MyHeatDevice &getInstance()
+    {
         static MyHeatDevice instance;
         return instance;
     }
 
-    MyHeatDevice(const MyHeatDevice&) = delete;
-    MyHeatDevice& operator=(const MyHeatDevice&) = delete;
+    MyHeatDevice(const MyHeatDevice &) = delete;
+    MyHeatDevice &operator=(const MyHeatDevice &) = delete;
 
     void begin();
     void validateCustomFunctions();
-    void updateTemperatureSensorsSettings(byte pin, byte count);
     void updateRelayCount(byte count);
     void updateRelaysSettings(JsonObject payload);
     void updateFunctionsSettings(JsonObject payload);

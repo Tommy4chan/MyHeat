@@ -64,16 +64,6 @@ void MyHeatDevice::validateCustomFunctions()
     MyHeatCustomFunctions::save();
 }
 
-void MyHeatDevice::updateTemperatureSensorsSettings(byte pin, byte count)
-{
-    setTemperaturePin(pin);
-    setTemperatureCount(count);
-    MyHeatTemperatures::save();
-
-    hardwareIO.reevaluateScreensCount();
-    validateCustomFunctions();
-}
-
 void MyHeatDevice::updateRelayCount(byte count)
 {
     setRelayCount(count);
@@ -95,13 +85,13 @@ void MyHeatDevice::updateRelaysSettings(JsonObject payload)
 
 void MyHeatDevice::updateFunctionsSettings(JsonObject payload)
 {
+    byte oldFunctionCount = getCustomFunctionCount();
     byte functionCount = payload["functionCount"];
     setCustomFunctionCount(functionCount);
     MyHeatCustomFunction *customFunctions = getCustomFunctions();
 
     for (int i = 0; i < functionCount; i++)
     {
-        customFunctions[i].setIsEnabled(payload["functions"][i]["isEnabled"]);
         customFunctions[i].setSign(payload["functions"][i]["sign"]);
         customFunctions[i].setTemperatureIndex(0, payload["functions"][i]["temperatureIndex"][0]);
         customFunctions[i].setTemperatureIndex(1, payload["functions"][i]["temperatureIndex"][1]);
@@ -131,6 +121,7 @@ void MyHeatDevice::checkCustomFunctions()
 
         if (tempA == -127.00 || tempB == -127.00)
         {
+            //add some mark near the function in this case it can be error/warning or something
             customFunctions[i].setIsActive(false);
             continue;
         }

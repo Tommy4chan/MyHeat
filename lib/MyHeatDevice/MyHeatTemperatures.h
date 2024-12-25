@@ -183,7 +183,10 @@ public:
         for (byte i = 0; i < temperatureCount; i++)
         {
             if (temperatureSensorsAddresses[i][0] == 0)
+            {
+                temperatures[i] = -127.00;
                 continue;
+            }
 
             temperatures[i] = temperatureSensors.getTempC(temperatureSensorsAddresses[i]);
         }

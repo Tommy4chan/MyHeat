@@ -7,6 +7,11 @@
 #include <MyHeatWifi.h>
 #include "ArduinoJson.h"
 #include "AsyncJson.h"
+#include <StringUtils.h>
+#include "MyHeatWebTemperatures.h"
+#include "MyHeatWebRelays.h"
+#include "MyHeatWebCustomFunctions.h"
+#include "MyHeatWebSettings.h"
 
 namespace MyHeatWeb
 {
@@ -30,4 +35,5 @@ namespace MyHeatWeb
 
     void tick();
 }
+
 #endif
