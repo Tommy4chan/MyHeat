@@ -13,7 +13,7 @@ namespace MyHeatTelebot
 
     fb::Menu &getMainReplyMenu();
 
-    fb::InlineMenu &getRelayInlineMenu(MyHeatRelay *relaysPtr);
+    fb::InlineMenu &getRelayInlineMenu();
     fb::InlineMenu &getTemperatureInlineMenu();
     fb::InlineMenu &getDiscoveredTemperatureSensorsInlineMenu(byte count, uint8_t **addresses);
     fb::InlineMenu &getTemperatureIndexesInlineMenu();

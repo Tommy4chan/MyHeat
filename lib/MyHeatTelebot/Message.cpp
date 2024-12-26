@@ -15,13 +15,15 @@ namespace MyHeatTelebot
         return text;
     }
 
-    String getTemperatureScreenText(float temperatures[])
+    String getTemperatureScreenText()
     {
         String text = MyHeatUtils::getCurrentDateAndTime();
+        MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
-        for (byte i = 0; i < MyHeatDevice::getInstance().getTemperatureCount(); i++)
+        for (byte i = 0; i < myHeatDevice.getTemperatureCount(); i++)
         {
-            text += "T" + String(i) + ": " + (temperatures[i] == -127 ? "не визначено" : (String(temperatures[i])) + "°C") + "\n";
+            float temperature = myHeatDevice.getTemperature(i);
+            text += "T" + String(i) + ": " + (temperature == -127 ? "не визначено" : (String(temperature)) + "°C") + "\n";
         }
 
         return text;

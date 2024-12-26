@@ -9,8 +9,8 @@
 
 namespace MyHeatTelebot
 {
-    String getRelayScreenText(MyHeatRelay *relaysPtr);
-    String getTemperatureScreenText(float temperatures[]);
+    String getRelayScreenText();
+    String getTemperatureScreenText();
     String getFunctionsListScreenText();
     String getFunctionScreenText(MyHeatCustomFunction customFunction, byte functionIndex);
 }

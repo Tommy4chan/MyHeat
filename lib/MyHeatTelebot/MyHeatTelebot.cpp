@@ -101,15 +101,15 @@ namespace MyHeatTelebot
         case su::SH("Температура"):
         {
             setUserScreen(chat_id, ScreenType::TEMP_SCREEN);
-            msg.text = getTemperatureScreenText(myHeatDevice.getTemperatures());
+            msg.text = getTemperatureScreenText();
             msg.setInlineMenu(getTemperatureInlineMenu());
             break;
         }
         case su::SH("Реле"):
         {
             setUserScreen(msg.chatID, ScreenType::RELAYS_SCREEN);
-            msg.text = getRelayScreenText(myHeatDevice.getRelays());
-            msg.setInlineMenu(getRelayInlineMenu(myHeatDevice.getRelays()));
+            msg.text = getRelayScreenText();
+            msg.setInlineMenu(getRelayInlineMenu());
             break;
         }
         case su::SH("Функції"):
@@ -193,15 +193,15 @@ namespace MyHeatTelebot
             }
 
             setUserScreen(chat_id, ScreenType::TEMP_SCREEN);
-            msg.text += getTemperatureScreenText(myHeatDevice.getTemperatures());
+            msg.text += getTemperatureScreenText();
             msg.setInlineMenu(getTemperatureInlineMenu());
             break;
         }
         case su::SH("relay"):
         {
             myHeatDevice.changeRelayMode(value);
-            msg.text = getRelayScreenText(myHeatDevice.getRelays());
-            msg.setInlineMenu(getRelayInlineMenu(myHeatDevice.getRelays()));
+            msg.text = getRelayScreenText();
+            msg.setInlineMenu(getRelayInlineMenu());
             break;
         }
         case su::SH("function"):
@@ -335,13 +335,13 @@ namespace MyHeatTelebot
         case su::SH("refreshRelays"):
         {
             setUserScreen(chat_id, ScreenType::RELAYS_SCREEN);
-            msg.text = getRelayScreenText(myHeatDevice.getRelays());
-            msg.setInlineMenu(getRelayInlineMenu(myHeatDevice.getRelays()));
+            msg.text = getRelayScreenText();
+            msg.setInlineMenu(getRelayInlineMenu());
             break;
         }
         case su::SH("refreshTemperatures"):
         {
-            msg.text += getTemperatureScreenText(myHeatDevice.getTemperatures());
+            msg.text += getTemperatureScreenText();
             msg.setInlineMenu(getTemperatureInlineMenu());
             break;
         }
