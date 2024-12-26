@@ -17,4 +17,5 @@ namespace MyHeatTelebot
     byte getValueFromQuery(String query);
     void setFunctionScreen(fb::TextEdit &msg, MyHeatCustomFunction customFunction, byte functionIndex);
 }
+
 #endif

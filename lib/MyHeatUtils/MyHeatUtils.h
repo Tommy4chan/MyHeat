@@ -12,4 +12,5 @@ namespace MyHeatUtils
     bool isFloat(const String& str);
     bool isTimeDefault();
 }
+
 #endif

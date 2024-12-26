@@ -100,9 +100,14 @@ public:
         save();
     }
 
-    void setRelaySettings(byte relayIndex, byte newPin, bool isActiveOnHigh)
+    void setRelaySettings(byte relayIndex, byte newPin, bool isActiveOnHigh, bool isSave = true)
     {
         relays[relayIndex].begin(newPin, isActiveOnHigh);
+
+        if (isSave)
+        {
+            save();
+        }
     }
 
     void setRelayCount(byte newCount)
@@ -121,4 +126,5 @@ public:
         relaysData->save();
     }
 };
+
 #endif

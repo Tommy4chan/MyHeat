@@ -5,9 +5,11 @@
 #include <MyHeatUtils.h>
 #include <MyHeatWeb.h>
 #include <MyHeatWifi.h>
+#include <MyHeatHardwareIO.h>
 
 MyHeatDevice& myHeatDevice = MyHeatDevice::getInstance();
 MyHeatWifi& myHeatWifi = MyHeatWifi::getInstance();
+MyHeatHardwareIO &hardwareIO = MyHeatHardwareIO::getInstance();
 
 void setup()
 {
@@ -16,6 +18,7 @@ void setup()
 	
 	myHeatWifi.begin();
 	myHeatDevice.begin();
+	hardwareIO.begin();
 	MyHeatTelebot::begin();
 	MyHeatWeb::begin();
 }
@@ -29,5 +32,6 @@ void loop()
 
 	myHeatWifi.tick();
 	myHeatDevice.tick();
+	hardwareIO.tick();
 	MyHeatWeb::tick();
 }

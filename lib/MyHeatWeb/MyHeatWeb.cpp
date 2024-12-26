@@ -22,6 +22,7 @@ namespace MyHeatWeb
             Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
             client->ping();
 
+            sendNetworksData();
             sendUsedPinsData();
             sendTemperaturesData();
             sendRelaysData();
@@ -61,17 +62,16 @@ namespace MyHeatWeb
 
             switch (su::SH(messageType.c_str()))
             {
-            case su::SH("setWifi"):
-                myHeatWifi.setWifiCredentials(payload["ssid"], payload["password"]);
+            case su::SH("setWifiSettings"):
+                setWifiSettings(payload);
                 break;
 
             case su::SH("getWifiSettings"):
-                response["payload"]["ssid"] = myHeatWifi.getSSID();
-                response["payload"]["password"] = myHeatWifi.getPassword();
+                getWifiSettings(response);
                 break;
 
             case su::SH("startWifiScan"):
-                myHeatWifi.startWifiScan();
+                startWifiScan();
                 break;
 
             case su::SH("getDiscoveredTemperatureSensors"):
@@ -163,6 +163,14 @@ namespace MyHeatWeb
         sendDataToClients(getFunctionsData(), F("functionsData"));
     }
 
+    void sendNetworksData()
+    {
+        if (isScanCompleted())
+        {
+            sendDataToClients(getNetworksData(), F("wifiScanData"));
+        }
+    }
+
     void tick()
     {
         static unsigned long lastSend = 0;
@@ -170,10 +178,7 @@ namespace MyHeatWeb
 
         if (websocket.count() > 0 && now - lastSend > 1000)
         {
-            if (myHeatWifi.isScanCompleted() >= 0)
-            {
-                sendDataToClients(myHeatWifi.getNetworks(), F("wifiScanData"));
-            }
+            sendNetworksData();
             sendTemperaturesData();
             sendRelaysData();
             sendFunctionsData();

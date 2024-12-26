@@ -11,7 +11,25 @@ namespace MyHeatWeb
 
     void setFunctionsSettings(JsonObject payload)
     {
-        MyHeatDevice::getInstance().updateFunctionsSettings(payload);
+        MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
+
+        byte oldFunctionCount = myHeatDevice.getCustomFunctionCount();
+        byte functionCount = payload["functionCount"];
+        myHeatDevice.setCustomFunctionCount(functionCount);
+        MyHeatCustomFunction *customFunctions = myHeatDevice.getCustomFunctions();
+
+        for (int i = 0; i < functionCount; i++)
+        {
+            customFunctions[i].setSign(payload["functions"][i]["sign"]);
+            customFunctions[i].setTemperatureIndex(0, payload["functions"][i]["temperatureIndex"][0]);
+            customFunctions[i].setTemperatureIndex(1, payload["functions"][i]["temperatureIndex"][1]);
+            customFunctions[i].setDeltaValue(0, payload["functions"][i]["deltaValue"][0]);
+            customFunctions[i].setDeltaValue(1, payload["functions"][i]["deltaValue"][1]);
+            customFunctions[i].setRelayIndex(payload["functions"][i]["relayIndex"]);
+        }
+
+        myHeatDevice.MyHeatCustomFunctions::save();
+        myHeatDevice.validateCustomFunctions();
     }
 
     JsonDocument getFunctionsData()

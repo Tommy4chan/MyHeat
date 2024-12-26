@@ -4,10 +4,9 @@
 #include <Arduino.h>
 #include <U8g2lib.h>
 #include <EncButton.h>
-#include "MyHeatTemperatures.h"
-#include "MyHeatRelay.h"
 #include "MyHeatUtils.h"
 #include "MyHeatWifi.h"
+#include "MyHeatDevice.h"
 
 #ifdef U8X8_HAVE_HW_SPI
 #include <SPI.h>
@@ -20,8 +19,6 @@ class MyHeatHardwareIO
 {
 private:
     U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2;
-    MyHeatTemperatures *temperatures;
-    MyHeatRelays *relays;
     EncButton eb;
     byte menuIndex;
     uint32_t screenUpdateTimer;
@@ -36,11 +33,13 @@ private:
     {
         byte cursor = 24;
         byte temperatureIndexStart = 3 * menuIndex;
-        byte temperatureIndexEnd = min((byte)(temperatureIndexStart + 3), temperatures->getTemperatureCount());
+
+        MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
+        byte temperatureIndexEnd = min((byte)(temperatureIndexStart + 3), myHeatDevice.getTemperatureCount());
 
         for (byte i = temperatureIndexStart; i < temperatureIndexEnd; i++)
         {
-            float temperature = temperatures->getTemperature(i);
+            float temperature = myHeatDevice.getTemperature(i);
 
             u8g2.print("T" + String(i) + ":");
             if (temperature == -127.00)
@@ -63,7 +62,7 @@ private:
     void showRelay()
     {
         byte relayIndex = menuIndex - maxTemperatureScreens;
-        MyHeatRelay relay = relays->getRelay(relayIndex);
+        MyHeatRelay relay = MyHeatDevice::getInstance().getRelay(relayIndex);
         u8g2.print(F("Реле "));
         u8g2.print(String(relayIndex) + ":");
         u8g2.setCursor(0, 40);
@@ -125,16 +124,15 @@ public:
         static MyHeatHardwareIO instance;
         return instance;
     }
+
     MyHeatHardwareIO() : u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE, OLED_SCL, OLED_SDA), eb(ENC_A, ENC_B, ENC_BTN)
     {
         this->menuIndex = 0;
         this->isScreenOn = true;
     }
 
-    void begin(MyHeatTemperatures *temperatures, MyHeatRelays *relays)
+    void begin()
     {
-        this->relays = relays;
-        this->temperatures = temperatures;
         u8g2.begin();
         u8g2.clearBuffer();
         u8g2.enableUTF8Print();
@@ -162,8 +160,10 @@ public:
 
     void reevaluateScreensCount()
     {
-        maxTemperatureScreens = ceil((float)temperatures->getTemperatureCount() / 3);
-        maxRelayScreens = relays->getRelayCount();
+        MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
+
+        maxTemperatureScreens = ceil((float)myHeatDevice.getTemperatureCount() / 3);
+        maxRelayScreens = myHeatDevice.getRelayCount();
         maxScreens = maxTemperatureScreens + maxRelayScreens;
     }
 };

@@ -18,9 +18,6 @@ namespace MyHeatWeb
     inline AsyncWebServer server(80);
     inline AsyncWebSocket websocket("/ws");
 
-    inline MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
-    inline MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
-
     void begin();
 
     void setupWebsocket();

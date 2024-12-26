@@ -23,4 +23,5 @@ namespace MyHeatTelebot
     void handleUserRegistration(fb::Update &u);
     void handleUserInput(fb::Update &u);
 }
+
 #endif

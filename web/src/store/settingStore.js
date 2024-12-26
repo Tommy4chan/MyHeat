@@ -10,7 +10,7 @@ const useSettingStore = create((set) => ({
       ssid, 
       password,
     };
-    useWebSocketStore.getState().sendMessage("setWifi", payload);
+    useWebSocketStore.getState().sendMessage("setWifiSettings", payload);
   },
 
   startWifiScan: () => {

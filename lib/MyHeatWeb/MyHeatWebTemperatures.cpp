@@ -35,8 +35,8 @@ namespace MyHeatWeb
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
-        myHeatDevice.setTemperaturePin(payload["temperaturePin"]);
-        myHeatDevice.setTemperatureCount(payload["temperatureCount"]);
+        myHeatDevice.setTemperaturePin(payload["temperaturePin"], false);
+        myHeatDevice.setTemperatureCount(payload["temperatureCount"], false);
         myHeatDevice.MyHeatTemperatures::save();
 
         MyHeatHardwareIO::getInstance().reevaluateScreensCount();

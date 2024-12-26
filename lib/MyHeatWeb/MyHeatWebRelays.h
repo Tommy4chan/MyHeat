@@ -3,6 +3,7 @@
 
 #include <ArduinoJson.h>
 #include <MyHeatDevice.h>
+#include "MyHeatHardwareIO.h"
 
 namespace MyHeatWeb
 {

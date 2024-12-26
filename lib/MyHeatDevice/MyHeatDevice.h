@@ -7,7 +7,6 @@
 #include "MyHeatCustomFunctions.h"
 #include "MyHeatRelays.h"
 #include "MyHeatUtils.h"
-#include "MyHeatHardwareIO.h"
 
 #define XSTR(x) #x
 #define STR(x) XSTR(x)
@@ -15,11 +14,9 @@
 class MyHeatDevice : public MyHeatRelays, public MyHeatCustomFunctions, public MyHeatTemperatures
 {
 private:
-    MyHeatHardwareIO &hardwareIO = MyHeatHardwareIO::getInstance();
     uint32_t tickTimerMain;
     uint32_t tickTimerSecondary;
     bool *isSetRelayActive;
-    void initIsSetRelayActive();
     MyHeatDevice() {};
 
 public:
@@ -34,8 +31,7 @@ public:
 
     void begin();
     void validateCustomFunctions();
-    void updateRelayCount(byte count);
-    void updateRelaysSettings(JsonObject payload);
+    void initIsSetRelayActive();
     void updateFunctionsSettings(JsonObject payload);
     void checkCustomFunctions();
     void updateRelays();

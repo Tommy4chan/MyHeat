@@ -96,4 +96,5 @@ public:
         return this->isActive;
     }
 };
+
 #endif

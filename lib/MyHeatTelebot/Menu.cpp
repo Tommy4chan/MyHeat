@@ -10,13 +10,14 @@ namespace MyHeatTelebot
         return replyMenu;
     }
 
-    fb::InlineMenu &getRelayInlineMenu(MyHeatRelay *relaysPtr)
+    fb::InlineMenu &getRelayInlineMenu()
     {
         inlineMenu = fb::InlineMenu();
+        MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
-        for (byte i = 0; i < MyHeatDevice::getInstance().getRelayCount(); i++)
+        for (byte i = 0; i < myHeatDevice.getRelayCount(); i++)
         {
-            inlineMenu.addButton("Реле " + String(i) + ": " + MyHeatUtils::getConvertedStateToText(relaysPtr[i].getMode()), "relay_" + String(i)).newRow();
+            inlineMenu.addButton("Реле " + String(i) + ": " + MyHeatUtils::getConvertedStateToText(myHeatDevice.getRelay(i).getMode()), "relay_" + String(i)).newRow();
         }
 
         inlineMenu.addButton("Оновити", "refreshRelays");

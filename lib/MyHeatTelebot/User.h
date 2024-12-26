@@ -44,4 +44,5 @@ namespace MyHeatTelebot
     User getUser(String chatId);
     void saveUser(String chatId);
 }
+
 #endif

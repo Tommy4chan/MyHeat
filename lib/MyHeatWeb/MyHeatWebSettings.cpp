@@ -21,4 +21,34 @@ namespace MyHeatWeb
 
         return usedPinsData;
     }
+
+    void setWifiSettings(JsonObject payload)
+    {
+        MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
+
+        myHeatWifi.setWifiCredentials(payload[F("ssid")], payload[F("password")]);
+    }
+
+    void getWifiSettings(JsonDocument &response)
+    {
+        MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
+
+        response[F("payload")][F("ssid")] = myHeatWifi.getSSID();
+        response[F("payload")][F("password")] = myHeatWifi.getPassword();
+    }
+
+    void startWifiScan()
+    {
+        MyHeatWifi::getInstance().startWifiScan();
+    }
+
+    bool isScanCompleted()
+    {
+        return MyHeatWifi::getInstance().isScanCompleted() >= 0;
+    }
+
+    JsonDocument getNetworksData()
+    {
+        return MyHeatWifi::getInstance().getNetworks();
+    }
 }

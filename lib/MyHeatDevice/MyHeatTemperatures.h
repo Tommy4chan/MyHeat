@@ -206,18 +206,28 @@ public:
         return temperatures[index];
     }
 
-    void setTemperaturePin(byte newPin)
+    void setTemperaturePin(byte newPin, bool isSave = true)
     {
         temperaturePin = newPin;
         oneWire = OneWire(temperaturePin);
         temperatureSensors.setOneWire(&oneWire);
         temperatureSensors.setWaitForConversion(false);
         temperatureSensors.begin();
+
+        if (isSave)
+        {
+            save();
+        }
     }
 
-    void setTemperatureCount(byte newCount)
+    void setTemperatureCount(byte newCount, bool isSave = true)
     {
         realocateMemory(newCount);
+
+        if (isSave)
+        {
+            save();
+        }
     }
 
     byte getTemperatureCount()
@@ -235,4 +245,5 @@ public:
         temperatureSensorData->save();
     }
 };
+
 #endif

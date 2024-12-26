@@ -115,7 +115,7 @@ namespace MyHeatTelebot
         case su::SH("Функції"):
         {
             setUserScreen(chat_id, ScreenType::FUNCTIONS_LIST_SCREEN);
-            msg.text = getFunctionsListScreenText(myHeatDevice.getCustomFunctions());
+            msg.text = getFunctionsListScreenText();
             msg.setInlineMenu(getFunctionListInlineMenu());
             break;
         }
@@ -300,7 +300,7 @@ namespace MyHeatTelebot
         case su::SH("closeFunction"):
         {
             setUserScreen(chat_id, ScreenType::FUNCTIONS_LIST_SCREEN);
-            msg.text = getFunctionsListScreenText(myHeatDevice.getCustomFunctions());
+            msg.text = getFunctionsListScreenText();
             msg.setInlineMenu(getFunctionListInlineMenu());
             break;
         }
@@ -328,7 +328,7 @@ namespace MyHeatTelebot
         case su::SH("refreshFunctions"):
         {
             setUserScreen(chat_id, ScreenType::FUNCTIONS_LIST_SCREEN);
-            msg.text = getFunctionsListScreenText(myHeatDevice.getCustomFunctions());
+            msg.text = getFunctionsListScreenText();
             msg.setInlineMenu(getFunctionListInlineMenu());
             break;
         }

@@ -13,8 +13,6 @@ void MyHeatDevice::begin()
     validateCustomFunctions();
     checkCustomFunctions();
     updateRelays();
-
-    hardwareIO.begin(this, this);
 }
 
 void MyHeatDevice::initIsSetRelayActive() 
@@ -62,46 +60,6 @@ void MyHeatDevice::validateCustomFunctions()
     }
 
     MyHeatCustomFunctions::save();
-}
-
-void MyHeatDevice::updateRelayCount(byte count)
-{
-    setRelayCount(count);
-
-    initIsSetRelayActive();
-    hardwareIO.reevaluateScreensCount();
-    validateCustomFunctions();
-}
-
-void MyHeatDevice::updateRelaysSettings(JsonObject payload)
-{
-    for (int i = 0; i < getRelayCount(); i++)
-    {
-        setRelaySettings(i, payload["relays"][i]["pin"], payload["relays"][i]["isActiveOnHigh"]);
-    }
-
-    MyHeatRelays::save();
-}
-
-void MyHeatDevice::updateFunctionsSettings(JsonObject payload)
-{
-    byte oldFunctionCount = getCustomFunctionCount();
-    byte functionCount = payload["functionCount"];
-    setCustomFunctionCount(functionCount);
-    MyHeatCustomFunction *customFunctions = getCustomFunctions();
-
-    for (int i = 0; i < functionCount; i++)
-    {
-        customFunctions[i].setSign(payload["functions"][i]["sign"]);
-        customFunctions[i].setTemperatureIndex(0, payload["functions"][i]["temperatureIndex"][0]);
-        customFunctions[i].setTemperatureIndex(1, payload["functions"][i]["temperatureIndex"][1]);
-        customFunctions[i].setDeltaValue(0, payload["functions"][i]["deltaValue"][0]);
-        customFunctions[i].setDeltaValue(1, payload["functions"][i]["deltaValue"][1]);
-        customFunctions[i].setRelayIndex(payload["functions"][i]["relayIndex"]);
-    }
-
-    MyHeatCustomFunctions::save();
-    validateCustomFunctions();
 }
 
 void MyHeatDevice::checkCustomFunctions()
@@ -194,6 +152,4 @@ void MyHeatDevice::tick()
         updateTemperatures();
         updateRelays();
     }
-
-    hardwareIO.tick();
 }

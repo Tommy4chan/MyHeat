@@ -20,12 +20,25 @@ namespace MyHeatWeb
 
     void setRelaysSettings(JsonObject payload)
     {
-        MyHeatDevice::getInstance().updateRelaysSettings(payload);
+        MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
+
+        for (int i = 0; i < myHeatDevice.getRelayCount(); i++)
+        {
+            myHeatDevice.setRelaySettings(i, payload["relays"][i]["pin"], payload["relays"][i]["isActiveOnHigh"], false);
+        }
+
+        myHeatDevice.MyHeatRelays::save();
     }
 
     void setRelayCount(JsonObject payload)
     {
-        MyHeatDevice::getInstance().updateRelayCount(payload["relayCount"]);
+        MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
+
+        myHeatDevice.setRelayCount(payload["relayCount"]);
+
+        myHeatDevice.initIsSetRelayActive();
+        MyHeatHardwareIO::getInstance().reevaluateScreensCount();
+        myHeatDevice.validateCustomFunctions();
     }
 
     void getRelayCount(JsonDocument &response)
