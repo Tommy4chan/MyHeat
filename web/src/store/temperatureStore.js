@@ -9,25 +9,12 @@ const useTemperatureStore = create((set, get) => ({
   processTemperatures: (data) => {
     if (!data?.temperatures) return;
 
-    // const fetchedTemperatures = data.temperatures;
-    // const half = Math.ceil(fetchedTemperatures.length / 2);
-
     const formattedTemperatures = data.temperatures.map((temperature, index) => {
       return {
         id: index,
         value: temperature.toFixed(2),
       };
     });
-
-    // for (let i = 0; i < half; i++) {
-    //   formattedTemperatures.push({ id: i, value: fetchedTemperatures[i].toFixed(2) });
-    //   if (half + i < fetchedTemperatures.length) {
-    //     formattedTemperatures.push({
-    //       id: half + i,
-    //       value: fetchedTemperatures[half + i].toFixed(2),
-    //     });
-    //   }
-    // }
 
     set({ temperatures: formattedTemperatures });
   },
@@ -104,7 +91,6 @@ const useTemperatureStore = create((set, get) => ({
   },
 }));
 
-// Subscribe only to temperature messages
 useWebSocketStore.subscribe(
   (state) => state.messages["temperaturesData"],
   (message) => {

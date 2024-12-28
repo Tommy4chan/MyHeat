@@ -1,14 +1,14 @@
 import { useState } from "react"
-import Input from "../ui/Input";
-import DarkWrapperBlock from "../ui/DarkWrapperBlock";
-import Select from "../ui/Select";
-import usePinStore from "../../store/pinStore";
-import { handlePinChange } from "../../utils/pinHandler";
-import FormColumn from "../ui/FormColumn";
-import SaveButton from "../ui/buttons/SaveButton";
-import SelectToggle from "../ui/SelectToggle";
-import FormField from "../ui/FormField";
-import WrapperBlock from "../ui/WrapperBlock";
+import Input from "../../../components/ui/Input";
+import DarkWrapperBlock from "../../../components/layout/DarkWrapperBlock";
+import Select from "../../../components/ui/Select";
+import usePinStore from "../../../store/pinStore";
+import { handlePinChange } from "../../../utils/pinHandler";
+import FormColumn from "../../../components/layout/FormColumn";
+import SaveButton from "../../../components/ui/SaveButton";
+import SelectToggle from "../../../components/ui/SelectToggle";
+import FormField from "../../../components/ui/FormField";
+import WrapperBlock from "../../../components/layout/WrapperBlock";
 
 const Hardware = () => {
   const {

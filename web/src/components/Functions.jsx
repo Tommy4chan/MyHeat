@@ -1,6 +1,6 @@
-import Button from "./ui/buttons/Button";
-import DarkWrapperBlock from "./ui/DarkWrapperBlock";
-import ColumnBlock from "./ui/ColumnBlock";
+import Button from "./ui/Button";
+import DarkWrapperBlock from "./layout/DarkWrapperBlock";
+import ColumnBlock from "./layout/ColumnBlock";
 import useFunctionStore from "../store/functionStore";
 
 const Functions = ({ isTwoCols = false }) => {

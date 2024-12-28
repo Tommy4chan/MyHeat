@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import Button from '../ui/buttons/Button'
-import DarkWrapperBlock from '../ui/DarkWrapperBlock';
-import Input from '../ui/Input';
-import FormColumn from '../ui/FormColumn';
-import SaveButton from '../ui/buttons/SaveButton';
-import FormField from '../ui/FormField';
-import WrapperBlock from '../ui/WrapperBlock';
-import useSettingStore from '../../store/settingStore';
+import Button from '../../../components/ui/Button'
+import DarkWrapperBlock from '../../../components/layout/DarkWrapperBlock';
+import Input from '../../../components/ui/Input';
+import FormColumn from '../../../components/layout/FormColumn';
+import SaveButton from '../../../components/ui/SaveButton';
+import FormField from '../../../components/ui/FormField';
+import WrapperBlock from '../../../components/layout/WrapperBlock';
+import useSettingStore from '../../../store/settingStore';
 
 const Wifi = () => {
   const [ssid, setSsid] = useState('');

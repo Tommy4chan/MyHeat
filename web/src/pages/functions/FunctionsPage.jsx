@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import Functions from '../components/Functions'
-import ColumnBlock from '../components/ui/ColumnBlock'
-import Select from '../components/ui/Select';
-import DarkWrapperBlock from '../components/ui/DarkWrapperBlock';
-import Button from '../components/ui/buttons/Button';
-import Input from '../components/ui/Input';
-import SaveButton from '../components/ui/buttons/SaveButton';
-import useFunctionStore from '../store/functionStore';
-import WrapperBlock from '../components/ui/WrapperBlock';
+import Functions from '../../components/Functions'
+import ColumnBlock from '../../components/layout/ColumnBlock'
+import Select from '../../components/ui/Select';
+import DarkWrapperBlock from '../../components/layout/DarkWrapperBlock';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import SaveButton from '../../components/ui/SaveButton';
+import useFunctionStore from '../../store/functionStore';
+import WrapperBlock from '../../components/layout/WrapperBlock';
 import { use } from 'react';
 
 const FunctionsPage = () => {

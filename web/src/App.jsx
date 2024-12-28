@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import SettingsPage from './pages/SettingsPage';
-import Navbar from './components/Navbar';
-import DashboardPage from './pages/DashboardPage';
-import TemperaturesPage from './pages/TemperaturesPage';
-import RelaysPage from './pages/RelaysPage';
-import FunctionsPage from './pages/FunctionsPage';
 import useWebSocketStore from './store/websocketStore';
+import Navbar from './components/layout/Navbar';
+import { DashboardPage } from './pages/dashboard';
+import { TemperaturesPage } from './pages/temperatures';
+import { RelaysPage } from './pages/relays';
+import { FunctionsPage } from './pages/functions';
+import { SettingsPage } from './pages/settings';
+
 
 function App() {
   const [page, setPage] = useState('dashboard');

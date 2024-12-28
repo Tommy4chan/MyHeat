@@ -1,7 +1,6 @@
-import React from 'react'
-import Temperatures from '../components/Temperatures'
-import Relays from '../components/Relays'
-import Functions from '../components/Functions'
+import Temperatures from '../../components/Temperatures'
+import Functions from '../../components/Functions'
+import { Relays } from '../../components/Relays'
 
 const DashboardPage = () => {
   return (

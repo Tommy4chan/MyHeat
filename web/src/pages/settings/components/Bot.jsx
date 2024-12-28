@@ -1,11 +1,11 @@
 import { useState } from "react"
-import Input from "../ui/Input";
-import DarkWrapperBlock from "../ui/DarkWrapperBlock";
-import SaveButton from "../ui/buttons/SaveButton";
-import FormColumn from "../ui/FormColumn";
-import FormField from "../ui/FormField";
-import SelectToggle from "../ui/SelectToggle";
-import WrapperBlock from "../ui/WrapperBlock";
+import Input from "../../../components/ui/Input";
+import DarkWrapperBlock from "../../../components/layout/DarkWrapperBlock";
+import SaveButton from "../../../components/ui/SaveButton";
+import FormColumn from "../../../components/layout/FormColumn";
+import FormField from "../../../components/ui/FormField";
+import SelectToggle from "../../../components/ui/SelectToggle";
+import WrapperBlock from "../../../components/layout/WrapperBlock";
 
 const Bot = () => {
   const [botToken, setBotToken] = useState('');

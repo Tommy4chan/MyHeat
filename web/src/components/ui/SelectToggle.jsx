@@ -1,7 +1,7 @@
 import React from 'react';
 import BasicSelect from './Select';
 
-const SelectToggle = ({ label, value, onChange, className, color = 'gray' }) => {
+const SelectToggle = ({ value, onChange, className, color = 'gray' }) => {
   const options = [
     { value: 'false', text: 'Ні' },
     { value: 'true', text: 'Так' }

@@ -47,5 +47,17 @@
         "typeinfo": "cpp",
         "bitset": "cpp",
         "chrono": "cpp"
+    },
+    "[javascript]": {
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true
+    },
+    "[javascriptreact]": {
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true
+    },
+    "[jsx]": {
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true
     }
 }

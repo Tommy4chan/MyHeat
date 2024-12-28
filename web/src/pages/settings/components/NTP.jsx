@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react"
-import DarkWrapperBlock from "../ui/DarkWrapperBlock"
-import Input from "../ui/Input"
-import Select from "../ui/Select"
-import FormColumn from "../ui/FormColumn"
-import SaveButton from "../ui/buttons/SaveButton"
-import FormField from "../ui/FormField"
-import WrapperBlock from "../ui/WrapperBlock"
+import DarkWrapperBlock from "../../../components/layout/DarkWrapperBlock"
+import Input from "../../../components/ui/Input"
+import Select from "../../../components/ui/Select"
+import FormColumn from "../../../components/layout/FormColumn"
+import SaveButton from "../../../components/ui/SaveButton"
+import FormField from "../../../components/ui/FormField"
+import WrapperBlock from "../../../components/layout/WrapperBlock"
 
 const NTP = () => {
   const [ntpServer, setNtpServer] = useState('');

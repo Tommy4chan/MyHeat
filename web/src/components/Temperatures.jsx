@@ -1,6 +1,6 @@
-import DarkWrapperBlock from "./ui/DarkWrapperBlock";
-import Button from "./ui/buttons/Button";
-import ColumnBlock from "./ui/ColumnBlock";
+import DarkWrapperBlock from "./layout/DarkWrapperBlock";
+import Button from "./ui/Button";
+import ColumnBlock from "./layout/ColumnBlock";
 import useTemperatureStore from "../store/temperatureStore";
 
 const Temperatures = ({ isDeleteVisible = false }) => {
@@ -27,4 +27,4 @@ const Temperatures = ({ isDeleteVisible = false }) => {
   );
 };
 
-export default Temperatures
+export default Temperatures;

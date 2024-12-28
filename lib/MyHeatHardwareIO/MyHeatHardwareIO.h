@@ -117,13 +117,13 @@ private:
     }
 
 public:
-    MyHeatHardwareIO(const MyHeatHardwareIO &) = delete;
-    MyHeatHardwareIO &operator=(const MyHeatHardwareIO &) = delete;
-
     static MyHeatHardwareIO& getInstance() {
         static MyHeatHardwareIO instance;
         return instance;
     }
+
+    MyHeatHardwareIO(const MyHeatHardwareIO &) = delete;
+    MyHeatHardwareIO &operator=(const MyHeatHardwareIO &) = delete;
 
     MyHeatHardwareIO() : u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE, OLED_SCL, OLED_SDA), eb(ENC_A, ENC_B, ENC_BTN)
     {

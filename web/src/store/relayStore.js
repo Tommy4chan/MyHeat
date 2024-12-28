@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import useWebSocketStore from "./websocketStore";
-import { use } from "react";
 
 const useRelayStore = create((set) => ({
   relays: [],

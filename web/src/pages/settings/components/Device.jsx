@@ -1,9 +1,9 @@
-import DarkWrapperBlock from "../ui/DarkWrapperBlock"
-import Button from "../ui/buttons/Button"
-import FileUpload from "../ui/FileUpload"
-import FormColumn from "../ui/FormColumn"
-import FormField from "../ui/FormField"
-import WrapperBlock from "../ui/WrapperBlock"
+import DarkWrapperBlock from "../../../components/layout/DarkWrapperBlock"
+import Button from "../../../components/ui/Button"
+import FileUpload from "../../../components/ui/FileUpload"
+import FormColumn from "../../../components/layout/FormColumn"
+import FormField from "../../../components/ui/FormField"
+import WrapperBlock from "../../../components/layout/WrapperBlock"
 
 const Device = () => {
   return (
