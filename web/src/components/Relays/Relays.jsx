@@ -1,5 +1,5 @@
 import React from 'react';
-import ColumnBlock from '../layout/ColumnBlock';
+import ColumnBlock from '@/components/layout/ColumnBlock';
 import { RelayItem } from './RelayItem';
 import { useRelay } from './hooks/useRelay';
 

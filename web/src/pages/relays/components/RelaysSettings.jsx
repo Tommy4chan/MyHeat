@@ -1,4 +1,4 @@
-import ColumnBlock from '../../../components/layout/ColumnBlock';
+import ColumnBlock from '@/components/layout/ColumnBlock';
 import { RelayCountForm } from './RelaysCountForm';
 import { RelayConfigList } from './RelayConfigList';
 import { useRelaysSettings } from './hooks/useRelaysSettings';

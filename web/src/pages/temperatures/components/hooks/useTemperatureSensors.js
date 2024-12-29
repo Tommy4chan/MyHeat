@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import useTemperatureStore from '../../../../store/temperatureStore';
+import useTemperatureStore from '@/store/temperatureStore';
 
 export const useTemperatureSensors = () => {
   const {

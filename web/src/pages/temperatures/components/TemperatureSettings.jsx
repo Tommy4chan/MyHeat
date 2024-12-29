@@ -1,4 +1,4 @@
-import ColumnBlock from "../../../components/layout/ColumnBlock";
+import ColumnBlock from "@/components/layout/ColumnBlock";
 import { TemperatureSettingsForm } from "./TemperatureSettingsForm";
 import { TemperatureSensorsList } from "./TemperatureSensorsList";
 

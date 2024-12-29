@@ -1,4 +1,4 @@
-import Temperatures from "../../components/Temperatures";
+import Temperatures from "@/components/Temperatures";
 import TemperatureSettings from "./components/TemperatureSettings";
 
 const TemperaturesPage = () => {

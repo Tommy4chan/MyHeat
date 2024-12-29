@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
-import Select from "../ui/Select";
-import SaveButton from '../ui/SaveButton';
-import DarkWrapperBlock from '../layout/DarkWrapperBlock';
+import Select from "@/components/ui/Select";
+import SaveButton from '@/components/ui/SaveButton';
+import DarkWrapperBlock from '@/components/layout/DarkWrapperBlock';
 
 export const RelayItem = memo(({
   index,

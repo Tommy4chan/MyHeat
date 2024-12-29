@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import useTemperatureStore from "../../../../store/temperatureStore";
-import usePinStore from "../../../../store/pinStore";
+import useTemperatureStore from "@/store/temperatureStore";
+import usePinStore from "@/store/pinStore";
 
 export const useTemperatureSettings = () => {
   const {

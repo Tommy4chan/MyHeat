@@ -8,15 +8,6 @@ const useFunctionStore = create((set) => ({
   tnIndex: 255,
   tUnknownIndex: 254,
   relayUnknownIndex: 255,
-  emptyCustomFunction: {
-    sign: 0,
-    temperatureIndex: [0, 0],
-    deltaValueSign: [0, 0],
-    deltaValue: [0, 0],
-    relayIndex: 0,
-    isEnabled: false,
-    isActive: false,
-  },
 
   processFunctions: (data) => {
     if(!data.temperatureCount || !data.relayCount) return;

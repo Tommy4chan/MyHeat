@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import useRelayStore from '../../../store/relayStore';
+import useRelayStore from '@/store/relayStore';
 
 const RELAY_STATES = {
   OFF: 0,

@@ -1,7 +1,7 @@
-import DarkWrapperBlock from '../../../components/layout/DarkWrapperBlock';
-import FormField from '../../../components/ui/FormField';
-import Input from '../../../components/ui/Input';
-import SaveButton from '../../../components/ui/SaveButton';
+import DarkWrapperBlock from '@/components/layout/DarkWrapperBlock';
+import FormField from '@/components/ui/FormField';
+import Input from '@/components/ui/Input';
+import SaveButton from '@/components/ui/SaveButton';
 
 export const RelayCountForm = ({ count, onChange, onSave }) => {
   return (

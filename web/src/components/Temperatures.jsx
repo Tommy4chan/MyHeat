@@ -1,7 +1,7 @@
 import DarkWrapperBlock from "./layout/DarkWrapperBlock";
 import Button from "./ui/Button";
 import ColumnBlock from "./layout/ColumnBlock";
-import useTemperatureStore from "../store/temperatureStore";
+import useTemperatureStore from "@/store/temperatureStore";
 
 const Temperatures = ({ isDeleteVisible = false }) => {
   const { temperatures, removeTemperatureSensor } = useTemperatureStore();

@@ -1,9 +1,9 @@
 import React from 'react';
-import WrapperBlock from '../../../components/layout/WrapperBlock';
-import DarkWrapperBlock from '../../../components/layout/DarkWrapperBlock';
-import Select from '../../../components/ui/Select';
-import SaveButton from '../../../components/ui/SaveButton';
-import Button from '../../../components/ui/Button';
+import WrapperBlock from '@/components/layout/WrapperBlock';
+import DarkWrapperBlock from '@/components/layout/DarkWrapperBlock';
+import Select from '@/components/ui/Select';
+import SaveButton from '@/components/ui/SaveButton';
+import Button from '@/components/ui/Button';
 import { useTemperatureSensors } from './hooks/useTemperatureSensors';
 
 export const TemperatureSensorsList = () => {

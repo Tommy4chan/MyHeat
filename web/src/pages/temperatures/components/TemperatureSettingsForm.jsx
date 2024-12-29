@@ -1,11 +1,11 @@
 import React from 'react';
-import WrapperBlock from '../../../components/layout/WrapperBlock';
-import DarkWrapperBlock from '../../../components/layout/DarkWrapperBlock';
-import FormField from '../../../components/ui/FormField';
-import Select from '../../../components/ui/Select';
-import Input from '../../../components/ui/Input';
-import SaveButton from '../../../components/ui/SaveButton';
-import usePinStore from '../../../store/pinStore';
+import WrapperBlock from '@/components/layout/WrapperBlock';
+import DarkWrapperBlock from '@/components/layout/DarkWrapperBlock';
+import FormField from '@/components/ui/FormField';
+import Select from '@/components/ui/Select';
+import Input from '@/components/ui/Input';
+import SaveButton from '@/components/ui/SaveButton';
+import usePinStore from '@/store/pinStore';
 import { useTemperatureSettings } from './hooks/useTemperatureSettings';
 
 export const TemperatureSettingsForm = () => {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import useRelayStore from '../../../../store/relayStore';
-import usePinStore from '../../../../store/pinStore';
+import useRelayStore from '@/store/relayStore';
+import usePinStore from '@/store/pinStore';
 
 export const useRelaysSettings = () => {
   const { handlePinChange } = usePinStore();

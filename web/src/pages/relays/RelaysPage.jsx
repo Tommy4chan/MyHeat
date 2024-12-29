@@ -1,4 +1,4 @@
-import { Relays } from "../../components/Relays"
+import { Relays } from "@/components/Relays"
 import { RelaysSettings } from "./components/RelaysSettings"
 
 const RelaysPage = () => {

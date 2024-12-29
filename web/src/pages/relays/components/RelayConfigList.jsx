@@ -1,8 +1,8 @@
-import DarkWrapperBlock from '../../../components/layout/DarkWrapperBlock';
-import FormField from '../../../components/ui/FormField';
-import Select from '../../../components/ui/Select';
-import SaveButton from '../../../components/ui/SaveButton';
-import usePinStore from '../../../store/pinStore';
+import DarkWrapperBlock from '@/components/layout/DarkWrapperBlock';
+import FormField from '@/components/ui/FormField';
+import Select from '@/components/ui/Select';
+import SaveButton from '@/components/ui/SaveButton';
+import usePinStore from '@/store/pinStore';
 
 export const RelayConfigList = ({ relays, onPinChange, onActiveHighChange, onSave }) => {
   const { getAvailableOutputPins } = usePinStore();
