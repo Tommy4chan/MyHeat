@@ -1,6 +1,6 @@
 import React from 'react';
 import ColumnBlock from '@/components/layout/ColumnBlock';
-import { RelayItem } from './RelayItem';
+import { RelayItem } from './components/RelayItem';
 import { useRelay } from './hooks/useRelay';
 
 const Relays = () => {

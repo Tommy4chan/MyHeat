@@ -6,7 +6,7 @@ import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import SaveButton from '@/components/ui/SaveButton';
 import usePinStore from '@/store/pinStore';
-import { useTemperatureSettings } from './hooks/useTemperatureSettings';
+import { useTemperatureSettings } from '../hooks/useTemperatureSettings';
 
 export const TemperatureSettingsForm = () => {
   const { getAvailableInputPins } = usePinStore();

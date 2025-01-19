@@ -5,8 +5,7 @@ import { TemperaturesPage } from './pages/temperatures';
 import { RelaysPage } from './pages/relays';
 import { FunctionsPage } from './pages/functions';
 import { SettingsPage } from './pages/settings';
-import { WebSocketProvider } from './store/websocketStore';
-
+import { WebSocketProvider } from './components/WebSocketProvider';
 
 function App() {
   const [page, setPage] = useState('dashboard');

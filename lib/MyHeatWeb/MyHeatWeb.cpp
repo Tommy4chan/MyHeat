@@ -20,13 +20,13 @@ namespace MyHeatWeb
         if (type == WS_EVT_CONNECT)
         {
             Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
-            client->ping();
-
             sendNetworksData();
             sendUsedPinsData();
             sendTemperaturesData();
             sendRelaysData();
             sendFunctionsData();
+
+            client->ping();
         }
         else if (type == WS_EVT_DATA)
         {
@@ -62,6 +62,9 @@ namespace MyHeatWeb
 
             switch (su::SH(messageType.c_str()))
             {
+            case su::SH("ping"):
+                response["payload"] = "pong";
+                break;
             case su::SH("setWifiSettings"):
                 setWifiSettings(payload);
                 break;
@@ -183,8 +186,8 @@ namespace MyHeatWeb
             sendRelaysData();
             sendFunctionsData();
             lastSend = now;
-        }
 
-        websocket.cleanupClients();
+            websocket.cleanupClients();
+        }
     }
 }

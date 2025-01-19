@@ -1,6 +1,6 @@
 import Button from '@/components/ui/Button';
 import DarkWrapperBlock from '@/components/layout/DarkWrapperBlock';
-import { useFunction } from './hooks/useFunction';
+import { useFunction } from '../hooks/useFunction';
 import useFunctionStore from '@/store/functionStore';
 
 const FunctionCard = ({ functionData, functionIndex }) => {

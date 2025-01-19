@@ -4,7 +4,7 @@ import DarkWrapperBlock from '@/components/layout/DarkWrapperBlock';
 import Select from '@/components/ui/Select';
 import SaveButton from '@/components/ui/SaveButton';
 import Button from '@/components/ui/Button';
-import { useTemperatureSensors } from './hooks/useTemperatureSensors';
+import { useTemperatureSensors } from '../hooks/useTemperatureSensors';
 
 export const TemperatureSensorsList = () => {
   const {

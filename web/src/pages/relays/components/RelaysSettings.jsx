@@ -1,7 +1,7 @@
 import ColumnBlock from '@/components/layout/ColumnBlock';
 import { RelayCountForm } from './RelaysCountForm';
 import { RelayConfigList } from './RelayConfigList';
-import { useRelaysSettings } from './hooks/useRelaysSettings';
+import { useRelaysSettings } from '../hooks/useRelaysSettings';
 
 export const RelaysSettings = () => {
   const {

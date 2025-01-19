@@ -4,8 +4,8 @@ import WrapperBlock from '@/components/layout/WrapperBlock';
 import SaveButton from '@/components/ui/SaveButton';
 import Button from '@/components/ui/Button';
 import { FunctionForm } from './FunctionForm';
-import { useFunctionEditor } from './hooks/useFunctionEditor';
-import { useFormOptions } from './hooks/useFormOptions';
+import { useFunctionEditor } from '../hooks/useFunctionEditor';
+import { useFormOptions } from '../hooks/useFormOptions';
 
 export const FunctionSettings = () => {  
   const {

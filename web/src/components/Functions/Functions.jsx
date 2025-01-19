@@ -1,4 +1,4 @@
-import FunctionCard from './FunctionCard';
+import FunctionCard from './components/FunctionCard';
 import ColumnBlock from '@/components/layout/ColumnBlock';
 import useFunctionStore from '@/store/functionStore';
 
