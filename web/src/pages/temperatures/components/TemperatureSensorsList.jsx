@@ -14,11 +14,11 @@ export const TemperatureSensorsList = () => {
     handleSensorSave,
     getDiscoveredTemperatureSensors,
   } = useTemperatureSensors();
-
+  
   return (
     <WrapperBlock>
       <h3 className='text-xl'>Датчики:</h3>
-      {temperatureSensors?.map((temperatureSensor, index) => (
+      {temperatureSensors.length !== 0 ? temperatureSensors.map((temperatureSensor, index) => (
         <DarkWrapperBlock className="justify-between" key={temperatureSensor.id}>
           <p className="text-lg text-gray-300">
             Датчик {index}: {temperatureSensor.address}
@@ -32,7 +32,9 @@ export const TemperatureSensorsList = () => {
             <SaveButton onClick={handleSensorSave(index)} />
           </div>
         </DarkWrapperBlock>
-      ))}
+      )) :
+        <p>Не знайдено</p>
+      }
       <Button 
         buttonText={'Виявити датчики'} 
         color="indigo" 

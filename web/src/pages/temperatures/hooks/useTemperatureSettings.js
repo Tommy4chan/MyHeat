@@ -9,7 +9,7 @@ export const useTemperatureSettings = () => {
     setTemperatureSensorsSettings,
   } = useTemperatureStore();
 
-  const { handlePinChange } = usePinStore();
+  const { handlePinChange, getPins } = usePinStore();
 
   const [settings, setSettings] = useState({
     temperaturePin: 0,
@@ -18,6 +18,7 @@ export const useTemperatureSettings = () => {
 
   useEffect(() => {
     getTemperatureSensorsSettings();
+    getPins();
   }, []);
 
   useEffect(() => {

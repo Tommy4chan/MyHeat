@@ -3,7 +3,7 @@ import useRelayStore from '@/store/relayStore';
 import usePinStore from '@/store/pinStore';
 
 export const useRelaysSettings = () => {
-  const { handlePinChange } = usePinStore();
+  const { handlePinChange, getPins } = usePinStore();
   const {
     relaysSettings,
     getRelaysSettings,
@@ -19,6 +19,7 @@ export const useRelaysSettings = () => {
   useEffect(() => {
     getRelayCount();
     getRelaysSettings();
+    getPins();
   }, []);
 
   useEffect(() => {

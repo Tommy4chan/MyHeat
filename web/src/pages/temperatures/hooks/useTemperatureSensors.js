@@ -40,9 +40,6 @@ export const useTemperatureSensors = () => {
   const handleSensorSave = useCallback(
     (index) => () => {
       const sensor = temperatureSensors[index];
-      setTemperatureSensors((prev) =>
-        prev.filter((_, i) => i !== index)
-      );
       setTemperatureSensor(sensor.tempIndex, sensor.id);
     },
     [temperatureSensors, setTemperatureSensor]

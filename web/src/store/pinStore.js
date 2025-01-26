@@ -29,10 +29,14 @@ const PIN_CONFIG = [
 const usePinStore = create((set, get) => ({
   pins: PIN_CONFIG,
 
-  proccessPins: (data) => {
-    if (!data?.usedPins) return;
+  getPins: () => {
+    useWebSocketStore.getState().sendMessage("getPinsData");
+  },
 
-    const response = data.usedPins;
+  proccessPins: (data) => {
+    if (!data?.payload) return;
+
+    const response = data.payload.usedPins;
 
     set(state => ({
       pins: state.pins.map(pin => ({
@@ -93,7 +97,7 @@ const usePinStore = create((set, get) => ({
 }));
 
 useWebSocketStore.subscribe(
-  (state) => state.messages["usedPinsData"],
+  (state) => state.messages["getPinsDataResponse"],
   (message) => {
     if (message) {
       usePinStore.getState().proccessPins(message);

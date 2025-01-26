@@ -125,6 +125,10 @@ namespace MyHeatWeb
                 setFunctionsSettings(payload);
                 break;
 
+            case su::SH("getPinsData"):
+                getUsedPinsData(response);
+                break;
+
             default:
                 response["error"] = "Unknown message type";
                 break;
@@ -158,7 +162,9 @@ namespace MyHeatWeb
 
     void sendUsedPinsData()
     {
-        sendDataToClients(getUsedPinsData(), F("usedPinsData"));
+        JsonDocument response;
+        getUsedPinsData(response);
+        sendDataToClients(response, F("getPinsDataResponse"));
     }
 
     void sendFunctionsData()

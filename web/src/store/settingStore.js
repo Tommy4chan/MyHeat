@@ -4,6 +4,7 @@ import useWebSocketStore from "./websocketStore";
 const useSettingStore = create((set) => ({
   wifiSettings: {},
   scannedWifiNetworks: [],
+  isScanningForWifiNetworks: false,
 
   setWifiCredentials: (ssid, password) => {
     const payload = {
@@ -14,7 +15,7 @@ const useSettingStore = create((set) => ({
   },
 
   startWifiScan: () => {
-    set({ scannedWifiNetworks: [] });
+    set({ scannedWifiNetworks: [], isScanningForWifiNetworks: true });
     useWebSocketStore.getState().sendMessage("startWifiScan");
   },
 
@@ -29,6 +30,8 @@ const useSettingStore = create((set) => ({
   },
 
   processWifiScanData: (data) => {
+    set({ isScanningForWifiNetworks: false });
+
     if (!data?.payload) return;
 
     set({ scannedWifiNetworks: data.payload });

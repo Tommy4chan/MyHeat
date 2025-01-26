@@ -9,12 +9,14 @@ const useTemperatureStore = create((set, get) => ({
   processTemperatures: (data) => {
     if (!data?.temperatures) return;
 
-    const formattedTemperatures = data.temperatures.map((temperature, index) => {
-      return {
-        id: index,
-        value: temperature.toFixed(2),
-      };
-    });
+    const formattedTemperatures = data.temperatures.map(
+      (temperature, index) => {
+        return {
+          id: index,
+          value: temperature.toFixed(2),
+        };
+      }
+    );
 
     set({ temperatures: formattedTemperatures });
   },
@@ -41,7 +43,7 @@ const useTemperatureStore = create((set, get) => ({
       .getState()
       .sendMessage("setTemperatureSensorsSettings", payload);
 
-    useTemperatureStore.getState().processTemperatureSettings({payload});
+    useTemperatureStore.getState().processTemperatureSettings({ payload });
   },
 
   getDiscoveredTemperatureSensors: () => {
@@ -71,9 +73,10 @@ const useTemperatureStore = create((set, get) => ({
       sensorAddressIndex,
     };
 
-    const discoveredTemperatureSensors = get().discoveredTemperatureSensors.filter(
-      (sensor) => sensor.id !== sensorAddressIndex
-    );
+    const discoveredTemperatureSensors =
+      get().discoveredTemperatureSensors.filter(
+        (sensor) => sensor.id !== sensorAddressIndex
+      );
 
     set({ discoveredTemperatureSensors });
 

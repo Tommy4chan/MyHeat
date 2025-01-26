@@ -7,7 +7,7 @@
 
 namespace MyHeatWeb
 {
-    JsonDocument getUsedPinsData();
+    void getUsedPinsData(JsonDocument &response);
     void setWifiSettings(JsonObject payload);
     void getWifiSettings(JsonDocument &response);
     void startWifiScan();

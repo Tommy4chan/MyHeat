@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import useWebSocket, { ReadyState } from "react-use-websocket";
-import { useEffect } from "react";
+import { ReadyState } from "react-use-websocket";
 
 const useWebSocketStore = create(
   subscribeWithSelector((set, get) => ({

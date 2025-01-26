@@ -2,7 +2,7 @@ import { useState } from "react";
 import { AiOutlineClose, AiOutlineMenu } from 'react-icons/ai';
 import WebSocketStatus from "./WebSocketStatus";
 
-const Navbar = ({ setPage }) => {
+const Navbar = ({ setPage, page }) => {
   const [nav, setNav] = useState(false);
 
   const handleNav = () => {
@@ -46,7 +46,7 @@ const Navbar = ({ setPage }) => {
         <div>
           <ul className="flex">
             {navOptions.map((option) => (
-              <li className="hidden md:block hover:bg-gray-900 transition duration-300" key={option.name}>
+              <li className={`hidden md:block hover:bg-gray-900 transition duration-300 ${option.page == page && 'bg-gray-900'}`} key={option.name}>
                 <button className="p-4" onClick={() => setPage(option.page)}>{option.name}</button>
               </li>
             ))}

@@ -7,12 +7,13 @@ import SaveButton from '../../../components/ui/SaveButton';
 import FormField from '../../../components/ui/FormField';
 import WrapperBlock from '../../../components/layout/WrapperBlock';
 import useSettingStore from '../../../store/settingStore';
+import WifiSignal from '../../../components/ui/WifiSignal';
 
 const Wifi = () => {
   const [ssid, setSsid] = useState('');
   const [password, setPassword] = useState('');
 
-  const { setWifiCredentials, getWifiSettings, startWifiScan, wifiSettings, scannedWifiNetworks } = useSettingStore();
+  const { setWifiCredentials, getWifiSettings, startWifiScan, wifiSettings, scannedWifiNetworks, isScanningForWifiNetworks } = useSettingStore();
 
   useEffect(() => {
     getWifiSettings();
@@ -31,34 +32,23 @@ const Wifi = () => {
     setNetworks(scannedWifiNetworks);
   }, [scannedWifiNetworks]);
 
-  const handleSubmit = () => {
-    const request = async () => {
-      const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ssid, password })
-      };
-
-      const response = await fetch('/api/wifi/set', requestOptions);
-      const data = await response.json();
-      console.log(data);
-    }
-
-    request();
-  };
-
   return (
     <FormColumn title='Wifi'>
       <WrapperBlock>
         <h3 className='text-xl'>Доступні мережі:</h3>
-        {networks.length === 0 ?
+        {isScanningForWifiNetworks ? <DarkWrapperBlock><p>Сканування...</p></DarkWrapperBlock> :
+        networks.length === 0 ?
           <DarkWrapperBlock><p>Мереж не знайдено</p></DarkWrapperBlock>
           :
           networks.map((network) => (
             <DarkWrapperBlock key={network.id}>
               <div className='flex justify-between w-full'>
                 <p>{network.ssid}</p>
-                <p>{network.rssi}dBm</p>
+                <div className="flex gap-1 items-center">
+                  <p>{network.rssi}dBm</p>
+                  <WifiSignal signal={network.rssi} />
+                </div>
+
               </div>
               <Button
                 buttonText={'Обрати'}
@@ -91,7 +81,7 @@ const Wifi = () => {
           </FormField>
         </DarkWrapperBlock>
       </WrapperBlock>
-      <SaveButton onClick={() => setWifiCredentials(ssid, password)}/>
+      <SaveButton onClick={() => setWifiCredentials(ssid, password)} />
     </FormColumn>
   )
 }
