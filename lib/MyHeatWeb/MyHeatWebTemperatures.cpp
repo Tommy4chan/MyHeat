@@ -2,7 +2,7 @@
 
 namespace MyHeatWeb
 {
-    void getDiscoveredTemperatureSensors(JsonDocument &response)
+    void getDiscoveredTemperatureSensors(JsonObject response)
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
@@ -10,13 +10,23 @@ namespace MyHeatWeb
         uint8_t **addresses = myHeatDevice.getDiscoveredTemperatureSensorAddresses();
         for (int i = 0; i < count; i++)
         {
-            response["payload"]["discoveredTemperatureSensors"][i] = MyHeatUtils::getAddressToString(addresses[i]);
+            response["discoveredTemperatureSensors"][i] = MyHeatUtils::getAddressToString(addresses[i]);
         }
     }
 
-    void setTemperatureSensor(JsonObject payload)
+    void setTemperatureSensor(JsonObject payload, JsonObject error)
     {
-        MyHeatDevice::getInstance().setTemperatureSensorAddress(payload["tempIndex"], payload["sensorAddressIndex"]);
+        byte tempIndex = payload["tempIndex"];
+        byte sensorAddressIndex = payload["sensorAddressIndex"];
+        byte tempCount = MyHeatDevice::getInstance().getTemperatureCount();
+
+        if(tempIndex >= tempCount || sensorAddressIndex >= tempCount)
+        {
+            error["message"] = "Неправильний індекс датчика або адреси";
+            return;
+        }
+
+        MyHeatDevice::getInstance().setTemperatureSensorAddress(tempIndex, payload["sensorAddressIndex"]);
     }
 
     void deleteTemperatureSensor(JsonObject payload)
@@ -24,11 +34,11 @@ namespace MyHeatWeb
         MyHeatDevice::getInstance().deleteTemperatureSensorAddress(payload["tempIndex"]);
     }
 
-    void getTemperatureSensorsSettings(JsonDocument &response)
+    void getTemperatureSensorsSettings(JsonObject response)
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
-        response["payload"]["temperaturePin"] = myHeatDevice.getTemperaturePin();
-        response["payload"]["temperatureCount"] = myHeatDevice.getTemperatureCount();
+        response["temperaturePin"] = myHeatDevice.getTemperaturePin();
+        response["temperatureCount"] = myHeatDevice.getTemperatureCount();
     }
 
     void setTemperatureSensorsSettings(JsonObject payload)

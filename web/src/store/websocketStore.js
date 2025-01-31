@@ -13,7 +13,7 @@ const useWebSocketStore = create(
     onMessage: (event) => {
       try {
         const data = JSON.parse(event.data);
-        const { messageType, ...payload } = data;
+        const { messageType, payload } = data;
 
         if (messageType) {
           set({

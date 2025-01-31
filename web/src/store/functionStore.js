@@ -9,15 +9,15 @@ const useFunctionStore = create((set) => ({
   tUnknownIndex: 254,
   relayUnknownIndex: 255,
 
-  processFunctions: (data) => {
-    if(!data.temperatureCount || !data.relayCount) return;
+  processFunctions: (payload) => {
+    if(!payload.temperatureCount || !payload.relayCount) return;
 
-    set({ temperatureCount: data.temperatureCount });
-    set({ relayCount: data.relayCount });
+    set({ temperatureCount: payload.temperatureCount });
+    set({ relayCount: payload.relayCount });
 
-    if (!data?.functions) return;
+    if (!payload?.functions) return;
 
-    const updatedFunctions = data.functions.map((func) => ({
+    const updatedFunctions = payload.functions.map((func) => ({
       ...func,
       deltaValueSign: func.deltaValue.map((val) => (val < 0 ? 0 : 1)),
       deltaValue: func.deltaValue.map((val) => Math.abs(val)),
@@ -52,11 +52,7 @@ const useFunctionStore = create((set) => ({
 
 useWebSocketStore.subscribe(
   (state) => state.messages["functionsData"],
-  (message) => {
-    if (message) {
-      useFunctionStore.getState().processFunctions(message);
-    }
-  }
+  (payload) => useFunctionStore.getState().processFunctions(payload),
 );
 
 export default useFunctionStore;

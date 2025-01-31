@@ -6,20 +6,16 @@ const useRelayStore = create((set) => ({
   relayCount: 1,
   relaysSettings: [],
 
-  processRelays: (data) => {
-    if (!data?.relays) return;
-
-    set({ relays: data.relays });
+  processRelays: (payload) => {
+    set({ relays: payload.relays });
   },
 
   getRelayCount: () => {
     useWebSocketStore.getState().sendMessage("getRelayCount", {});
   },
 
-  processRelaysCount: (data) => {
-    if (!data?.payload) return;
-
-    set({ relayCount: data.payload.relayCount });
+  processRelaysCount: (payload) => {
+    set({ relayCount: payload.relayCount });
   },
 
   setRelayCount: (relayCount) => {
@@ -37,10 +33,8 @@ const useRelayStore = create((set) => ({
     useWebSocketStore.getState().sendMessage("getRelaysSettings", {});
   },
 
-  processRelaysSettings: (data) => {
-    if (!data?.payload) return;
-
-    const relays = data.payload.relays.map((relay) => {
+  processRelaysSettings: (payload) => {
+    const relays = payload.relays.map((relay) => {
       return {
         pin: parseInt(relay.pin),
         isActiveOnHigh: +relay.isActiveOnHigh,
@@ -79,29 +73,17 @@ const useRelayStore = create((set) => ({
 
 useWebSocketStore.subscribe(
   (state) => state.messages["relaysData"],
-  (message) => {
-    if (message) {
-      useRelayStore.getState().processRelays(message);
-    }
-  }
+  (payload) => useRelayStore.getState().processRelays(payload),
 );
 
 useWebSocketStore.subscribe(
   (state) => state.messages["getRelayCountResponse"],
-  (message) => {
-    if (message) {
-      useRelayStore.getState().processRelaysCount(message);
-    }
-  }
+  (payload) => useRelayStore.getState().processRelaysCount(payload),
 );
 
 useWebSocketStore.subscribe(
   (state) => state.messages["getRelaysSettingsResponse"],
-  (message) => {
-    if (message) {
-      useRelayStore.getState().processRelaysSettings(message);
-    }
-  }
+  (payload) => useRelayStore.getState().processRelaysSettings(payload),
 );
 
 export default useRelayStore;

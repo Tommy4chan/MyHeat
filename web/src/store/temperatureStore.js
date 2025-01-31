@@ -6,10 +6,8 @@ const useTemperatureStore = create((set, get) => ({
   temperatureSettings: [],
   discoveredTemperatureSensors: [],
 
-  processTemperatures: (data) => {
-    if (!data?.temperatures) return;
-
-    const formattedTemperatures = data.temperatures.map(
+  processTemperatures: (payload) => {
+    const formattedTemperatures = payload.temperatures.map(
       (temperature, index) => {
         return {
           id: index,
@@ -27,10 +25,8 @@ const useTemperatureStore = create((set, get) => ({
       .sendMessage("getTemperatureSensorsSettings", {});
   },
 
-  processTemperatureSettings: (data) => {
-    if (!data?.payload) return;
-
-    set({ temperatureSettings: data.payload });
+  processTemperatureSettings: (payload) => {
+    set({ temperatureSettings: payload });
   },
 
   setTemperatureSensorsSettings: (temperaturePin, temperatureCount) => {
@@ -43,7 +39,7 @@ const useTemperatureStore = create((set, get) => ({
       .getState()
       .sendMessage("setTemperatureSensorsSettings", payload);
 
-    useTemperatureStore.getState().processTemperatureSettings({ payload });
+    useTemperatureStore.getState().processTemperatureSettings(payload);
   },
 
   getDiscoveredTemperatureSensors: () => {
@@ -52,11 +48,9 @@ const useTemperatureStore = create((set, get) => ({
       .sendMessage("getDiscoveredTemperatureSensors", {});
   },
 
-  processDiscoveredTemperatureSensors: (data) => {
-    if (!data?.payload) return;
-
+  processDiscoveredTemperatureSensors: (payload) => {
     const discoveredTemperatureSensors =
-      data.payload.discoveredTemperatureSensors.map((sensor, index) => {
+      payload.discoveredTemperatureSensors.map((sensor, index) => {
         return {
           id: index,
           address: sensor,
@@ -96,31 +90,17 @@ const useTemperatureStore = create((set, get) => ({
 
 useWebSocketStore.subscribe(
   (state) => state.messages["temperaturesData"],
-  (message) => {
-    if (message) {
-      useTemperatureStore.getState().processTemperatures(message);
-    }
-  }
+  (payload) => useTemperatureStore.getState().processTemperatures(payload)
 );
 
 useWebSocketStore.subscribe(
   (state) => state.messages["getTemperatureSensorsSettingsResponse"],
-  (message) => {
-    if (message) {
-      useTemperatureStore.getState().processTemperatureSettings(message);
-    }
-  }
+  (payload) => useTemperatureStore.getState().processTemperatureSettings(payload)
 );
 
 useWebSocketStore.subscribe(
   (state) => state.messages["getDiscoveredTemperatureSensorsResponse"],
-  (message) => {
-    if (message) {
-      useTemperatureStore
-        .getState()
-        .processDiscoveredTemperatureSensors(message);
-    }
-  }
+  (payload) => useTemperatureStore.getState().processDiscoveredTemperatureSensors(payload)
 );
 
 export default useTemperatureStore;

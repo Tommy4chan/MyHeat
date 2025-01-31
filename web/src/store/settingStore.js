@@ -23,37 +23,23 @@ const useSettingStore = create((set) => ({
     useWebSocketStore.getState().sendMessage("getWifiSettings");
   },
 
-  processGetWifiSettings: (data) => {
-    if (!data?.payload) return;
-
-    set({ wifiSettings: data.payload });
+  processGetWifiSettings: (payload) => {
+    set({ wifiSettings: payload });
   },
 
-  processWifiScanData: (data) => {
-    set({ isScanningForWifiNetworks: false });
-
-    if (!data?.payload) return;
-
-    set({ scannedWifiNetworks: data.payload });
+  processWifiScanData: (payload) => {
+    set({ isScanningForWifiNetworks: false, scannedWifiNetworks: payload });
   },
 }));
 
 useWebSocketStore.subscribe(
   (state) => state.messages["getWifiSettingsResponse"],
-  (message) => {
-    if (message) {
-      useSettingStore.getState().processGetWifiSettings(message);
-    }
-  }
+  (payload) => useSettingStore.getState().processGetWifiSettings(payload),
 );
 
 useWebSocketStore.subscribe(
   (state) => state.messages["wifiScanData"],
-  (message) => {
-    if (message) {
-      useSettingStore.getState().processWifiScanData(message);
-    }
-  }
+  (payload) => useSettingStore.getState().processWifiScanData(payload),
 );
 
 export default useSettingStore;

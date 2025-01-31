@@ -167,8 +167,8 @@ public:
         JsonDocument networks;
         for (int i = 0; i < networksCount; i++)
         {
-            networks["payload"][i]["ssid"] = WiFi.SSID(i);
-            networks["payload"][i]["rssi"] = WiFi.RSSI(i);
+            networks[i]["ssid"] = WiFi.SSID(i);
+            networks[i]["rssi"] = WiFi.RSSI(i);
         }
         WiFi.scanDelete();
         return networks;

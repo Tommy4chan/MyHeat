@@ -7,11 +7,11 @@
 
 namespace MyHeatWeb
 {
-    void getRelaysSettings(JsonDocument &response);
+    void getRelaysSettings(JsonObject response);
     void setRelayMode(JsonObject payload);
     void setRelaysSettings(JsonObject payload);
     void setRelayCount(JsonObject payload);
-    void getRelayCount(JsonDocument &response);
+    void getRelayCount(JsonObject response);
     JsonDocument getRelaysData();
 }
 

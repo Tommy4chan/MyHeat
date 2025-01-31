@@ -7,10 +7,10 @@
 
 namespace MyHeatWeb
 {
-    void getDiscoveredTemperatureSensors(JsonDocument &response);
-    void setTemperatureSensor(JsonObject payload);
+    void getDiscoveredTemperatureSensors(JsonObject response);
+    void setTemperatureSensor(JsonObject payload, JsonObject error);
     void deleteTemperatureSensor(JsonObject payload);
-    void getTemperatureSensorsSettings(JsonDocument &response);
+    void getTemperatureSensorsSettings(JsonObject response);
     void setTemperatureSensorsSettings(JsonObject payload);
     JsonDocument getTemperatureSensorsData();
 }

@@ -18,6 +18,8 @@ namespace MyHeatWeb
     inline AsyncWebServer server(80);
     inline AsyncWebSocket websocket("/ws");
 
+    inline uint32_t lastSendTick = 0;
+
     void begin();
 
     void setupWebsocket();
@@ -31,6 +33,7 @@ namespace MyHeatWeb
     void sendNetworksData();
     void sendDataToClients(JsonDocument data, String messageType);
 
+    void sendRepeatableDataToClients();
     void tick();
 }
 

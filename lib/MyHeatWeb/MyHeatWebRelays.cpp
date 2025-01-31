@@ -2,14 +2,14 @@
 
 namespace MyHeatWeb
 {
-    void getRelaysSettings(JsonDocument &response)
+    void getRelaysSettings(JsonObject response)
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
         for (int i = 0; i < myHeatDevice.getRelayCount(); i++)
         {
-            response["payload"]["relays"][i]["pin"] = myHeatDevice.getRelay(i).getPin();
-            response["payload"]["relays"][i]["isActiveOnHigh"] = myHeatDevice.getRelay(i).getIsActiveOnHigh();
+            response["relays"][i]["pin"] = myHeatDevice.getRelay(i).getPin();
+            response["relays"][i]["isActiveOnHigh"] = myHeatDevice.getRelay(i).getIsActiveOnHigh();
         }
     }
 
@@ -41,9 +41,9 @@ namespace MyHeatWeb
         myHeatDevice.validateCustomFunctions();
     }
 
-    void getRelayCount(JsonDocument &response)
+    void getRelayCount(JsonObject response)
     {
-        response["payload"]["relayCount"] = MyHeatDevice::getInstance().getRelayCount();
+        response["relayCount"] = MyHeatDevice::getInstance().getRelayCount();
     }
 
     JsonDocument getRelaysData()

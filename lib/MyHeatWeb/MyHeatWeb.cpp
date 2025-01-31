@@ -20,11 +20,8 @@ namespace MyHeatWeb
         if (type == WS_EVT_CONNECT)
         {
             Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
-            sendNetworksData();
             sendUsedPinsData();
-            sendTemperaturesData();
-            sendRelaysData();
-            sendFunctionsData();
+            sendRepeatableDataToClients();
 
             client->ping();
         }
@@ -58,19 +55,22 @@ namespace MyHeatWeb
             JsonObject payload = received["payload"].as<JsonObject>();
 
             JsonDocument response;
+            JsonObject responsePayload = response["payload"].to<JsonObject>();
+            JsonObject responseError = response["error"].to<JsonObject>();
             response["messageType"] = messageType + "Response";
 
             switch (su::SH(messageType.c_str()))
             {
-            case su::SH("ping"):
-                response["payload"] = "pong";
-                break;
+                // case su::SH("ping"):
+                //     response["payload"] = "pong";
+                //     break;
+
             case su::SH("setWifiSettings"):
                 setWifiSettings(payload);
                 break;
 
             case su::SH("getWifiSettings"):
-                getWifiSettings(response);
+                getWifiSettings(responsePayload);
                 break;
 
             case su::SH("startWifiScan"):
@@ -78,11 +78,11 @@ namespace MyHeatWeb
                 break;
 
             case su::SH("getDiscoveredTemperatureSensors"):
-                getDiscoveredTemperatureSensors(response);
+                getDiscoveredTemperatureSensors(responsePayload);
                 break;
 
             case su::SH("setTemperatureSensor"):
-                setTemperatureSensor(payload);
+                setTemperatureSensor(payload, responseError);
                 break;
 
             case su::SH("deleteTemperatureSensor"):
@@ -90,7 +90,7 @@ namespace MyHeatWeb
                 break;
 
             case su::SH("getTemperatureSensorsSettings"):
-                getTemperatureSensorsSettings(response);
+                getTemperatureSensorsSettings(responsePayload);
                 break;
 
             case su::SH("setTemperatureSensorsSettings"):
@@ -98,7 +98,7 @@ namespace MyHeatWeb
                 break;
 
             case su::SH("getRelaysSettings"):
-                getRelaysSettings(response);
+                getRelaysSettings(responsePayload);
                 break;
 
             case su::SH("setRelayMode"):
@@ -114,7 +114,7 @@ namespace MyHeatWeb
                 break;
 
             case su::SH("getRelayCount"):
-                getRelayCount(response);
+                getRelayCount(responsePayload);
                 break;
 
             case su::SH("setFunctionIsEnabled"):
@@ -126,7 +126,7 @@ namespace MyHeatWeb
                 break;
 
             case su::SH("getPinsData"):
-                getUsedPinsData(response);
+                getUsedPinsData(responsePayload);
                 break;
 
             default:
@@ -138,14 +138,21 @@ namespace MyHeatWeb
             serializeJson(response, responseString);
 
             client->text(responseString);
+
+            if (messageType.startsWith("set") || messageType.startsWith("del"))
+            {
+                sendRepeatableDataToClients();
+            }
         }
     }
 
     void sendDataToClients(JsonDocument data, String messageType)
     {
-        data[F("messageType")] = messageType;
+        JsonDocument response;
+        response[F("payload")] = data;
+        response[F("messageType")] = messageType;
         String jsonString;
-        serializeJson(data, jsonString);
+        serializeJson(response, jsonString);
 
         websocket.textAll(jsonString);
     }
@@ -163,7 +170,7 @@ namespace MyHeatWeb
     void sendUsedPinsData()
     {
         JsonDocument response;
-        getUsedPinsData(response);
+        getUsedPinsData(response.to<JsonObject>());
         sendDataToClients(response, F("getPinsDataResponse"));
     }
 
@@ -180,18 +187,21 @@ namespace MyHeatWeb
         }
     }
 
+    void sendRepeatableDataToClients()
+    {
+        sendTemperaturesData();
+        sendRelaysData();
+        sendFunctionsData();
+        sendNetworksData();
+
+        lastSendTick = millis();
+    }
+
     void tick()
     {
-        static unsigned long lastSend = 0;
-        unsigned long now = millis();
-
-        if (websocket.count() > 0 && now - lastSend > 1000)
+        if (websocket.count() > 0 && millis() - lastSendTick > 1000)
         {
-            sendNetworksData();
-            sendTemperaturesData();
-            sendRelaysData();
-            sendFunctionsData();
-            lastSend = now;
+            sendRepeatableDataToClients();
 
             websocket.cleanupClients();
         }
