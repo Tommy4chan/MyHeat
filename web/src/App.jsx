@@ -5,15 +5,18 @@ import { TemperaturesPage } from './pages/temperatures';
 import { RelaysPage } from './pages/relays';
 import { FunctionsPage } from './pages/functions';
 import { SettingsPage } from './pages/settings';
-import { WebSocketProvider } from './components/WebSocketProvider';
+import { WebSocketContainer } from './components/WebSocketContainer';
+import { ToastContainer } from 'react-toastify';
 
 function App() {
   const [page, setPage] = useState('dashboard');
 
   return (
-    <WebSocketProvider>
+    <>
+      <WebSocketContainer />
       <div className="flex flex-col min-h-screen bg-gray-900 text-gray-200">
         <Navbar setPage={setPage} page={page} />
+        <button onClick={test}>Test notification</button>
         <div className="container mx-auto h-full my-6 pt-[52px] md:pt-0 px-2 md:px-0">
           {page === 'dashboard' && <DashboardPage />}
           {page === 'temperatures' && <TemperaturesPage />}
@@ -22,7 +25,8 @@ function App() {
           {page === 'settings' && <SettingsPage />}
         </div>
       </div>
-    </WebSocketProvider>
+      <ToastContainer/>
+    </>
   )
 }
 

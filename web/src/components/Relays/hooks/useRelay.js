@@ -17,7 +17,7 @@ export const useRelay = () => {
   const { relays, setRelayMode } = useRelayStore();
   const [relaysMode, setRelaysMode] = useState([]);
 
-  const decodeState = useCallback((state) => {
+  const decodeState = (state) => {
     switch (Number(state)) {
       case RELAY_STATES.OFF:
         return "Вимкнено";
@@ -28,7 +28,7 @@ export const useRelay = () => {
       default:
         return "Невідомо";
     }
-  }, []);
+  };
 
   useEffect(() => {
     setRelaysMode(relays.map((relay, index) => {
@@ -48,17 +48,17 @@ export const useRelay = () => {
     }));
   }, [relays]);
 
-  const handleSetRelayMode = useCallback((index) => () => {
+  const handleSetRelayMode = (index) => () => {
     setRelayMode(index, relaysMode[index].mode);
-  }, [relaysMode, setRelayMode]);
+  };
 
-  const handleRelayModeChange = useCallback((index) => (e) => {
+  const handleRelayModeChange = (index) => (e) => {
     setRelaysMode(prev => prev.map((mode, i) => 
       i === index 
         ? { mode: e.target.value, isChangedByUser: true }
         : mode
     ));
-  }, []);
+  };
 
   return {
     relays,

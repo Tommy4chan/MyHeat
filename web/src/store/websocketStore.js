@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { ReadyState } from "react-use-websocket";
+import { showToast } from "../components/CustomToast";
 
 const useWebSocketStore = create(
   subscribeWithSelector((set, get) => ({
@@ -13,7 +14,11 @@ const useWebSocketStore = create(
     onMessage: (event) => {
       try {
         const data = JSON.parse(event.data);
-        const { messageType, payload } = data;
+        const { messageType, payload, status } = data;
+
+        if (status) {
+          showToast(status.type, status.text);
+        }
 
         if (messageType) {
           set({
