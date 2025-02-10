@@ -16,8 +16,8 @@ const useWebSocketStore = create(
         const data = JSON.parse(event.data);
         const { messageType, payload, status } = data;
 
-        if (status) {
-          showToast(status.type, status.text);
+        if (status && Object.keys(status).length !== 0) {
+          showToast(status.type, status.message);
         }
 
         if (messageType) {

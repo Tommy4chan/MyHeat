@@ -1,9 +1,8 @@
-import React, { memo } from 'react';
 import Select from "@/components/ui/Select";
 import SaveButton from '@/components/ui/SaveButton';
 import DarkWrapperBlock from '@/components/layout/DarkWrapperBlock';
 
-export const RelayItem = memo(({
+export const RelayItem = ({
   index,
   isActive,
   mode,
@@ -27,4 +26,4 @@ export const RelayItem = memo(({
       </div>
     </DarkWrapperBlock>
   );
-});
+};

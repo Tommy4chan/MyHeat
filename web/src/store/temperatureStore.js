@@ -3,12 +3,15 @@ import useWebSocketStore from "./websocketStore";
 
 const useTemperatureStore = create((set, get) => ({
   temperatures: [],
+  temperatureSensorsCountCalculated: 0,
   temperatureSettings: [],
   discoveredTemperatureSensors: [],
 
   processTemperatures: (payload) => {
+    let temperatureSensorsCountCalculated = 0;
     const formattedTemperatures = payload.temperatures.map(
       (temperature, index) => {
+        temperatureSensorsCountCalculated++;
         return {
           id: index,
           value: temperature.toFixed(2),
@@ -16,7 +19,7 @@ const useTemperatureStore = create((set, get) => ({
       }
     );
 
-    set({ temperatures: formattedTemperatures });
+    set({ temperatures: formattedTemperatures, temperatureSensorsCountCalculated });
   },
 
   getTemperatureSensorsSettings: () => {
@@ -39,7 +42,7 @@ const useTemperatureStore = create((set, get) => ({
       .getState()
       .sendMessage("setTemperatureSensorsSettings", payload);
 
-    useTemperatureStore.getState().processTemperatureSettings(payload);
+    useTemperatureStore.getState().getTemperatureSensorsSettings();
   },
 
   getDiscoveredTemperatureSensors: () => {

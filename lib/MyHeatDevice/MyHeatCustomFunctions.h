@@ -79,6 +79,7 @@ public:
     {
         functionCount = 0;
         customFunctions = nullptr;
+        realocateMemory(1);
     }
 
     void begin()

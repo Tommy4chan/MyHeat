@@ -8,6 +8,7 @@ const WebSocketProvider = ({ children }) => {
 
   const { sendJsonMessage, readyState } = useWebSocket(
     "ws://192.168.1.228/ws",
+    // `ws://${location.host}/ws`,
     {
       retryOnError: true,
       shouldReconnect: () => true,

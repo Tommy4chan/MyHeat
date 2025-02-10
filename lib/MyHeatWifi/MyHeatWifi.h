@@ -170,7 +170,9 @@ public:
             networks[i]["ssid"] = WiFi.SSID(i);
             networks[i]["rssi"] = WiFi.RSSI(i);
         }
+
         WiFi.scanDelete();
+
         return networks;
     }
 };

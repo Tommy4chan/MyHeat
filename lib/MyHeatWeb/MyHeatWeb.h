@@ -12,6 +12,7 @@
 #include "MyHeatWebRelays.h"
 #include "MyHeatWebCustomFunctions.h"
 #include "MyHeatWebSettings.h"
+#include "MyHeatWebUtils.h"
 
 namespace MyHeatWeb
 {

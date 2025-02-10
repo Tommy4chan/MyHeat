@@ -16,7 +16,6 @@ function App() {
       <WebSocketContainer />
       <div className="flex flex-col min-h-screen bg-gray-900 text-gray-200">
         <Navbar setPage={setPage} page={page} />
-        <button onClick={test}>Test notification</button>
         <div className="container mx-auto h-full my-6 pt-[52px] md:pt-0 px-2 md:px-0">
           {page === 'dashboard' && <DashboardPage />}
           {page === 'temperatures' && <TemperaturesPage />}

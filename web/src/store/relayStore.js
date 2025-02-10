@@ -24,8 +24,6 @@ const useRelayStore = create((set) => ({
     };
 
     useWebSocketStore.getState().sendMessage("setRelayCount", payload);
-
-    useRelayStore.getState().processRelaysCount({ payload });
     useRelayStore.getState().getRelaysSettings();
   },
 

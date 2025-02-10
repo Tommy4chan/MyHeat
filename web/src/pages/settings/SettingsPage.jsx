@@ -7,12 +7,18 @@ import Wifi from "./components/Wifi"
 const SettingsPage = () => {
 
   return (
-    <div className="masonry">
-      <Wifi />
-      <Bot />
-      <Hardware />
-      <NTP />
-      <Device />
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="flex flex-col gap-4">
+        <Wifi />
+      </div>
+      <div className="flex flex-col gap-4">
+        <Bot />
+        <Hardware />
+      </div>
+      <div className="flex flex-col gap-4">
+        <NTP />
+        <Device />
+      </div>
     </div>
   )
 }

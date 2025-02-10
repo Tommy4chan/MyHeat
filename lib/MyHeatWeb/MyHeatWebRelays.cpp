@@ -13,9 +13,17 @@ namespace MyHeatWeb
         }
     }
 
-    void setRelayMode(JsonObject payload)
+    void setRelayMode(JsonObject payload, JsonObject status)
     {
-        MyHeatDevice::getInstance().setRelayMode(payload["relayIndex"], payload["relayMode"]);
+        MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
+
+        if (payload["relayIndex"] >= myHeatDevice.getRelayCount())
+        {
+            setErrorMessage(status, F("Неіснуюче реле"));
+            return;
+        }
+
+        myHeatDevice.setRelayMode(payload["relayIndex"], payload["relayMode"]);
     }
 
     void setRelaysSettings(JsonObject payload)

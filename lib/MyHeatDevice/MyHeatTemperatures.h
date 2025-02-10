@@ -114,6 +114,7 @@ public:
         temperatureSensorsAddresses = nullptr;
         discoveredTemperatureSensorsAddresses = nullptr;
         temperatures = nullptr;
+        realocateMemory(2);
     };
 
     void begin()

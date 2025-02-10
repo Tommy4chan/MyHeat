@@ -2,14 +2,18 @@
 
 namespace MyHeatWeb
 {
-    void setFunctionIsEnabled(JsonObject payload)
+    void setFunctionIsEnabled(JsonObject payload, JsonObject status)
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
+        if (payload["functionIndex"] >= myHeatDevice.getCustomFunctionCount())
+        {
+            setErrorMessage(status, F("Неіснуюча функція"));
+        }
         myHeatDevice.setCustomFunctionIsEnabled(payload["functionIndex"], payload["isEnabled"]);
         myHeatDevice.checkCustomFunctions();
     }
 
-    void setFunctionsSettings(JsonObject payload)
+    void setFunctionsSettings(JsonObject payload, JsonObject status)
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
@@ -18,8 +22,27 @@ namespace MyHeatWeb
         myHeatDevice.setCustomFunctionCount(functionCount);
         MyHeatCustomFunction *customFunctions = myHeatDevice.getCustomFunctions();
 
+        byte temperatureCount = myHeatDevice.getTemperatureCount();
+        byte relayCount = myHeatDevice.getRelayCount();
+
         for (int i = 0; i < functionCount; i++)
         {
+            if (payload["functions"][i]["temperatureIndex"][0] >= temperatureCount && payload["functions"][i]["temperatureIndex"][0] < T_UNKNOWN) 
+            {
+                setErrorMessage(status, "Неправильний індекс температурного датчика в Параметрі 1 в функції " + String(i));
+                continue;
+            }
+            else if (payload["functions"][i]["temperatureIndex"][1] >= temperatureCount && payload["functions"][i]["temperatureIndex"][1] < T_UNKNOWN)
+            {
+                setErrorMessage(status, "Неправильний індекс температурного датчика в Параметрі 2 в функції " + String(i));
+                continue;
+            }
+            else if (payload["functions"][i]["relayIndex"] >= relayCount && payload["functions"][i]["relayIndex"] != RELAY_UNKNOWN)
+            {
+                setErrorMessage(status, "Неправильний індекс реле в функції " + String(i));
+                continue;
+            }
+
             customFunctions[i].setSign(payload["functions"][i]["sign"]);
             customFunctions[i].setTemperatureIndex(0, payload["functions"][i]["temperatureIndex"][0]);
             customFunctions[i].setTemperatureIndex(1, payload["functions"][i]["temperatureIndex"][1]);

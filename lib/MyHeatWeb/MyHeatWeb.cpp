@@ -23,7 +23,7 @@ namespace MyHeatWeb
             sendUsedPinsData();
             sendRepeatableDataToClients();
 
-            client->ping();
+            // client->ping();
         }
         else if (type == WS_EVT_DATA)
         {
@@ -56,7 +56,7 @@ namespace MyHeatWeb
 
             JsonDocument response;
             JsonObject responsePayload = response["payload"].to<JsonObject>();
-            JsonObject responseError = response["error"].to<JsonObject>();
+            JsonObject responseStatus = response["status"].to<JsonObject>();
             response["messageType"] = messageType + "Response";
 
             switch (su::SH(messageType.c_str()))
@@ -82,7 +82,7 @@ namespace MyHeatWeb
                 break;
 
             case su::SH("setTemperatureSensor"):
-                setTemperatureSensor(payload, responseError);
+                setTemperatureSensor(payload, responseStatus);
                 break;
 
             case su::SH("deleteTemperatureSensor"):
@@ -102,7 +102,7 @@ namespace MyHeatWeb
                 break;
 
             case su::SH("setRelayMode"):
-                setRelayMode(payload);
+                setRelayMode(payload, responseStatus);
                 break;
 
             case su::SH("setRelaysSettings"):
@@ -118,11 +118,11 @@ namespace MyHeatWeb
                 break;
 
             case su::SH("setFunctionIsEnabled"):
-                setFunctionIsEnabled(payload);
+                setFunctionIsEnabled(payload, responseStatus);
                 break;
 
             case su::SH("setFunctionsSettings"):
-                setFunctionsSettings(payload);
+                setFunctionsSettings(payload, responseStatus);
                 break;
 
             case su::SH("getPinsData"):
@@ -148,8 +148,7 @@ namespace MyHeatWeb
 
     void sendDataToClients(JsonDocument data, String messageType)
     {
-        JsonDocument response;
-        response[F("payload")] = data;
+        JsonDocument response = data;
         response[F("messageType")] = messageType;
         String jsonString;
         serializeJson(response, jsonString);
@@ -159,31 +158,50 @@ namespace MyHeatWeb
 
     void sendTemperaturesData()
     {
-        sendDataToClients(getTemperatureSensorsData(), F("temperaturesData"));
+        JsonDocument response;
+        response["payload"] = getTemperatureSensorsData();
+        sendDataToClients(response, F("temperaturesData"));
     }
 
     void sendRelaysData()
     {
-        sendDataToClients(getRelaysData(), F("relaysData"));
+        JsonDocument response;
+        response["payload"] = getRelaysData();
+        sendDataToClients(response, F("relaysData"));
     }
 
     void sendUsedPinsData()
     {
         JsonDocument response;
-        getUsedPinsData(response.to<JsonObject>());
+        getUsedPinsData(response["payload"].to<JsonObject>());
         sendDataToClients(response, F("getPinsDataResponse"));
     }
 
     void sendFunctionsData()
     {
-        sendDataToClients(getFunctionsData(), F("functionsData"));
+        JsonDocument response;
+        response["payload"] = getFunctionsData();
+        sendDataToClients(response, F("functionsData"));
     }
 
     void sendNetworksData()
     {
         if (isScanCompleted())
         {
-            sendDataToClients(getNetworksData(), F("wifiScanData"));
+            JsonDocument response;
+            response["payload"] = getNetworksData();
+
+            if(response["payload"].size() == 0)
+            {
+                JsonObject status = response["status"].to<JsonObject>();
+                setWarningMessage(status, F("Мережі не знайдено"));
+            }
+            else
+            {
+                setSuccessMessage(response["status"].to<JsonObject>(), F("Сканування завершено"));
+            }
+
+            sendDataToClients(response, F("wifiScanData"));
         }
     }
 

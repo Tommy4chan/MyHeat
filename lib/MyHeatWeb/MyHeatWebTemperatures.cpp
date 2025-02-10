@@ -14,7 +14,7 @@ namespace MyHeatWeb
         }
     }
 
-    void setTemperatureSensor(JsonObject payload, JsonObject error)
+    void setTemperatureSensor(JsonObject payload, JsonObject status)
     {
         byte tempIndex = payload["tempIndex"];
         byte sensorAddressIndex = payload["sensorAddressIndex"];
@@ -22,7 +22,7 @@ namespace MyHeatWeb
 
         if(tempIndex >= tempCount || sensorAddressIndex >= tempCount)
         {
-            error["message"] = "Неправильний індекс датчика або адреси";
+            setErrorMessage(status, F("Неправильний індекс датчика або адреси"));
             return;
         }
 

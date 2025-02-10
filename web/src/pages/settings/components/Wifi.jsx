@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Button from '../../../components/ui/Button'
 import DarkWrapperBlock from '../../../components/layout/DarkWrapperBlock';
 import Input from '../../../components/ui/Input';
-import FormColumn from '../../../components/layout/FormColumn';
+import SettingsForm from '../../../components/layout/SettingsForm';
 import SaveButton from '../../../components/ui/SaveButton';
 import FormField from '../../../components/ui/FormField';
 import WrapperBlock from '../../../components/layout/WrapperBlock';
@@ -33,7 +33,7 @@ const Wifi = () => {
   }, [scannedWifiNetworks]);
 
   return (
-    <FormColumn title='Wifi'>
+    <SettingsForm title='Wifi'>
       <WrapperBlock>
         <h3 className='text-xl'>Доступні мережі:</h3>
         {isScanningForWifiNetworks ? <DarkWrapperBlock><p>Сканування...</p></DarkWrapperBlock> :
@@ -82,7 +82,7 @@ const Wifi = () => {
         </DarkWrapperBlock>
       </WrapperBlock>
       <SaveButton onClick={() => setWifiCredentials(ssid, password)} />
-    </FormColumn>
+    </SettingsForm>
   )
 }
 

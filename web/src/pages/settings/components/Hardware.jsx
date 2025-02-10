@@ -4,7 +4,7 @@ import DarkWrapperBlock from "../../../components/layout/DarkWrapperBlock";
 import Select from "../../../components/ui/Select";
 import usePinStore from "../../../store/pinStore";
 import { handlePinChange } from "../../../utils/pinHandler";
-import FormColumn from "../../../components/layout/FormColumn";
+import SettingsForm from "../../../components/layout/SettingsForm";
 import SaveButton from "../../../components/ui/SaveButton";
 import SelectToggle from "../../../components/ui/SelectToggle";
 import FormField from "../../../components/ui/FormField";
@@ -32,7 +32,7 @@ const Hardware = () => {
   }
 
   return (
-    <FormColumn title='Фізичний Ввід\Вивід'>
+    <SettingsForm title='Фізичний Ввід\Вивід'>
       <FormField label='Увімкнений'>
         <SelectToggle
           value={true}
@@ -115,7 +115,7 @@ const Hardware = () => {
       </WrapperBlock>
 
       <SaveButton />
-    </FormColumn>
+    </SettingsForm>
   )
 }
 

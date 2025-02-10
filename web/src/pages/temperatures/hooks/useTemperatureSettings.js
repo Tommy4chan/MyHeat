@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import useTemperatureStore from "@/store/temperatureStore";
 import usePinStore from "@/store/pinStore";
 
 export const useTemperatureSettings = () => {
   const {
     temperatureSettings,
+    temperatureSensorsCountCalculated,
     getTemperatureSensorsSettings,
     setTemperatureSensorsSettings,
   } = useTemperatureStore();
@@ -19,7 +20,7 @@ export const useTemperatureSettings = () => {
   useEffect(() => {
     getTemperatureSensorsSettings();
     getPins();
-  }, []);
+  }, [temperatureSensorsCountCalculated]);
 
   useEffect(() => {
     setSettings({
@@ -45,12 +46,12 @@ export const useTemperatureSettings = () => {
     }
   };
 
-  const handleSettingsSave = useCallback(() => {
+  const handleSettingsSave = () => {
     setTemperatureSensorsSettings(
       settings.temperaturePin,
       settings.temperatureCount
     );
-  }, [settings, setTemperatureSensorsSettings]);
+  };
 
   return {
     settings,

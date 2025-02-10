@@ -70,6 +70,7 @@ public:
     {
         relayCount = 0;
         relays = nullptr;
+        realocateMemory(1);
     }
 
     void begin()
@@ -102,6 +103,11 @@ public:
 
     void setRelaySettings(byte relayIndex, byte newPin, bool isActiveOnHigh, bool isSave = true)
     {
+        if (relayIndex >= relayCount)
+        {
+            return;
+        }
+        
         relays[relayIndex].begin(newPin, isActiveOnHigh);
 
         if (isSave)

@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
+/* @layer utilities {
   .masonry {
     @apply gap-6;
     column-gap: 1.5rem;
@@ -17,4 +17,4 @@
     break-inside: avoid;
     @apply mb-6
   }
-}
+} */

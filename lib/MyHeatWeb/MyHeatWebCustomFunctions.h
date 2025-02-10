@@ -3,11 +3,12 @@
 
 #include <ArduinoJson.h>
 #include <MyHeatDevice.h>
+#include "MyHeatWebUtils.h"
 
 namespace MyHeatWeb
 {
-    void setFunctionIsEnabled(JsonObject payload);
-    void setFunctionsSettings(JsonObject payload);
+    void setFunctionIsEnabled(JsonObject payload, JsonObject status);
+    void setFunctionsSettings(JsonObject payload, JsonObject status);
     JsonDocument getFunctionsData();
 }
 

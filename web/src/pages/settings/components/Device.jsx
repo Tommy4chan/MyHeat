@@ -1,13 +1,13 @@
 import DarkWrapperBlock from "../../../components/layout/DarkWrapperBlock"
 import Button from "../../../components/ui/Button"
 import FileUpload from "../../../components/ui/FileUpload"
-import FormColumn from "../../../components/layout/FormColumn"
+import SettingsForm from "../../../components/layout/SettingsForm"
 import FormField from "../../../components/ui/FormField"
 import WrapperBlock from "../../../components/layout/WrapperBlock"
 
 const Device = () => {
   return (
-    <FormColumn title='Пристрій'>
+    <SettingsForm title='Пристрій'>
       <WrapperBlock>
         <h3 className='text-xl'>Імпорт налаштувань:</h3>
         <DarkWrapperBlock className="md:!flex-col">
@@ -25,7 +25,7 @@ const Device = () => {
         <h3 className='text-xl'>Керування</h3>
         <Button buttonText='Перезавантажити' color='yellow' className="w-full" />
       </WrapperBlock>
-    </FormColumn >
+    </SettingsForm>
   )
 }
 

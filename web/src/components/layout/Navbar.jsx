@@ -77,11 +77,6 @@ const Navbar = ({ setPage, page }) => {
               </button>
             </li>
           ))}
-          <li
-            className="hover:bg-gray-900 transition duration-300"
-          >
-            <WebSocketStatus />
-          </li>
         </ul>
       </div>
     </nav>

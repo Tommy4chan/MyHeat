@@ -2,7 +2,7 @@ import { useState } from "react"
 import Input from "../../../components/ui/Input";
 import DarkWrapperBlock from "../../../components/layout/DarkWrapperBlock";
 import SaveButton from "../../../components/ui/SaveButton";
-import FormColumn from "../../../components/layout/FormColumn";
+import SettingsForm from "../../../components/layout/SettingsForm";
 import FormField from "../../../components/ui/FormField";
 import SelectToggle from "../../../components/ui/SelectToggle";
 import WrapperBlock from "../../../components/layout/WrapperBlock";
@@ -13,7 +13,7 @@ const Bot = () => {
   const [isBotEnabled, setIsBotEnabled] = useState(false);
 
   return (
-    <FormColumn title='Телеграм бот'>
+    <SettingsForm title='Телеграм бот'>
       <WrapperBlock>
         <DarkWrapperBlock className='md:!flex-col'>
           <FormField label='Токен'>
@@ -32,7 +32,7 @@ const Bot = () => {
         </DarkWrapperBlock>
       </WrapperBlock>
       <SaveButton />
-    </FormColumn>
+    </SettingsForm>
   )
 }
 
