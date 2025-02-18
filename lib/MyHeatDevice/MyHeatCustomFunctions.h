@@ -84,7 +84,7 @@ public:
 
     void begin()
     {
-        customFunctionsData = new MyHeatSave(&LittleFS, "/customFunctions.json", this);
+        customFunctionsData = new MyHeatSave("/customFunctions.json", this);
         customFunctionsData->read();
     }
 

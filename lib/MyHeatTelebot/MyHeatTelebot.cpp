@@ -1,13 +1,12 @@
 #include "MyHeatTelebot.h"
 
-#define XSTR(x) #x
-#define STR(x) XSTR(x)
-
 namespace MyHeatTelebot
 {
     void begin()
     {
-        bot.setToken(STR(TELEGRAM_BOT_TOKEN));
+        botData = new MyHeatSave("/botSave.json", &botSave);
+
+        bot.setToken(botSave.token);
         bot.setPollMode(fb::Poll::Long, 20000);
         bot.attachUpdate(handleUpdate);
         loadUsers();
@@ -15,7 +14,8 @@ namespace MyHeatTelebot
 
     void tick()
     {
-        bot.tick();
+        if (botSave.isActive)
+            bot.tick();
     }
 
     void handleUpdate(fb::Update &u)
@@ -122,11 +122,6 @@ namespace MyHeatTelebot
         case su::SH("Налаштування"):
         {
             msg.text = F("Налаштування: інфа");
-            break;
-        }
-        case su::SH(STR(REGISTER_PHRASE)):
-        {
-            msg.text = F("Ви вже зареєстровані");
             break;
         }
         }
@@ -356,7 +351,7 @@ namespace MyHeatTelebot
         Text chat_id = u.message().chat().id();
         fb::Message msg("", chat_id);
 
-        if (u.message().text().hash() == su::SH(STR(REGISTER_PHRASE)))
+        if (u.message().text().hash() == su::SH(botSave.registerPhrase.c_str()))
         {
             registerUser(chat_id);
             msg.text = F("Вас зареєстровано, /start");
@@ -397,5 +392,40 @@ namespace MyHeatTelebot
         }
 
         bot.sendMessage(msg);
+    }
+
+    void setToken(String token)
+    {
+        bot.setToken(token);
+    }
+
+    void setRegisterPhrase(String registerPhrase)
+    {
+        botSave.registerPhrase = registerPhrase;
+    }
+
+    void setIsActive(bool isActive)
+    {
+        botSave.isActive = isActive;
+    }
+
+    String getToken()
+    {
+        return botSave.token;
+    }
+
+    String getRegisterPhrase()
+    {
+        return botSave.registerPhrase;
+    }
+
+    bool getIsActive()
+    {
+        return botSave.isActive;
+    }
+
+    void save()
+    {
+        botData->save();
     }
 }

@@ -70,12 +70,20 @@ public:
     {
         relayCount = 0;
         relays = nullptr;
-        realocateMemory(1);
+        realocateMemory(RELAY_COUNT);
+
+        byte relayPinsArray[] = RELAY_PINS;
+        bool relayTriggerArray[] = RELAY_TRIGGER;
+
+        for (int i = 0; i < RELAY_COUNT; i++)
+        {
+            relays[i].begin(relayPinsArray[i], relayTriggerArray[i]);
+        }
     }
 
     void begin()
     {
-        relaysData = new MyHeatSave(&LittleFS, "/relays.json", this);
+        relaysData = new MyHeatSave("/relays.json", this);
         relaysData->read();
     }
 

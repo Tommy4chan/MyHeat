@@ -24,6 +24,8 @@ namespace MyHeatWeb
         MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
 
         myHeatWifi.setWifiCredentials(payload[F("ssid")], payload[F("password")]);
+        myHeatWifi.setMDNS(payload[F("mDNS")]);
+        myHeatWifi.save();
     }
 
     void getWifiSettings(JsonObject response)
@@ -32,6 +34,24 @@ namespace MyHeatWeb
 
         response[F("ssid")] = myHeatWifi.getSSID();
         response[F("password")] = myHeatWifi.getPassword();
+        response[F("mDNS")] = myHeatWifi.getMDNS();
+    }
+
+    void setTelegramBotSettings(JsonObject payload)
+    {
+        MyHeatTelebot::setToken(payload[F("token")]);
+        MyHeatTelebot::setRegisterPhrase(payload[F("registerPhrase")]);
+        MyHeatTelebot::setIsActive(payload[F("isActive")]);
+        MyHeatTelebot::save();
+    }
+
+    void getTelegramBotSettings(JsonObject response)
+    {
+        MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
+
+        response[F("token")] = MyHeatTelebot::getToken();
+        response[F("registerPhrase")] = MyHeatTelebot::getRegisterPhrase();
+        response[F("isActive")] = MyHeatTelebot::getIsActive();
     }
 
     void startWifiScan()

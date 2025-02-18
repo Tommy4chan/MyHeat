@@ -14,6 +14,7 @@ class MyHeatWifi : public MyHeatSaveInterface
 {
 private:
     String wifi[2];
+    String mDNS;
     unsigned long wifiReconnectTick = 0;
     unsigned long ntpSyncTick = 0;
     MyHeatSave *wifiData;
@@ -22,12 +23,14 @@ private:
     {
         doc["wifi_ssid"] = wifi[0];
         doc["wifi_password"] = wifi[1];
+        doc["mDns"] = mDNS;
     }
 
     void deserialize(JsonDocument &doc)
     {
         wifi[0] = doc["wifi_ssid"].as<String>();
         wifi[1] = doc["wifi_password"].as<String>();
+        mDNS = doc["mDNS"].as<String>();
     }
 
     void setAPMode()
@@ -45,7 +48,11 @@ private:
         WiFi.mode(WIFI_MODE_STA);
     }
 
-    MyHeatWifi() {};
+    MyHeatWifi() {
+        wifi[0] = STR(WIFI_SSID);
+        wifi[1] = STR(WIFI_PASSWORD);
+        mDNS = STR(MDNS_ADDRESS);
+    };
 
 public:
     static MyHeatWifi &getInstance()
@@ -59,7 +66,7 @@ public:
 
     void begin()
     {
-        wifiData = new MyHeatSave(&LittleFS, "/wifi.json", this);
+        wifiData = new MyHeatSave("/wifi.json", this);
         wifiData->read();
 
         if (wifi[0] != "")
@@ -73,10 +80,10 @@ public:
             setAPMode();
         }
 
-        if (!MDNS.begin(F("esp32-myheat")))
+        if (!MDNS.begin(mDNS))
             Serial.println(F("Error setting up MDNS responder!"));
         else
-            Serial.println(F("mDNS responder started: esp32-myheat.local\n"));
+            Serial.println(mDNS);
 
         configTime(NTP_OFFSET, NTP_DAYLIGHT_OFFSET, STR(NTP_SERVER));
     }
@@ -110,7 +117,6 @@ public:
     {
         setSSID(ssid);
         setPassword(password);
-        wifiData->save();
     }
 
     void setSSID(String ssid)
@@ -174,6 +180,23 @@ public:
         WiFi.scanDelete();
 
         return networks;
+    }
+
+    void setMDNS(String mDNS)
+    {
+        this->mDNS = mDNS;
+        MDNS.end();
+        MDNS.begin(mDNS);
+    }
+
+    String getMDNS()
+    {
+        return mDNS;
+    }
+
+    void save()
+    {
+        wifiData->save();
     }
 };
 #endif

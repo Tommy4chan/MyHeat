@@ -47,7 +47,7 @@ namespace MyHeatTelebot
                 String chatId = fileName.substring(0, fileName.length() - 5);
                 fileName = "/users/" + fileName;
                 UserSave userSave;
-                MyHeatSave myHeatSave(&LittleFS, fileName.c_str(), &userSave);
+                MyHeatSave myHeatSave(fileName.c_str(), &userSave);
                 if (myHeatSave.read())
                 {
                     users[chatId] = userSave.user;
@@ -131,7 +131,7 @@ namespace MyHeatTelebot
         UserSave userSave;
         userSave.user = users[chatId];
         String path = "/users/" + chatId + ".json";
-        MyHeatSave myHeatSave(&LittleFS, path.c_str(), &userSave);
+        MyHeatSave myHeatSave(path.c_str(), &userSave);
         myHeatSave.save();
     }
 }

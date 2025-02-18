@@ -110,16 +110,16 @@ public:
     MyHeatTemperatures() : oneWire(), temperatureSensors()
     {
         temperatureCount = 0;
-        temperaturePin = 23;
+        temperaturePin = TEMPERATURE_PIN;
         temperatureSensorsAddresses = nullptr;
         discoveredTemperatureSensorsAddresses = nullptr;
         temperatures = nullptr;
-        realocateMemory(2);
+        realocateMemory(TEMPERATURE_COUNT);
     };
 
     void begin()
     {
-        temperatureSensorData = new MyHeatSave(&LittleFS, "/temperatureSensors.json", this);
+        temperatureSensorData = new MyHeatSave("/temperatureSensors.json", this);
         temperatureSensorData->read();
 
         oneWire = OneWire(temperaturePin);
