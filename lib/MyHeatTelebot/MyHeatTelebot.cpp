@@ -4,7 +4,8 @@ namespace MyHeatTelebot
 {
     void begin()
     {
-        botData = new MyHeatSave("/botSave.json", &botSave);
+        botData = new MyHeatSave("/telegramBot.json", &botSave);
+        botData->read();
 
         bot.setToken(botSave.token);
         bot.setPollMode(fb::Poll::Long, 20000);
@@ -397,16 +398,19 @@ namespace MyHeatTelebot
     void setToken(String token)
     {
         bot.setToken(token);
+        save();
     }
 
     void setRegisterPhrase(String registerPhrase)
     {
         botSave.registerPhrase = registerPhrase;
+        save();
     }
 
     void setIsActive(bool isActive)
     {
         botSave.isActive = isActive;
+        save();
     }
 
     String getToken()
@@ -422,6 +426,14 @@ namespace MyHeatTelebot
     bool getIsActive()
     {
         return botSave.isActive;
+    }
+
+    void setSettings(String token, String registerPhrase, bool isActive)
+    {
+        botSave.token = token;
+        botSave.registerPhrase = registerPhrase;
+        botSave.isActive = isActive;
+        save();
     }
 
     void save()

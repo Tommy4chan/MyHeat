@@ -22,10 +22,8 @@ namespace MyHeatWeb
     void setWifiSettings(JsonObject payload)
     {
         MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
-
-        myHeatWifi.setWifiCredentials(payload[F("ssid")], payload[F("password")]);
-        myHeatWifi.setMDNS(payload[F("mDNS")]);
-        myHeatWifi.save();
+        
+        myHeatWifi.setWifiSettings(payload[F("ssid")], payload[F("password")], payload[F("mDNS")]);
     }
 
     void getWifiSettings(JsonObject response)
@@ -37,12 +35,26 @@ namespace MyHeatWeb
         response[F("mDNS")] = myHeatWifi.getMDNS();
     }
 
+    void setNTPSettings(JsonObject payload)
+    {
+        MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
+
+        myHeatWifi.setNTPSettings(payload[F("ntpServer")], payload[F("ntpIANA")], payload[F("ntpOffset")], payload[F("ntpDaylightOffset")] ? 3600 : 0);
+    }
+
+    void getNTPSettings(JsonObject response)
+    {
+        MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
+
+        response[F("ntpServer")] = myHeatWifi.getNTPServer();
+        response[F("ntpIANA")] = myHeatWifi.getNTPIANA();
+        response[F("ntpOffset")] = myHeatWifi.getNTPOffset();
+        response[F("ntpDaylightOffset")] = myHeatWifi.getNTPDaylightOffset();
+    }
+
     void setTelegramBotSettings(JsonObject payload)
     {
-        MyHeatTelebot::setToken(payload[F("token")]);
-        MyHeatTelebot::setRegisterPhrase(payload[F("registerPhrase")]);
-        MyHeatTelebot::setIsActive(payload[F("isActive")]);
-        MyHeatTelebot::save();
+        MyHeatTelebot::setSettings(payload[F("token")], payload[F("registerPhrase")], payload[F("isActive")]);
     }
 
     void getTelegramBotSettings(JsonObject response)

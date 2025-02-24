@@ -15,6 +15,10 @@ class MyHeatWifi : public MyHeatSaveInterface
 private:
     String wifi[2];
     String mDNS;
+    String ntpServer;
+    String ntpIANA;
+    int ntpOffset;
+    int ntpDaylightOffset;
     unsigned long wifiReconnectTick = 0;
     unsigned long ntpSyncTick = 0;
     MyHeatSave *wifiData;
@@ -23,14 +27,22 @@ private:
     {
         doc["wifi_ssid"] = wifi[0];
         doc["wifi_password"] = wifi[1];
-        doc["mDns"] = mDNS;
+        doc["mDNS"] = mDNS;
+        doc["ntp_server"] = ntpServer;
+        doc["ntp_iana"] = ntpIANA;
+        doc["ntp_offset"] = ntpOffset;
+        doc["ntp_daylight_offset"] = ntpDaylightOffset;
     }
 
     void deserialize(JsonDocument &doc)
     {
         wifi[0] = doc["wifi_ssid"].as<String>();
         wifi[1] = doc["wifi_password"].as<String>();
-        mDNS = doc["mDNS"].as<String>();
+        mDNS = doc["mDNS"].as<String>() == "null" ? STR(MDNS_ADDRESS) : doc["mDNS"].as<String>();
+        ntpServer = doc["ntp_server"].as<String>() == "null" ? STR(NTP_SERVER) : doc["ntp_server"].as<String>();
+        ntpIANA = doc["ntp_iana"].as<String>() == "null" ? STR(NTP_IANA) : doc["ntp_iana"].as<String>();
+        ntpOffset = doc["ntp_offset"] == 0 ? NTP_OFFSET : doc["ntp_offset"];
+        ntpDaylightOffset = doc["ntp_daylight_offset"] == 0 ? NTP_DAYLIGHT_OFFSET : doc["ntp_daylight_offset"];
     }
 
     void setAPMode()
@@ -52,6 +64,10 @@ private:
         wifi[0] = STR(WIFI_SSID);
         wifi[1] = STR(WIFI_PASSWORD);
         mDNS = STR(MDNS_ADDRESS);
+        ntpServer = STR(NTP_SERVER);
+        ntpIANA = STR(NTP_IANA);
+        ntpOffset = NTP_OFFSET;
+        ntpDaylightOffset = NTP_DAYLIGHT_OFFSET;
     };
 
 public:
@@ -71,8 +87,6 @@ public:
 
         if (wifi[0] != "")
         {
-            Serial.println(wifi[0]);
-            Serial.println(wifi[1]);
             WiFi.begin(wifi[0], wifi[1]);
         }
         else
@@ -85,7 +99,7 @@ public:
         else
             Serial.println(mDNS);
 
-        configTime(NTP_OFFSET, NTP_DAYLIGHT_OFFSET, STR(NTP_SERVER));
+            beginNTP();
     }
 
     void tick()
@@ -101,9 +115,7 @@ public:
 
             if (WiFi.status() == WL_CONNECTED && (millis() - ntpSyncTick >= NTP_SYNC_INTERVAL || (MyHeatUtils::isTimeDefault() && millis() - ntpSyncTick >= 10000)))
             {
-                Serial.println("Syncing time...");
-                configTime(NTP_OFFSET, NTP_DAYLIGHT_OFFSET, STR(NTP_SERVER));
-                ntpSyncTick = millis();
+                beginNTP();
             }
         }
     }
@@ -113,21 +125,46 @@ public:
         return WiFi.status() == WL_CONNECTED;
     }
 
+    void setNTPSettings(String ntpServer, String ntpIANA, int ntpOffset, int ntpDaylightOffset)
+    {
+        this->ntpServer = ntpServer;
+        this->ntpIANA = ntpIANA;
+        this->ntpOffset = ntpOffset;
+        this->ntpDaylightOffset = ntpDaylightOffset;
+        beginNTP();
+        save();
+    }
+
+    void beginNTP()
+    {
+        Serial.println("Syncing time...");
+        configTime(ntpOffset, ntpDaylightOffset, ntpServer.c_str());
+        ntpSyncTick = millis();
+    }
+
     void setWifiCredentials(String ssid, String password)
     {
         setSSID(ssid);
         setPassword(password);
+        save();
+    }
+
+    void setWifiSettings(String ssid, String password, String mDNS)
+    {
+        wifi[0] = ssid;
+        wifi[1] = password;
+        this->mDNS = mDNS;
+        restartMDNS();
+        save();
     }
 
     void setSSID(String ssid)
     {
-        Serial.println(ssid);
         wifi[0] = ssid;
     }
 
     void setPassword(String password)
     {
-        Serial.println(password);
         wifi[1] = password;
     }
 
@@ -185,6 +222,12 @@ public:
     void setMDNS(String mDNS)
     {
         this->mDNS = mDNS;
+        restartMDNS();
+        save();
+    }
+
+    void restartMDNS()
+    {
         MDNS.end();
         MDNS.begin(mDNS);
     }
@@ -197,6 +240,26 @@ public:
     void save()
     {
         wifiData->save();
+    }
+
+    String getNTPServer()
+    {
+        return ntpServer;
+    }
+
+    String getNTPIANA()
+    {
+        return ntpIANA;
+    }
+
+    int getNTPOffset()
+    {
+        return ntpOffset;
+    }
+
+    int getNTPDaylightOffset()
+    {
+        return ntpDaylightOffset;
     }
 };
 #endif

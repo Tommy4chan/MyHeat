@@ -5,11 +5,13 @@ const useSettingStore = create((set) => ({
   wifiSettings: {},
   scannedWifiNetworks: [],
   isScanningForWifiNetworks: false,
+  telegramBotSettings: {},
 
-  setWifiCredentials: (ssid, password) => {
+  setWifiSettings: (ssid, password, mDNS) => {
     const payload = {
       ssid, 
       password,
+      mDNS,
     };
     useWebSocketStore.getState().sendMessage("setWifiSettings", payload);
   },
@@ -30,6 +32,26 @@ const useSettingStore = create((set) => ({
   processWifiScanData: (payload) => {
     set({ isScanningForWifiNetworks: false, scannedWifiNetworks: payload });
   },
+
+  setTelegramBotSettings: (token, registerPhrase, isActive) => {
+    isActive = isActive === "true" ? true : false;
+
+    const payload = {
+      token,
+      registerPhrase,
+      isActive
+    };
+
+    useWebSocketStore.getState().sendMessage("setTelegramBotSettings", payload);
+  },
+
+  getTelegramBotSettings: () => {
+    useWebSocketStore.getState().sendMessage("getTelegramBotSettings");
+  },
+
+  processGetTelegramBotSettings: (payload) => {
+    set({ telegramBotSettings: payload });
+  },
 }));
 
 useWebSocketStore.subscribe(
@@ -40,6 +62,11 @@ useWebSocketStore.subscribe(
 useWebSocketStore.subscribe(
   (state) => state.messages["wifiScanData"],
   (payload) => useSettingStore.getState().processWifiScanData(payload),
+);
+
+useWebSocketStore.subscribe(
+  (state) => state.messages["getTelegramBotSettingsResponse"],
+  (payload) => useSettingStore.getState().processGetTelegramBotSettings(payload),
 );
 
 export default useSettingStore;

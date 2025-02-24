@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Input from "../../../components/ui/Input";
 import DarkWrapperBlock from "../../../components/layout/DarkWrapperBlock";
 import SaveButton from "../../../components/ui/SaveButton";
@@ -6,11 +6,24 @@ import SettingsForm from "../../../components/layout/SettingsForm";
 import FormField from "../../../components/ui/FormField";
 import SelectToggle from "../../../components/ui/SelectToggle";
 import WrapperBlock from "../../../components/layout/WrapperBlock";
+import useSettingStore from "../../../store/settingStore";
 
 const Bot = () => {
   const [botToken, setBotToken] = useState('');
   const [botPassword, setBotPassword] = useState('');
   const [isBotEnabled, setIsBotEnabled] = useState(false);
+
+  const { setTelegramBotSettings, getTelegramBotSettings, telegramBotSettings } = useSettingStore();
+
+  useEffect(() => {
+    getTelegramBotSettings();
+  }, []);
+
+  useEffect(() => {
+    setBotToken(telegramBotSettings.token);
+    setBotPassword(telegramBotSettings.registerPhrase);
+    setIsBotEnabled(telegramBotSettings.isActive);
+  }, [telegramBotSettings]);
 
   return (
     <SettingsForm title='Телеграм бот'>
@@ -31,7 +44,7 @@ const Bot = () => {
           </FormField>
         </DarkWrapperBlock>
       </WrapperBlock>
-      <SaveButton />
+      <SaveButton onClick={() => setTelegramBotSettings(botToken, botPassword, isBotEnabled)} />
     </SettingsForm>
   )
 }

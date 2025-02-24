@@ -129,6 +129,22 @@ namespace MyHeatWeb
                 getUsedPinsData(responsePayload);
                 break;
 
+            case su::SH("getNTPSettings"):
+                getNTPSettings(responsePayload);
+                break;
+
+            case su::SH("setNTPSettings"):
+                setNTPSettings(payload);
+                break;
+
+            case su::SH("getTelegramBotSettings"):
+                getTelegramBotSettings(responsePayload);
+                break;
+
+            case su::SH("setTelegramBotSettings"):
+                setTelegramBotSettings(payload);
+                break;
+
             default:
                 response["error"] = "Unknown message type";
                 break;
@@ -191,7 +207,7 @@ namespace MyHeatWeb
             JsonDocument response;
             response["payload"] = getNetworksData();
 
-            if(response["payload"].size() == 0)
+            if (response["payload"].size() == 0)
             {
                 JsonObject status = response["status"].to<JsonObject>();
                 setWarningMessage(status, F("Мережі не знайдено"));

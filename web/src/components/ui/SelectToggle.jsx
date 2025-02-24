@@ -3,8 +3,8 @@ import BasicSelect from './Select';
 
 const SelectToggle = ({ value, onChange, className, color = 'gray' }) => {
   const options = [
-    { value: 'false', text: 'Ні' },
-    { value: 'true', text: 'Так' }
+    { value: false, text: 'Ні' },
+    { value: true, text: 'Так' }
   ];
 
   return (

@@ -1,20 +1,21 @@
-import { useState } from "react"
-import DarkWrapperBlock from "../../../components/layout/DarkWrapperBlock"
-import Input from "../../../components/ui/Input"
-import Select from "../../../components/ui/Select"
-import SettingsForm from "../../../components/layout/SettingsForm"
-import SaveButton from "../../../components/ui/SaveButton"
-import FormField from "../../../components/ui/FormField"
-import WrapperBlock from "../../../components/layout/WrapperBlock"
+import DarkWrapperBlock from "@/components/layout/DarkWrapperBlock"
+import Input from "@/components/ui/Input"
+import Select from "@/components/ui/Select"
+import SettingsForm from "@/components/layout/SettingsForm"
+import SaveButton from "@/components/ui/SaveButton"
+import FormField from "@/components/ui/FormField"
+import WrapperBlock from "@/components/layout/WrapperBlock"
+import { useNTPSettings } from "../hooks/useNTPSettings"
 
 const NTP = () => {
-  const [ntpServer, setNtpServer] = useState('');
-  const [timeZone, setTimeZone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
-
-  const timeZoneOptions =  Intl.supportedValuesOf('timeZone').map(tz => ({
-      value: tz,
-      text: tz.replace('_', ' ')
-    }));
+  const {
+    ntpServer,
+    setNtpServer,
+    timeZone,
+    timeZoneOptions,
+    handleChangeTimeZone,
+    handleSaveNTPSettings
+  } = useNTPSettings()
 
   return (
     <SettingsForm title='NTP'>
@@ -27,14 +28,14 @@ const NTP = () => {
             <Select
               options={timeZoneOptions}
               value={timeZone}
-              onChange={(e) => setTimeZone(e.target.value)}
+              onChange={handleChangeTimeZone}
               className={'w-full'}
             />
           </FormField>
         </DarkWrapperBlock>
       </WrapperBlock>
 
-      <SaveButton />
+      <SaveButton onClick={handleSaveNTPSettings} />
     </SettingsForm>
   )
 }

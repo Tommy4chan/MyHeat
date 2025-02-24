@@ -11,6 +11,8 @@ namespace MyHeatWeb
     void getUsedPinsData(JsonObject response);
     void setWifiSettings(JsonObject payload);
     void getWifiSettings(JsonObject response);
+    void setNTPSettings(JsonObject payload);
+    void getNTPSettings(JsonObject response);
     void setTelegramBotSettings(JsonObject payload);
     void getTelegramBotSettings(JsonObject response);
     void startWifiScan();

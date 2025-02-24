@@ -13,7 +13,7 @@ const Wifi = () => {
   const [ssid, setSsid] = useState('');
   const [password, setPassword] = useState('');
 
-  const { setWifiCredentials, getWifiSettings, startWifiScan, wifiSettings, scannedWifiNetworks, isScanningForWifiNetworks } = useSettingStore();
+  const { setWifiSettings, getWifiSettings, startWifiScan, wifiSettings, scannedWifiNetworks, isScanningForWifiNetworks } = useSettingStore();
 
   useEffect(() => {
     getWifiSettings();
@@ -22,9 +22,10 @@ const Wifi = () => {
   useEffect(() => {
     setSsid(wifiSettings.ssid);
     setPassword(wifiSettings.password);
+    setMDNS(wifiSettings.mDNS);
   }, [wifiSettings]);
 
-  const [mdns, setMdns] = useState('');
+  const [mDNS, setMDNS] = useState('');
 
   const [networks, setNetworks] = useState([]);
 
@@ -75,13 +76,13 @@ const Wifi = () => {
         <DarkWrapperBlock className='md:!flex-col'>
           <FormField label="Адреса контролера">
             <div className='relative flex items-center rounded focus:outline-none focus:ring transition duration-300 bg-gray-700 hover:bg-gray-800 focus:ring-gray-800'>
-              <Input className='w-full !bg-transparent focus:!ring-0 !pe-0' value={mdns} onChange={(e) => setMdns(e.target.value)} />
+              <Input className='w-full !bg-transparent focus:!ring-0 !pe-0' value={mDNS} onChange={(e) => setMDNS(e.target.value)} />
               <span className='pe-2 flex items-center'>.local</span>
             </div>
           </FormField>
         </DarkWrapperBlock>
       </WrapperBlock>
-      <SaveButton onClick={() => setWifiCredentials(ssid, password)} />
+      <SaveButton onClick={() => setWifiSettings(ssid, password, mDNS)} />
     </SettingsForm>
   )
 }

@@ -57,6 +57,7 @@ namespace MyHeatTelebot
     String getToken();
     String getRegisterPhrase();
     bool getIsActive();
+    void setSettings(String token, String registerPhrase, bool isActive);
     
     void save();
 }
