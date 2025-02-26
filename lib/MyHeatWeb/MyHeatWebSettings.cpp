@@ -49,7 +49,7 @@ namespace MyHeatWeb
         response[F("ntpServer")] = myHeatWifi.getNTPServer();
         response[F("ntpIANA")] = myHeatWifi.getNTPIANA();
         response[F("ntpOffset")] = myHeatWifi.getNTPOffset();
-        response[F("ntpDaylightOffset")] = myHeatWifi.getNTPDaylightOffset();
+        response[F("ntpDaylightOffset")] = myHeatWifi.getNTPDaylightOffset() == 3600;
     }
 
     void setTelegramBotSettings(JsonObject payload)

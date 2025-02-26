@@ -6,6 +6,7 @@ const useSettingStore = create((set) => ({
   scannedWifiNetworks: [],
   isScanningForWifiNetworks: false,
   telegramBotSettings: {},
+  ntpSettings: {},
 
   setWifiSettings: (ssid, password, mDNS) => {
     const payload = {
@@ -52,6 +53,25 @@ const useSettingStore = create((set) => ({
   processGetTelegramBotSettings: (payload) => {
     set({ telegramBotSettings: payload });
   },
+
+  setNtpSettings: (ntpServer, ntpIANA, ntpOffset, ntpDaylightOffset) => {
+    const payload = {
+      ntpServer,
+      ntpIANA,
+      ntpOffset,
+      ntpDaylightOffset,
+    };
+
+    useWebSocketStore.getState().sendMessage("setNTPSettings", payload);
+  },
+
+  getNtpSettings: () => {
+    useWebSocketStore.getState().sendMessage("getNTPSettings");
+  },
+
+  processGetNtpSettings: (payload) => {
+    set({ ntpSettings: payload });
+  },
 }));
 
 useWebSocketStore.subscribe(
@@ -67,6 +87,11 @@ useWebSocketStore.subscribe(
 useWebSocketStore.subscribe(
   (state) => state.messages["getTelegramBotSettingsResponse"],
   (payload) => useSettingStore.getState().processGetTelegramBotSettings(payload),
+);
+
+useWebSocketStore.subscribe(
+  (state) => state.messages["getNTPSettingsResponse"],
+  (payload) => useSettingStore.getState().processGetNtpSettings(payload),
 );
 
 export default useSettingStore;

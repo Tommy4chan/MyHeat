@@ -1,14 +1,26 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DateTime } from "luxon";
+import useSettingStore from "@/store/settingStore";
 
 export const useNTPSettings = () => {
   const [ntpServer, setNtpServer] = useState('');
   const [timeZone, setTimeZone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
 
+  const { setNtpSettings, getNtpSettings, ntpSettings } = useSettingStore();
+
   const timeZoneOptions = Intl.supportedValuesOf('timeZone').map(tz => ({
     value: tz,
     text: tz.replace('_', ' ')
   }));
+
+  useEffect(() => {
+    getNtpSettings();
+  }, []);
+
+  useEffect(() => {
+    setNtpServer(ntpSettings.ntpServer);
+    setTimeZone(ntpSettings.ntpIANA);
+  }, [ntpSettings]);
 
   const handleChangeTimeZone = (e) => {
     const newTimeZone = e.target.value;
@@ -33,7 +45,7 @@ export const useNTPSettings = () => {
 
     result.dst = janOffset !== julOffset;
 
-    console.log(result);
+    setNtpSettings(ntpServer, newTimeZone, result.offset, result.dst);
   };
 
   const handleSaveNTPSettings = () => {

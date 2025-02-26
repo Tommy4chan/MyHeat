@@ -235,6 +235,7 @@ namespace MyHeatWeb
     {
         if (websocket.count() > 0 && millis() - lastSendTick > 1000)
         {
+            Serial.println(WiFi.status());
             sendRepeatableDataToClients();
 
             websocket.cleanupClients();

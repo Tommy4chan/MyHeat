@@ -431,6 +431,7 @@ namespace MyHeatTelebot
     void setSettings(String token, String registerPhrase, bool isActive)
     {
         botSave.token = token;
+        bot.setToken(token);
         botSave.registerPhrase = registerPhrase;
         botSave.isActive = isActive;
         save();
