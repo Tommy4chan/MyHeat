@@ -7,10 +7,14 @@ const useSettingStore = create((set) => ({
   isScanningForWifiNetworks: false,
   telegramBotSettings: {},
   ntpSettings: {},
+  hardwareIOSettings: {
+    oledPins: [0, 0],
+    encoderPins: [0, 0, 0],
+  },
 
   setWifiSettings: (ssid, password, mDNS) => {
     const payload = {
-      ssid, 
+      ssid,
       password,
       mDNS,
     };
@@ -35,12 +39,12 @@ const useSettingStore = create((set) => ({
   },
 
   setTelegramBotSettings: (token, registerPhrase, isActive) => {
-    isActive = isActive === "true" ? true : false;
+    isActive = isActive === 'true' || isActive === 'false' ? isActive === 'true' : isActive;
 
     const payload = {
       token,
       registerPhrase,
-      isActive
+      isActive,
     };
 
     useWebSocketStore.getState().sendMessage("setTelegramBotSettings", payload);
@@ -72,26 +76,74 @@ const useSettingStore = create((set) => ({
   processGetNtpSettings: (payload) => {
     set({ ntpSettings: payload });
   },
+
+  getHardwareIOSettings: () => {
+    useWebSocketStore.getState().sendMessage("getHardwareIOSettings");
+  },
+
+  processGetHardwareIOSettings: (payload) => {
+    payload["screenPowerSaveInterval"] = payload["screenPowerSaveInterval"];
+    payload["oledPins"] = [payload["oledSDA"], payload["oledSCL"]];
+    payload["encoderPins"] = [
+      payload["encA"],
+      payload["encB"],
+      payload["encBtn"],
+    ];
+    payload["oledAddress"] = "0x" + payload["oledAddress"].toString(16);
+
+    set({ hardwareIOSettings: payload });
+  },
+
+  setHardwareIOSettings: (
+    isActive,
+    oledAddress,
+    screenPowerSaveInterval,
+    oledPins,
+    encInvert,
+    encoderPins
+  ) => {
+    isActive = isActive === 'true' || isActive === 'false' ? isActive === 'true' : isActive;
+    encInvert = encInvert === 'true' || encInvert === 'false' ? encInvert === 'true' : encInvert;
+
+    const payload = {
+      isActive,
+      oledAddress: parseInt(oledAddress, 16),
+      screenPowerSaveInterval,
+      oledSDA: oledPins[0],
+      oledSCL: oledPins[1],
+      encA: encoderPins[0],
+      encB: encoderPins[1],
+      encBtn: encoderPins[2],
+      encInvert,
+    };
+
+    useWebSocketStore.getState().sendMessage("setHardwareIOSettings", payload);
+  },
 }));
 
 useWebSocketStore.subscribe(
   (state) => state.messages["getWifiSettingsResponse"],
-  (payload) => useSettingStore.getState().processGetWifiSettings(payload),
+  (payload) => useSettingStore.getState().processGetWifiSettings(payload)
 );
 
 useWebSocketStore.subscribe(
   (state) => state.messages["wifiScanData"],
-  (payload) => useSettingStore.getState().processWifiScanData(payload),
+  (payload) => useSettingStore.getState().processWifiScanData(payload)
 );
 
 useWebSocketStore.subscribe(
   (state) => state.messages["getTelegramBotSettingsResponse"],
-  (payload) => useSettingStore.getState().processGetTelegramBotSettings(payload),
+  (payload) => useSettingStore.getState().processGetTelegramBotSettings(payload)
 );
 
 useWebSocketStore.subscribe(
   (state) => state.messages["getNTPSettingsResponse"],
-  (payload) => useSettingStore.getState().processGetNtpSettings(payload),
+  (payload) => useSettingStore.getState().processGetNtpSettings(payload)
+);
+
+useWebSocketStore.subscribe(
+  (state) => state.messages["getHardwareIOSettingsResponse"],
+  (payload) => useSettingStore.getState().processGetHardwareIOSettings(payload)
 );
 
 export default useSettingStore;

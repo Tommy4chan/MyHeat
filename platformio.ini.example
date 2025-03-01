@@ -38,6 +38,6 @@ build_flags =
 	-D ENC_B=
 	-D ENC_BTN=
 	-D TN_INDEX=255
-	-D T_UNKNOWN=254
+	-D TEMP_UNKNOWN=254
 	-D RELAY_UNKNOWN=255
 	-std=gnu++2a

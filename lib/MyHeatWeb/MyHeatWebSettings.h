@@ -5,6 +5,7 @@
 #include "MyHeatDevice.h"
 #include "MyHeatWifi.h"
 #include "MyHeatTelebot.h"
+#include "MyHeatHardwareIO.h"
 
 namespace MyHeatWeb
 {
@@ -15,6 +16,8 @@ namespace MyHeatWeb
     void getNTPSettings(JsonObject response);
     void setTelegramBotSettings(JsonObject payload);
     void getTelegramBotSettings(JsonObject response);
+    void setHardwareIOSettings(JsonObject payload);
+    void getHardwareIOSettings(JsonObject response);
     void startWifiScan();
     bool isScanCompleted();
     JsonDocument getNetworksData();

@@ -1,14 +1,13 @@
-import { useState } from "react"
-import Input from "../../../components/ui/Input";
-import DarkWrapperBlock from "../../../components/layout/DarkWrapperBlock";
-import Select from "../../../components/ui/Select";
-import usePinStore from "../../../store/pinStore";
-import { handlePinChange } from "../../../utils/pinHandler";
-import SettingsForm from "../../../components/layout/SettingsForm";
-import SaveButton from "../../../components/ui/SaveButton";
-import SelectToggle from "../../../components/ui/SelectToggle";
-import FormField from "../../../components/ui/FormField";
-import WrapperBlock from "../../../components/layout/WrapperBlock";
+import Input from "@/components/ui/Input";
+import DarkWrapperBlock from "@/components/layout/DarkWrapperBlock";
+import Select from "@/components/ui/Select";
+import usePinStore from "@/store/pinStore";
+import SettingsForm from "@/components/layout/SettingsForm";
+import SaveButton from "@/components/ui/SaveButton";
+import SelectToggle from "@/components/ui/SelectToggle";
+import FormField from "@/components/ui/FormField";
+import WrapperBlock from "@/components/layout/WrapperBlock";
+import { useHardwareSettings } from "../hooks/useHardwareSettings";
 
 const Hardware = () => {
   const {
@@ -16,27 +15,29 @@ const Hardware = () => {
     getAvailableOutputPins,
   } = usePinStore();
 
-  const [displayAddress, setDisplayAddress] = useState('');
-  const [i2c, setI2c] = useState([12, 13]);
-  const [displaySleep, setDisplaySleep] = useState(0);
-
-  const [encoderInvert, setEncoderInvert] = useState(false);
-  const [encoder, setEncoder] = useState([14, 15, 22]);
-
-  const handleI2cPinChange = (e, pinIndex) => {
-    handlePinChange(e, setI2c, i2c, pinIndex);
-  }
-
-  const handleEncoderPinChange = (e, pinIndex) => {
-    handlePinChange(e, setEncoder, encoder, pinIndex);
-  }
+  const {
+    isActive,
+    setIsActive,
+    oledAddress,
+    setOledAddress,
+    screenPowerSaveInterval,
+    setScreenPowerSaveInterval,
+    encInvert,
+    setEncInvert,
+    encoderPins,
+    setEncoderPins,
+    oledPins,
+    setOledPins,
+    handleHardwarePinChange,
+    handleSaveHardwareIOSettings,
+  } = useHardwareSettings();
 
   return (
     <SettingsForm title='Фізичний Ввід\Вивід'>
       <FormField label='Увімкнений'>
         <SelectToggle
-          value={true}
-          onChange={(e) => { }}
+          value={isActive}
+          onChange={(e) => setIsActive(e.target.value)}
           className='w-full'
           color="light-gray"
         />
@@ -46,31 +47,30 @@ const Hardware = () => {
         <DarkWrapperBlock className='md:!flex-col'>
           <div className="flex w-full gap-2">
             <FormField label='Адреса екрану'>
-              <Input className='w-full' value={displayAddress} onChange={(e) => setDisplayAddress(e.target.value)} />
+              <Input className='w-full' value={oledAddress} onChange={(e) => setOledAddress(e.target.value)} />
             </FormField>
             <FormField label='Сон (секунди)'>
-              <Input className='w-full' value={displaySleep} onChange={(e) => setDisplaySleep(e.target.value)} isNumber={true} />
+              <Input className='w-full' value={screenPowerSaveInterval} onChange={(e) => setScreenPowerSaveInterval(e.target.value)} isNumber={true} />
             </FormField>
           </div>
           <div className="flex w-full gap-2">
             <FormField label='SDA'>
               <Select
-                value={i2c[0]}
-                options={getAvailableOutputPins(i2c[0])}
-                onChange={(e) => handleI2cPinChange(e, 0)}
+                value={oledPins[0]}
+                options={getAvailableOutputPins(oledPins[0])}
+                onChange={handleHardwarePinChange(0, oledPins, setOledPins)}
                 className={'w-full'}
               />
             </FormField>
             <FormField label='SCL'>
               <Select
-                value={i2c[1]}
-                options={getAvailableOutputPins(i2c[1])}
-                onChange={(e) => handleI2cPinChange(e, 1)}
+                value={oledPins[1]}
+                options={getAvailableOutputPins(oledPins[1])}
+                onChange={handleHardwarePinChange(1, oledPins, setOledPins)}
                 className={'w-full'}
               />
             </FormField>
           </div>
-
         </DarkWrapperBlock>
       </WrapperBlock>
 
@@ -79,33 +79,33 @@ const Hardware = () => {
         <DarkWrapperBlock className='md:!flex-col'>
           <FormField label='Інвертувати'>
             <SelectToggle
-              value={encoderInvert}
-              onChange={(e) => setEncoderInvert(e.target.value)}
+              value={encInvert}
+              onChange={(e) => setEncInvert(e.target.value)}
               className='w-full'
             />
           </FormField>
           <div className="flex w-full gap-2">
             <FormField label='CLK'>
               <Select
-                value={encoder[0]}
-                onChange={(e) => handleEncoderPinChange(e, 0)}
-                options={getAvailableInputPins(encoder[0])}
+                value={encoderPins[0]}
+                onChange={handleHardwarePinChange(0, encoderPins, setEncoderPins)}
+                options={getAvailableInputPins(encoderPins[0])}
                 className={'w-full'}
               />
             </FormField>
             <FormField label='DT'>
               <Select
-                value={encoder[1]}
-                onChange={(e) => handleEncoderPinChange(e, 1)}
-                options={getAvailableInputPins(encoder[1])}
+                value={encoderPins[1]}
+                onChange={handleHardwarePinChange(1, encoderPins, setEncoderPins)}
+                options={getAvailableInputPins(encoderPins[1])}
                 className={'w-full'}
               />
             </FormField>
             <FormField label='SW'>
               <Select
-                value={encoder[2]}
-                onChange={(e) => handleEncoderPinChange(e, 2)}
-                options={getAvailableInputPins(encoder[2])}
+                value={encoderPins[2]}
+                onChange={handleHardwarePinChange(2, encoderPins, setEncoderPins)}
+                options={getAvailableInputPins(encoderPins[2])}
                 className={'w-full'}
               />
             </FormField>
@@ -114,7 +114,7 @@ const Hardware = () => {
         </DarkWrapperBlock>
       </WrapperBlock>
 
-      <SaveButton />
+      <SaveButton onClick={handleSaveHardwareIOSettings} />
     </SettingsForm>
   )
 }

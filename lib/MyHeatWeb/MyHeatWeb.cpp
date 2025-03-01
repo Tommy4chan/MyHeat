@@ -5,6 +5,7 @@ namespace MyHeatWeb
     void begin()
     {
         server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
+        websocket.enable(true);
         setupWebsocket();
         server.begin();
     }
@@ -145,8 +146,16 @@ namespace MyHeatWeb
                 setTelegramBotSettings(payload);
                 break;
 
+            case su::SH("getHardwareIOSettings"):
+                getHardwareIOSettings(responsePayload);
+                break;
+
+            case su::SH("setHardwareIOSettings"):
+                setHardwareIOSettings(payload);
+                break;
+
             default:
-                response["error"] = "Unknown message type";
+                setErrorMessage(responseStatus, "Невідовий тип повідомлення");
                 break;
             }
 
@@ -157,6 +166,7 @@ namespace MyHeatWeb
 
             if (messageType.startsWith("set") || messageType.startsWith("del"))
             {
+                MyHeatDevice::getInstance().manualTick();
                 sendRepeatableDataToClients();
             }
         }
@@ -235,7 +245,6 @@ namespace MyHeatWeb
     {
         if (websocket.count() > 0 && millis() - lastSendTick > 1000)
         {
-            Serial.println(WiFi.status());
             sendRepeatableDataToClients();
 
             websocket.cleanupClients();

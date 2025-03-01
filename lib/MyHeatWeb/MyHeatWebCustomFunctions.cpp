@@ -27,12 +27,12 @@ namespace MyHeatWeb
 
         for (int i = 0; i < functionCount; i++)
         {
-            if (payload["functions"][i]["temperatureIndex"][0] >= temperatureCount && payload["functions"][i]["temperatureIndex"][0] < T_UNKNOWN) 
+            if (payload["functions"][i]["temperatureIndex"][0] >= temperatureCount && payload["functions"][i]["temperatureIndex"][0] < TEMP_UNKNOWN) 
             {
                 setErrorMessage(status, "Неправильний індекс температурного датчика в Параметрі 1 в функції " + String(i));
                 continue;
             }
-            else if (payload["functions"][i]["temperatureIndex"][1] >= temperatureCount && payload["functions"][i]["temperatureIndex"][1] < T_UNKNOWN)
+            else if (payload["functions"][i]["temperatureIndex"][1] >= temperatureCount && payload["functions"][i]["temperatureIndex"][1] < TEMP_UNKNOWN)
             {
                 setErrorMessage(status, "Неправильний індекс температурного датчика в Параметрі 2 в функції " + String(i));
                 continue;

@@ -32,9 +32,9 @@ public:
     void begin();
     void validateCustomFunctions();
     void initIsSetRelayActive();
-    void updateFunctionsSettings(JsonObject payload);
     void checkCustomFunctions();
     void updateRelays();
+    void manualTick();
     void tick();
 };
 

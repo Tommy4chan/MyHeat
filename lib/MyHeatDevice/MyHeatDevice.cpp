@@ -37,13 +37,13 @@ void MyHeatDevice::validateCustomFunctions()
 
         if (customFunctions[i].getTemperatureIndex(0) >= getTemperatureCount() && customFunctions[i].getTemperatureIndex(0) != TN_INDEX)
         {
-            customFunctions[i].setTemperatureIndex(0, T_UNKNOWN);
+            customFunctions[i].setTemperatureIndex(0, TEMP_UNKNOWN);
             isInvalid = true;
         }
 
         if (customFunctions[i].getTemperatureIndex(1) >= getTemperatureCount() && customFunctions[i].getTemperatureIndex(1) != TN_INDEX)
         {
-            customFunctions[i].setTemperatureIndex(1, T_UNKNOWN);
+            customFunctions[i].setTemperatureIndex(1, TEMP_UNKNOWN);
             isInvalid = true;
         }
 
@@ -136,6 +136,15 @@ void MyHeatDevice::updateRelays()
 
         isSetRelayActive[i] = false;
     }
+}
+
+void MyHeatDevice::manualTick()
+{
+    tickTimerMain = millis();
+    tickTimerSecondary = millis();
+    checkCustomFunctions();
+    updateTemperatures();
+    updateRelays();
 }
 
 void MyHeatDevice::tick()

@@ -58,7 +58,7 @@ public:
 
     bool isValid()
     {
-        return this->temperatureIndex[0] != T_UNKNOWN && this->temperatureIndex[1] != T_UNKNOWN && this->relayIndex != RELAY_UNKNOWN;
+        return this->temperatureIndex[0] != TEMP_UNKNOWN && this->temperatureIndex[1] != TEMP_UNKNOWN && this->relayIndex != RELAY_UNKNOWN;
     }
 
     void setIsActive(bool isActive)

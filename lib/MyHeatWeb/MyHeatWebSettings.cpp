@@ -5,13 +5,14 @@ namespace MyHeatWeb
     void getUsedPinsData(JsonObject response)
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
+        MyHeatHardwareIO &myHeatHardwareIO = MyHeatHardwareIO::getInstance();
 
         response[F("usedPins")][0] = myHeatDevice.getTemperaturePin();
-        response[F("usedPins")][1] = ENC_A;
-        response[F("usedPins")][2] = ENC_B;
-        response[F("usedPins")][3] = ENC_BTN;
-        response[F("usedPins")][4] = OLED_SCL;
-        response[F("usedPins")][5] = OLED_SDA;
+        response[F("usedPins")][1] = myHeatHardwareIO.getEncA();
+        response[F("usedPins")][2] = myHeatHardwareIO.getEncB();
+        response[F("usedPins")][3] = myHeatHardwareIO.getEncBtn();
+        response[F("usedPins")][4] = myHeatHardwareIO.getOledSCL();
+        response[F("usedPins")][5] = myHeatHardwareIO.getOledSDA();
 
         for (int i = 0; i < myHeatDevice.getRelayCount(); i++)
         {
@@ -22,7 +23,7 @@ namespace MyHeatWeb
     void setWifiSettings(JsonObject payload)
     {
         MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
-        
+
         myHeatWifi.setWifiSettings(payload[F("ssid")], payload[F("password")], payload[F("mDNS")]);
     }
 
@@ -64,6 +65,30 @@ namespace MyHeatWeb
         response[F("token")] = MyHeatTelebot::getToken();
         response[F("registerPhrase")] = MyHeatTelebot::getRegisterPhrase();
         response[F("isActive")] = MyHeatTelebot::getIsActive();
+    }
+
+    void setHardwareIOSettings(JsonObject payload)
+    {
+        MyHeatHardwareIO &myHeatHardwareIO = MyHeatHardwareIO::getInstance();
+
+        myHeatHardwareIO.setSettings(payload[F("oledAddress")], payload[F("oledSCL")], payload[F("oledSDA")], 
+            payload[F("screenPowerSaveInterval")], payload[F("encA")], payload[F("encB")], payload[F("encBtn")], 
+            payload[F("encInvert")], payload[F("isActive")]);
+    }
+
+    void getHardwareIOSettings(JsonObject response)
+    {
+        MyHeatHardwareIO &myHeatHardwareIO = MyHeatHardwareIO::getInstance();
+
+        response[F("oledAddress")] = myHeatHardwareIO.getOledAddress();
+        response[F("oledSCL")] = myHeatHardwareIO.getOledSCL();
+        response[F("oledSDA")] = myHeatHardwareIO.getOledSDA();
+        response[F("screenPowerSaveInterval")] = myHeatHardwareIO.getScreenPowerSaveInterval() / 1000;
+        response[F("encA")] = myHeatHardwareIO.getEncA();
+        response[F("encB")] = myHeatHardwareIO.getEncB();
+        response[F("encBtn")] = myHeatHardwareIO.getEncBtn();
+        response[F("encInvert")] = myHeatHardwareIO.getEncInvert();
+        response[F("isActive")] = myHeatHardwareIO.getIsActive();
     }
 
     void startWifiScan()

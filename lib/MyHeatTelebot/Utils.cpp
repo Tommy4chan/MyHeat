@@ -14,7 +14,7 @@ namespace MyHeatTelebot
             }
             else
             {
-                if (customFunction.getTemperatureIndex(i) == T_UNKNOWN)
+                if (customFunction.getTemperatureIndex(i) == TEMP_UNKNOWN)
                 {
                     result[i] += "Н/Д";
                 }
