@@ -7,7 +7,7 @@ const WebSocketProvider = ({ children }) => {
   const { onMessage, setSendMessage, setReadyState, setIsConnect, INACTIVITY_TIMEOUT, isConnect } = useWebSocketStore();
 
   const { sendJsonMessage, readyState } = useWebSocket(
-    "ws://192.168.1.228/ws",
+    "ws://esp32-typec.local/ws",
     // `ws://${location.host}/ws`,
     {
       retryOnError: true,

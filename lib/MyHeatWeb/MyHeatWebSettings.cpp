@@ -91,6 +91,16 @@ namespace MyHeatWeb
         response[F("isActive")] = myHeatHardwareIO.getIsActive();
     }
 
+    void getAllDeviceSettings(JsonObject response)
+    {
+        response[F("MyHeatTemperatures")] = MyHeatUtils::getFileContent("/temperatureSensors.json");
+        response[F("MyHeatCustomFunctions")] = MyHeatUtils::getFileContent("/customFunctions.json");
+        response[F("MyHeatRelays")] = MyHeatUtils::getFileContent("/relays.json");
+        response[F("MyHeatHardwareIO")] = MyHeatUtils::getFileContent("/hardwareIO.json");
+        response[F("MyHeatWifi")] = MyHeatUtils::getFileContent("/wifi.json");
+        response[F("MyHeatTelebot")] = MyHeatUtils::getFileContent("/telebot.json");
+    }
+
     void startWifiScan()
     {
         MyHeatWifi::getInstance().startWifiScan();

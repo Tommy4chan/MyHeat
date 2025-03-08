@@ -23,6 +23,8 @@ namespace MyHeatWeb
             return;
         }
 
+        setSuccessMessage(status, "Реле " + String(payload["relayIndex"]) + " змінено");
+
         myHeatDevice.setRelayMode(payload["relayIndex"], payload["relayMode"]);
     }
 

@@ -7,24 +7,28 @@ board_build.filesystem = littlefs
 board_build.partitions = esp32_custom_partition_4mb.csv
 lib_deps = 
 	gyverlibs/FastBot2@^1.0.1
-    gyverlibs/EncButton@^3.6.3
-    paulstoffregen/OneWire@^2.3.8
-    milesburton/DallasTemperature@^3.11.0
-    olikraus/U8g2@^2.35.30
-    bblanchon/ArduinoJson@^7.2.0
-    esphome/ESPAsyncWebServer-esphome@^3.3.0
+	gyverlibs/EncButton@^3.6.3
+	paulstoffregen/OneWire@^2.3.8
+	milesburton/DallasTemperature@^3.11.0
+	olikraus/U8g2@^2.35.30
+	bblanchon/ArduinoJson@^7.2.0
+	ESP32Async/AsyncTCP
+	ESP32Async/ESPAsyncWebServer
 build_unflags = 
     -std=gnu++11
 build_flags = 
+	-D SOFTAP_SSID="ESP32-MyHeat"
+	-D SOFTAP_PASSWORD="12345678"
 	-D WIFI_SSID=""
 	-D WIFI_PASSWORD=""
 	-D WIFI_RECONNECT_INTERVAL=30000
 	-D MDNS_NAME="esp32-myheat"
-	-D RELAY_COUNT=4
+	-D RELAY_COUNT=1
 	-D RELAY_PINS={32,}
 	-D RELAY_TRIGGER={0,}
 	-D TEMPERATURE_COUNT=6
 	-D TEMPERATURE_PIN=
+	-D TELEGRAM_BOT_ACTIVE=true
 	-D TELEGRAM_BOT_TOKEN=""
 	-D REGISTER_PHRASE=""
 	-D NTP_SERVER="pool.ntp.org"
@@ -32,8 +36,10 @@ build_flags =
 	-D NTP_OFFSET=7200
 	-D NTP_DAYLIGHT_OFFSET=3600
 	-D NTP_SYNC_INTERVAL=3600000
+	-D OLED_ADDRESS=0x3C
 	-D OLED_SDA=
 	-D OLED_SCL=
+	-D SCREEN_POWER_SAVE_INTERVAL=30000
 	-D ENC_A=
 	-D ENC_B=
 	-D ENC_BTN=

@@ -36,19 +36,19 @@ private:
 
     void deserialize(JsonDocument &doc)
     {
-        wifi[0] = doc["wifi_ssid"].as<String>();
-        wifi[1] = doc["wifi_password"].as<String>();
-        mDNS = doc["mDNS"].as<String>() == "null" ? STR(MDNS_ADDRESS) : doc["mDNS"].as<String>();
-        ntpServer = doc["ntp_server"].as<String>() == "null" ? STR(NTP_SERVER) : doc["ntp_server"].as<String>();
-        ntpIANA = doc["ntp_iana"].as<String>() == "null" ? STR(NTP_IANA) : doc["ntp_iana"].as<String>();
-        ntpOffset = doc["ntp_offset"] == 0 ? NTP_OFFSET : doc["ntp_offset"];
-        ntpDaylightOffset = doc["ntp_daylight_offset"] == 0 ? NTP_DAYLIGHT_OFFSET : doc["ntp_daylight_offset"];
+        wifi[0] = doc["wifi_ssid"] | STR(WIFI_SSID);
+        wifi[1] = doc["wifi_password"] | STR(WIFI_PASSWORD);
+        mDNS = doc["mDNS"] | STR(MDNS_ADDRESS);
+        ntpServer = doc["ntp_server"]| STR(NTP_SERVER);
+        ntpIANA = doc["ntp_iana"] | STR(NTP_IANA);
+        ntpOffset = doc["ntp_offset"] | NTP_OFFSET;
+        ntpDaylightOffset = doc["ntp_daylight_offset"] | NTP_DAYLIGHT_OFFSET;
     }
 
     void setAPMode()
     {
         WiFi.disconnect();
-        WiFi.softAP(F("MyHeat"), F("12345678"));
+        WiFi.softAP(STR(SOFTAP_SSID), STR(SOFTAP_PASSWORD));
         WiFi.mode(WIFI_MODE_AP);
     }
 

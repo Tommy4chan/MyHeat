@@ -48,6 +48,30 @@ namespace MyHeatUtils
         return text;
     }
 
+    JsonDocument getFileContent(String path)
+    {
+        JsonDocument doc;
+        File file = LittleFS.open(path, FILE_READ);
+
+        if (!file)
+        {
+            Serial.println("Failed to open file for reading");
+            return doc;
+        }
+
+        DeserializationError error = deserializeJson(doc, file);
+
+        if (error)
+        {
+            Serial.println("Failed to read file, using default configuration");
+            file.close();
+            return doc;
+        }
+
+        file.close();
+        return doc;
+    }
+
     bool isFloat(const String &str)
     {
         const char *cstr = str.c_str();

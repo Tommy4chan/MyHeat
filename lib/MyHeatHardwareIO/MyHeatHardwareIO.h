@@ -20,7 +20,8 @@
 class MyHeatHardwareIO : public MyHeatSaveInterface
 {
 private:
-    U8G2_SSD1306_128X64_NONAME_F_HW_I2C *u8g2;
+    //U8G2_SSD1306_128X64_NONAME_F_HW_I2C *u8g2 (for oled 0.96);
+    U8G2_SH1106_128X64_NONAME_F_HW_I2C *u8g2;
     EncButton *eb;
     byte menuIndex;
     uint32_t screenUpdateTimer;
@@ -64,10 +65,10 @@ private:
         encA = doc["enc_a"] | ENC_A;
         encB = doc["enc_b"] | ENC_B;
         encBtn = doc["enc_btn"] | ENC_BTN;
-        encInvert = doc["enc_invert"] | false;
-        isActive = doc["is_active"] | true;
-        oledAddress = doc["oled_address"] | 0x78;
-        screenPowerSaveInterval = doc["screen_power_save_interval"] | 60000;
+        encInvert = doc["enc_invert"] | INVERT_ENCODER;
+        isActive = doc["is_active"] | HARDWARE_IO_IS_ACTIVE;
+        oledAddress = doc["oled_address"] | OLED_ADDRESS;
+        screenPowerSaveInterval = doc["screen_power_save_interval"] | SCREEN_POWER_SAVE_INTERVAL;
     }
 
     void showTemperature()
@@ -161,11 +162,13 @@ private:
     {
         oledSCL = scl;
         oledSDA = sda;
+        oledAddress = address;
 
-        u8g2 = new U8G2_SSD1306_128X64_NONAME_F_HW_I2C(U8G2_R0, /* reset=*/U8X8_PIN_NONE, scl, sda);
+        //u8g2 = new U8G2_SSD1306_128X64_NONAME_F_HW_I2C(U8G2_R0, /* reset=*/U8X8_PIN_NONE, scl, sda)  (for oled 0.96);;
+        u8g2 = new U8G2_SH1106_128X64_NONAME_F_HW_I2C(U8G2_R0, /* reset=*/U8X8_PIN_NONE, scl, sda);
 
         u8g2->begin();
-        u8g2->setI2CAddress(oledAddress);
+        u8g2->setI2CAddress(address);
         u8g2->clearBuffer();
         u8g2->enableUTF8Print();
         u8g2->sendBuffer();

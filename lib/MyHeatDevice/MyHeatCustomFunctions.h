@@ -31,17 +31,17 @@ private:
 
     void deserialize(JsonDocument &doc)
     {
-        realocateMemory(doc[F("functionCount")]);
+        realocateMemory(doc[F("functionCount")] | FUNCTION_COUNT);
 
         for (int i = 0; i < functionCount; i++)
         {
-            customFunctions[i].setSign(doc[F("functions")][i][F("sign")]);
-            customFunctions[i].setIsEnabled(doc[F("functions")][i][F("isEnabled")]);
-            customFunctions[i].setTemperatureIndex(0, doc[F("functions")][i][F("temperatureIndex")][0]);
-            customFunctions[i].setTemperatureIndex(1, doc[F("functions")][i][F("temperatureIndex")][1]);
-            customFunctions[i].setDeltaValue(0, doc[F("functions")][i][F("deltaValue")][0]);
-            customFunctions[i].setDeltaValue(1, doc[F("functions")][i][F("deltaValue")][1]);
-            customFunctions[i].setRelayIndex(doc[F("functions")][i][F("relayIndex")]);
+            customFunctions[i].setSign(doc[F("functions")][i][F("sign")] | 0);
+            customFunctions[i].setIsEnabled(doc[F("functions")][i][F("isEnabled")] | false);
+            customFunctions[i].setTemperatureIndex(0, doc[F("functions")][i][F("temperatureIndex")][0] | 0);
+            customFunctions[i].setTemperatureIndex(1, doc[F("functions")][i][F("temperatureIndex")][1] | 0);
+            customFunctions[i].setDeltaValue(0, doc[F("functions")][i][F("deltaValue")][0] | 0);
+            customFunctions[i].setDeltaValue(1, doc[F("functions")][i][F("deltaValue")][1] | 0);
+            customFunctions[i].setRelayIndex(doc[F("functions")][i][F("relayIndex")] | 0);
         }
     }
 

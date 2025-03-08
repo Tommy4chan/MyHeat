@@ -154,6 +154,10 @@ namespace MyHeatWeb
                 setHardwareIOSettings(payload);
                 break;
 
+            case su::SH("getAllDeviceSettings"):
+                getAllDeviceSettings(responsePayload);
+                break;
+
             default:
                 setErrorMessage(responseStatus, "Невідовий тип повідомлення");
                 break;

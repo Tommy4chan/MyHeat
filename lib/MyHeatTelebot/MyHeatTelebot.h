@@ -30,9 +30,9 @@ namespace MyHeatTelebot
 
         void deserialize(JsonDocument &doc)
         {
-            isActive = doc[F("isActive")];
-            registerPhrase = doc[F("registerPhrase")].as<String>();
-            token = doc[F("telegramBotToken")].as<String>();
+            isActive = doc[F("isActive")] | TELEGRAM_BOT_ACTIVE;
+            registerPhrase = doc[F("registerPhrase")] | STR(REGISTER_PHRASE);
+            token = doc[F("telegramBotToken")] | STR(TELEGRAM_BOT_TOKEN);
         }
     };
 

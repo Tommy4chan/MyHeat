@@ -11,6 +11,7 @@ const useSettingStore = create((set) => ({
     oledPins: [0, 0],
     encoderPins: [0, 0, 0],
   },
+  allDeviceSettings: {},
 
   setWifiSettings: (ssid, password, mDNS) => {
     const payload = {
@@ -119,6 +120,15 @@ const useSettingStore = create((set) => ({
 
     useWebSocketStore.getState().sendMessage("setHardwareIOSettings", payload);
   },
+
+  getAllDeviceSettings: () => {
+    useWebSocketStore.getState().sendMessage("getAllDeviceSettings");
+  },
+
+  processGetAllDeviceSettings: (payload) => {
+    set({ allDeviceSettings: payload });
+  }
+
 }));
 
 useWebSocketStore.subscribe(
@@ -144,6 +154,11 @@ useWebSocketStore.subscribe(
 useWebSocketStore.subscribe(
   (state) => state.messages["getHardwareIOSettingsResponse"],
   (payload) => useSettingStore.getState().processGetHardwareIOSettings(payload)
+);
+
+useWebSocketStore.subscribe(
+  (state) => state.messages["getAllDeviceSettingsResponse"],
+  (payload) => useSettingStore.getState().processGetAllDeviceSettings(payload)
 );
 
 export default useSettingStore;

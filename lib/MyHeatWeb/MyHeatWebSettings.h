@@ -18,6 +18,8 @@ namespace MyHeatWeb
     void getTelegramBotSettings(JsonObject response);
     void setHardwareIOSettings(JsonObject payload);
     void getHardwareIOSettings(JsonObject response);
+    void getAllDeviceSettings(JsonObject response);
+    void setAllDeviceSettings(JsonObject payload);
     void startWifiScan();
     bool isScanCompleted();
     JsonDocument getNetworksData();

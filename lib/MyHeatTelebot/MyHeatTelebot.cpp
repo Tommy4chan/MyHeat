@@ -4,7 +4,7 @@ namespace MyHeatTelebot
 {
     void begin()
     {
-        botData = new MyHeatSave("/telegramBot.json", &botSave);
+        botData = new MyHeatSave("/telebot.json", &botSave);
         botData->read();
 
         bot.setToken(botSave.token);

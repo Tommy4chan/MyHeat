@@ -27,12 +27,12 @@ private:
 
     void deserialize(JsonDocument &doc)
     {
-        realocateMemory(doc[F("relayCount")]);
+        realocateMemory(doc[F("relayCount")] | RELAY_COUNT);
 
         for (int i = 0; i < relayCount; i++)
         {
-            relays[i].setMode(doc[F("relays")][i][F("mode")]);
-            relays[i].begin(doc[F("relays")][i][F("pin")], doc[F("relays")][i][F("isActiveOnHigh")]);
+            relays[i].setMode(doc[F("relays")][i][F("mode")] | 0);
+            relays[i].begin(doc[F("relays")][i][F("pin")] | 2, doc[F("relays")][i][F("isActiveOnHigh")] | false);
         }
     }
 
