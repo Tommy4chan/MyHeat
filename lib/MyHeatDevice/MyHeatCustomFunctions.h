@@ -151,6 +151,12 @@ public:
         return functionCount;
     }
 
+    void manualDeserialize(JsonDocument payload)
+    {
+        deserialize(payload);
+        save();
+    }
+
     void save()
     {
         customFunctionsData->save();

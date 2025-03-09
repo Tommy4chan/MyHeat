@@ -324,6 +324,17 @@ public:
         u8g2->setPowerSave(true);
         return false;
     }
+
+    void manualDeserialize(JsonDocument data)
+    {
+        deserialize(data);
+        hardwareIOData->save();
+
+        initOLED(oledSCL, oledSDA, oledAddress);
+        initEncoder(encA, encB, encBtn, encInvert);
+
+        reevaluateScreensCount();
+    }
 };
 
 #endif

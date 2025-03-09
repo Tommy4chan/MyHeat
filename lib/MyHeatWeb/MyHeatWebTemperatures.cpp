@@ -2,7 +2,7 @@
 
 namespace MyHeatWeb
 {
-    void getDiscoveredTemperatureSensors(JsonObject response)
+    void getDiscoveredTemperatureSensors(JsonObject response, JsonObject status)
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
@@ -11,6 +11,15 @@ namespace MyHeatWeb
         for (int i = 0; i < count; i++)
         {
             response["discoveredTemperatureSensors"][i] = MyHeatUtils::getAddressToString(addresses[i]);
+        }
+
+        if (count == 0)
+        {
+            setWarningMessage(status, F("Датчики температури не знайдені"));
+        }
+        else
+        {
+            setSuccessMessage(status, F("Датчики температури знайдені"));
         }
     }
 
@@ -27,11 +36,14 @@ namespace MyHeatWeb
         }
 
         MyHeatDevice::getInstance().setTemperatureSensorAddress(tempIndex, payload["sensorAddressIndex"]);
+        setSuccessMessage(status, F("Датчик температури збережений"));
     }
 
-    void deleteTemperatureSensor(JsonObject payload)
+    void deleteTemperatureSensor(JsonObject payload, JsonObject status)
     {
         MyHeatDevice::getInstance().deleteTemperatureSensorAddress(payload["tempIndex"]);
+
+        setSuccessMessage(status, F("Датчик температури видалений"));
     }
 
     void getTemperatureSensorsSettings(JsonObject response)
@@ -41,7 +53,7 @@ namespace MyHeatWeb
         response["temperatureCount"] = myHeatDevice.getTemperatureCount();
     }
 
-    void setTemperatureSensorsSettings(JsonObject payload)
+    void setTemperatureSensorsSettings(JsonObject payload, JsonObject status)
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
@@ -51,6 +63,8 @@ namespace MyHeatWeb
 
         MyHeatHardwareIO::getInstance().reevaluateScreensCount();
         myHeatDevice.validateCustomFunctions();
+
+        setSuccessMessage(status, F("Налаштування збережені"));
     }
 
     JsonDocument getTemperatureSensorsData()

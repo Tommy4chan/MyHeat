@@ -142,8 +142,8 @@ void MyHeatDevice::manualTick()
 {
     tickTimerMain = millis();
     tickTimerSecondary = millis();
-    checkCustomFunctions();
     updateTemperatures();
+    checkCustomFunctions();
     updateRelays();
 }
 

@@ -22,6 +22,7 @@ private:
     unsigned long wifiReconnectTick = 0;
     unsigned long ntpSyncTick = 0;
     MyHeatSave *wifiData;
+    bool isSyncTimeManually = false;
 
     void serialize(JsonDocument &doc)
     {
@@ -113,7 +114,7 @@ public:
                 wifiReconnectTick = millis();
             }
 
-            if (WiFi.status() == WL_CONNECTED && (millis() - ntpSyncTick >= NTP_SYNC_INTERVAL || (MyHeatUtils::isTimeDefault() && millis() - ntpSyncTick >= 10000)))
+            if (WiFi.status() == WL_CONNECTED && (millis() - ntpSyncTick >= NTP_SYNC_INTERVAL || (MyHeatUtils::isTimeDefault() && millis() - ntpSyncTick >= 10000) || isSyncTimeManually))
             {
                 beginNTP();
             }
@@ -131,7 +132,7 @@ public:
         this->ntpIANA = ntpIANA;
         this->ntpOffset = ntpOffset;
         this->ntpDaylightOffset = ntpDaylightOffset;
-        beginNTP();
+        isSyncTimeManually = true;
         save();
     }
 
@@ -140,6 +141,7 @@ public:
         Serial.println("Syncing time...");
         configTime(ntpOffset, ntpDaylightOffset, ntpServer.c_str());
         ntpSyncTick = millis();
+        isSyncTimeManually = false;
     }
 
     void setWifiCredentials(String ssid, String password)
@@ -260,6 +262,12 @@ public:
     int getNTPDaylightOffset()
     {
         return ntpDaylightOffset;
+    }
+
+    void manualDeserialize(JsonDocument data)
+    {
+        deserialize(data);
+        save();
     }
 };
 #endif

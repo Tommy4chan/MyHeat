@@ -10,6 +10,7 @@ class MyHeatSaveInterface
 public:
     virtual void serialize(JsonDocument &json) = 0;
     virtual void deserialize(JsonDocument &json) = 0;
+    virtual void manualDeserialize(JsonDocument json) = 0;
 };
 
 class MyHeatSave

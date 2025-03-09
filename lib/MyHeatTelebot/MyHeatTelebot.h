@@ -34,6 +34,11 @@ namespace MyHeatTelebot
             registerPhrase = doc[F("registerPhrase")] | STR(REGISTER_PHRASE);
             token = doc[F("telegramBotToken")] | STR(TELEGRAM_BOT_TOKEN);
         }
+
+        void manualDeserialize(JsonDocument doc)
+        {
+            deserialize(doc);
+        }
     };
 
     inline FastBot2 bot;
@@ -58,6 +63,7 @@ namespace MyHeatTelebot
     String getRegisterPhrase();
     bool getIsActive();
     void setSettings(String token, String registerPhrase, bool isActive);
+    void manualDeserialize(JsonDocument data);
     
     void save();
 }

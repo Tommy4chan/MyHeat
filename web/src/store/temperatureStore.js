@@ -53,13 +53,13 @@ const useTemperatureStore = create((set, get) => ({
 
   processDiscoveredTemperatureSensors: (payload) => {
     const discoveredTemperatureSensors =
-      payload.discoveredTemperatureSensors.map((sensor, index) => {
+      payload.discoveredTemperatureSensors?.map((sensor, index) => {
         return {
           id: index,
           address: sensor,
           tempIndex: 0,
         };
-      });
+      }) || [];
 
     set({ discoveredTemperatureSensors });
   },

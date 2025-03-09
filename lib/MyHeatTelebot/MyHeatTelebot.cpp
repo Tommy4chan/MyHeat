@@ -437,6 +437,13 @@ namespace MyHeatTelebot
         save();
     }
 
+    void manualDeserialize(JsonDocument data)
+    {
+        botSave.manualDeserialize(data);
+        save();
+        bot.setToken(botSave.token);
+    }
+
     void save()
     {
         botData->save();

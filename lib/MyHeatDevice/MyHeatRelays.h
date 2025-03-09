@@ -135,6 +135,12 @@ public:
         return relayCount;
     }
 
+    void manualDeserialize(JsonDocument payload)
+    {
+        deserialize(payload);
+        save();
+    }
+
     void save()
     {
         relaysData->save();

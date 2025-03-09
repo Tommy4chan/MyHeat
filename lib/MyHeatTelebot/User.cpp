@@ -22,6 +22,11 @@ namespace MyHeatTelebot
             user.tempValue1 = doc[F("tempValue1")];
             user.tempValue2 = doc[F("tempValue2")];
         }
+
+        void manualDeserialize(JsonDocument doc)
+        {
+            deserialize(doc);
+        }
     };
 
     void loadUsers()

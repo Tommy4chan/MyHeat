@@ -23,12 +23,12 @@ namespace MyHeatWeb
             return;
         }
 
-        setSuccessMessage(status, "Реле " + String(payload["relayIndex"]) + " змінено");
+        setSuccessMessage(status, "Змінено статус Реле " + String(payload["relayIndex"]));
 
         myHeatDevice.setRelayMode(payload["relayIndex"], payload["relayMode"]);
     }
 
-    void setRelaysSettings(JsonObject payload)
+    void setRelaysSettings(JsonObject payload, JsonObject status)
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
@@ -37,10 +37,12 @@ namespace MyHeatWeb
             myHeatDevice.setRelaySettings(i, payload["relays"][i]["pin"], payload["relays"][i]["isActiveOnHigh"], false);
         }
 
+        setSuccessMessage(status, "Налаштування реле збережено");
+
         myHeatDevice.MyHeatRelays::save();
     }
 
-    void setRelayCount(JsonObject payload)
+    void setRelayCount(JsonObject payload, JsonObject status)
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
@@ -49,6 +51,8 @@ namespace MyHeatWeb
         myHeatDevice.initIsSetRelayActive();
         MyHeatHardwareIO::getInstance().reevaluateScreensCount();
         myHeatDevice.validateCustomFunctions();
+
+        setSuccessMessage(status, "Кількість реле змінено");
     }
 
     void getRelayCount(JsonObject response)

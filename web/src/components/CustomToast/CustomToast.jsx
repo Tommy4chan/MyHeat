@@ -81,4 +81,20 @@ const showToast = (type, message) => {
   });
 };
 
+export const showSuccessToast = (message) => {
+  showToast(STATUS_TYPE.success, message);
+};
+
+export const showErrorToast = (message) => {
+  showToast(STATUS_TYPE.error, message);
+}
+
+export const showInfoToast = (message) => {
+  showToast(STATUS_TYPE.info, message);
+}
+
+export const showWarningToast = (message) => {
+  showToast(STATUS_TYPE.warning, message);
+}
+
 export default showToast;

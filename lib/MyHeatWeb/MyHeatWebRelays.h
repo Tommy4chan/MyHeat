@@ -10,8 +10,8 @@ namespace MyHeatWeb
 {
     void getRelaysSettings(JsonObject response);
     void setRelayMode(JsonObject payload, JsonObject status);
-    void setRelaysSettings(JsonObject payload);
-    void setRelayCount(JsonObject payload);
+    void setRelaysSettings(JsonObject payload, JsonObject status);
+    void setRelayCount(JsonObject payload, JsonObject status);
     void getRelayCount(JsonObject response);
     JsonDocument getRelaysData();
 }

@@ -67,7 +67,7 @@ namespace MyHeatWeb
                 //     break;
 
             case su::SH("setWifiSettings"):
-                setWifiSettings(payload);
+                setWifiSettings(payload, responseStatus);
                 break;
 
             case su::SH("getWifiSettings"):
@@ -79,7 +79,7 @@ namespace MyHeatWeb
                 break;
 
             case su::SH("getDiscoveredTemperatureSensors"):
-                getDiscoveredTemperatureSensors(responsePayload);
+                getDiscoveredTemperatureSensors(responsePayload, responseStatus);
                 break;
 
             case su::SH("setTemperatureSensor"):
@@ -87,7 +87,7 @@ namespace MyHeatWeb
                 break;
 
             case su::SH("deleteTemperatureSensor"):
-                deleteTemperatureSensor(payload);
+                deleteTemperatureSensor(payload, responseStatus);
                 break;
 
             case su::SH("getTemperatureSensorsSettings"):
@@ -95,7 +95,7 @@ namespace MyHeatWeb
                 break;
 
             case su::SH("setTemperatureSensorsSettings"):
-                setTemperatureSensorsSettings(payload);
+                setTemperatureSensorsSettings(payload, responseStatus);
                 break;
 
             case su::SH("getRelaysSettings"):
@@ -107,11 +107,11 @@ namespace MyHeatWeb
                 break;
 
             case su::SH("setRelaysSettings"):
-                setRelaysSettings(payload);
+                setRelaysSettings(payload, responseStatus);
                 break;
 
             case su::SH("setRelayCount"):
-                setRelayCount(payload);
+                setRelayCount(payload, responseStatus);
                 break;
 
             case su::SH("getRelayCount"):
@@ -135,7 +135,7 @@ namespace MyHeatWeb
                 break;
 
             case su::SH("setNTPSettings"):
-                setNTPSettings(payload);
+                setNTPSettings(payload, responseStatus);
                 break;
 
             case su::SH("getTelegramBotSettings"):
@@ -143,7 +143,7 @@ namespace MyHeatWeb
                 break;
 
             case su::SH("setTelegramBotSettings"):
-                setTelegramBotSettings(payload);
+                setTelegramBotSettings(payload, responseStatus);
                 break;
 
             case su::SH("getHardwareIOSettings"):
@@ -151,11 +151,20 @@ namespace MyHeatWeb
                 break;
 
             case su::SH("setHardwareIOSettings"):
-                setHardwareIOSettings(payload);
+                setHardwareIOSettings(payload, responseStatus);
                 break;
 
             case su::SH("getAllDeviceSettings"):
                 getAllDeviceSettings(responsePayload);
+                break;
+
+            case su::SH("setAllDeviceSettings"):
+                setAllDeviceSettings(payload, responseStatus);
+                break;
+
+            case su::SH("restartDevice"):
+                setWarningMessage(responseStatus, "Перезавантаження пристрою");
+                restartRequired = true;
                 break;
 
             default:
@@ -252,6 +261,11 @@ namespace MyHeatWeb
             sendRepeatableDataToClients();
 
             websocket.cleanupClients();
+
+            if(restartRequired)
+            {
+                ESP.restart();
+            }
         }
     }
 }

@@ -127,7 +127,15 @@ const useSettingStore = create((set) => ({
 
   processGetAllDeviceSettings: (payload) => {
     set({ allDeviceSettings: payload });
-  }
+  },
+
+  setAllDeviceSettings: (payload) => {
+    useWebSocketStore.getState().sendMessage("setAllDeviceSettings", payload);
+  },
+
+  restartDevice: () => {
+    useWebSocketStore.getState().sendMessage("restartDevice");
+  },
 
 }));
 

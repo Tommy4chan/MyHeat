@@ -165,6 +165,9 @@ public:
 
     void deleteTemperatureSensorAddress(byte tempIndex)
     {
+        if (tempIndex >= temperatureCount)
+            return;
+            
         memset(temperatureSensorsAddresses[tempIndex], 0, 8);
         save();
     }
@@ -239,6 +242,12 @@ public:
     byte getTemperaturePin()
     {
         return temperaturePin;
+    }
+
+    void manualDeserialize(JsonDocument data)
+    {
+        deserialize(data);
+        save();
     }
 
     void save()

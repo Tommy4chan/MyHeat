@@ -20,11 +20,13 @@ namespace MyHeatWeb
         }
     }
 
-    void setWifiSettings(JsonObject payload)
+    void setWifiSettings(JsonObject payload, JsonObject status)
     {
         MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
 
         myHeatWifi.setWifiSettings(payload[F("ssid")], payload[F("password")], payload[F("mDNS")]);
+
+        setSuccessMessage(status, "Налаштування збереженні");
     }
 
     void getWifiSettings(JsonObject response)
@@ -36,11 +38,13 @@ namespace MyHeatWeb
         response[F("mDNS")] = myHeatWifi.getMDNS();
     }
 
-    void setNTPSettings(JsonObject payload)
+    void setNTPSettings(JsonObject payload, JsonObject status)
     {
         MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
 
         myHeatWifi.setNTPSettings(payload[F("ntpServer")], payload[F("ntpIANA")], payload[F("ntpOffset")], payload[F("ntpDaylightOffset")] ? 3600 : 0);
+
+        setSuccessMessage(status, "Налаштування збереженні");
     }
 
     void getNTPSettings(JsonObject response)
@@ -53,9 +57,11 @@ namespace MyHeatWeb
         response[F("ntpDaylightOffset")] = myHeatWifi.getNTPDaylightOffset() == 3600;
     }
 
-    void setTelegramBotSettings(JsonObject payload)
+    void setTelegramBotSettings(JsonObject payload, JsonObject status)
     {
         MyHeatTelebot::setSettings(payload[F("token")], payload[F("registerPhrase")], payload[F("isActive")]);
+
+        setSuccessMessage(status, "Налаштування збереженні");
     }
 
     void getTelegramBotSettings(JsonObject response)
@@ -67,13 +73,15 @@ namespace MyHeatWeb
         response[F("isActive")] = MyHeatTelebot::getIsActive();
     }
 
-    void setHardwareIOSettings(JsonObject payload)
+    void setHardwareIOSettings(JsonObject payload, JsonObject status)
     {
         MyHeatHardwareIO &myHeatHardwareIO = MyHeatHardwareIO::getInstance();
 
         myHeatHardwareIO.setSettings(payload[F("oledAddress")], payload[F("oledSCL")], payload[F("oledSDA")], 
             payload[F("screenPowerSaveInterval")], payload[F("encA")], payload[F("encB")], payload[F("encBtn")], 
             payload[F("encInvert")], payload[F("isActive")]);
+
+        setSuccessMessage(status, "Налаштування збережені");
     }
 
     void getHardwareIOSettings(JsonObject response)
@@ -99,6 +107,22 @@ namespace MyHeatWeb
         response[F("MyHeatHardwareIO")] = MyHeatUtils::getFileContent("/hardwareIO.json");
         response[F("MyHeatWifi")] = MyHeatUtils::getFileContent("/wifi.json");
         response[F("MyHeatTelebot")] = MyHeatUtils::getFileContent("/telebot.json");
+    }
+
+    void setAllDeviceSettings(JsonObject payload, JsonObject status)
+    {
+        MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
+        MyHeatHardwareIO &myHeatHardwareIO = MyHeatHardwareIO::getInstance();
+        MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
+
+        myHeatDevice.MyHeatTemperatures::manualDeserialize(payload[F("MyHeatTemperatures")]);
+        myHeatDevice.MyHeatCustomFunctions::manualDeserialize(payload[F("MyHeatCustomFunctions")]);
+        myHeatDevice.MyHeatRelays::manualDeserialize(payload[F("MyHeatRelays")]);
+        myHeatHardwareIO.manualDeserialize(payload[F("MyHeatHardwareIO")]);
+        myHeatWifi.manualDeserialize(payload[F("MyHeatWifi")]);
+        MyHeatTelebot::manualDeserialize(payload[F("MyHeatTelebot")]);
+
+        setSuccessMessage(status, "Налаштування імпортовані");
     }
 
     void startWifiScan()

@@ -20,6 +20,7 @@ namespace MyHeatWeb
     inline AsyncWebSocket websocket("/ws");
 
     inline uint32_t lastSendTick = 0;
+    inline bool restartRequired = false;
 
     void begin();
 

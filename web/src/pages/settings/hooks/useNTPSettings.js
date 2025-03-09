@@ -4,6 +4,7 @@ import useSettingStore from "@/store/settingStore";
 
 export const useNTPSettings = () => {
   const [ntpServer, setNtpServer] = useState('');
+  const [ntpData, setNtpData] = useState({offset: 0, dst: false});
   const [timeZone, setTimeZone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
 
   const { setNtpSettings, getNtpSettings, ntpSettings } = useSettingStore();
@@ -44,12 +45,12 @@ export const useNTPSettings = () => {
     ).offset;
 
     result.dst = janOffset !== julOffset;
-
-    setNtpSettings(ntpServer, newTimeZone, result.offset, result.dst);
+    
+    setNtpData(result);
   };
 
   const handleSaveNTPSettings = () => {
-    console.log('Save NTP settings');
+    setNtpSettings(ntpServer, timeZone, ntpData.offset, ntpData.dst);
   }
 
   return {
