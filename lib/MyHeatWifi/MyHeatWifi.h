@@ -24,6 +24,8 @@ private:
     MyHeatSave *wifiData;
     bool isSyncTimeManually = false;
 
+    byte wifiConnectAttemptsCount = 0;
+
     void serialize(JsonDocument &doc)
     {
         doc["wifi_ssid"] = wifi[0];
@@ -57,8 +59,16 @@ private:
     {
         WiFi.softAPdisconnect();
         WiFi.disconnect();
-        WiFi.begin(wifi[0], wifi[1]);
+        WiFi.setSleep(false);
         WiFi.mode(WIFI_MODE_STA);
+        if (wifi[0] != "")
+        {
+            WiFi.begin(wifi[0], wifi[1]);
+        }
+        else
+        {
+            setAPMode();
+        }
     }
 
     MyHeatWifi() {
@@ -86,21 +96,14 @@ public:
         wifiData = new MyHeatSave("/wifi.json", this);
         wifiData->read();
 
-        if (wifi[0] != "")
-        {
-            WiFi.begin(wifi[0], wifi[1]);
-        }
-        else
-        {
-            setAPMode();
-        }
+        setSTAMode();
 
         if (!MDNS.begin(mDNS))
             Serial.println(F("Error setting up MDNS responder!"));
         else
             Serial.println(mDNS);
 
-            beginNTP();
+        beginNTP();
     }
 
     void tick()
@@ -112,6 +115,13 @@ public:
                 Serial.println("Reconnecting to WiFi...");
                 WiFi.reconnect();
                 wifiReconnectTick = millis();
+                wifiConnectAttemptsCount++;
+            }
+
+            if (wifiConnectAttemptsCount == 5)
+            {
+                setAPMode();
+                wifiConnectAttemptsCount = 0;
             }
 
             if (WiFi.status() == WL_CONNECTED && (millis() - ntpSyncTick >= NTP_SYNC_INTERVAL || (MyHeatUtils::isTimeDefault() && millis() - ntpSyncTick >= 10000) || isSyncTimeManually))
@@ -267,6 +277,9 @@ public:
     void manualDeserialize(JsonDocument data)
     {
         deserialize(data);
+        restartMDNS();
+        setSTAMode();
+        beginNTP();
         save();
     }
 };

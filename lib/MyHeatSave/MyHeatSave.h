@@ -68,6 +68,12 @@ public:
 
     bool read()
     {
+        if(!LittleFS.exists(path))
+        {
+            save();
+            return false;
+        }
+
         File file = LittleFS.open(path, FILE_READ);
         if (!file)
         {

@@ -4,7 +4,7 @@ namespace MyHeatWeb
 {
     void begin()
     {
-        server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
+        server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html").setCacheControl("max-age=6000000");;
         websocket.enable(true);
         setupWebsocket();
         server.begin();
@@ -258,6 +258,7 @@ namespace MyHeatWeb
     {
         if (websocket.count() > 0 && millis() - lastSendTick > 1000)
         {
+            Serial.println(WiFi.status());
             sendRepeatableDataToClients();
 
             websocket.cleanupClients();
