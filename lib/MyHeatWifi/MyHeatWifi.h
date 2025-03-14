@@ -59,8 +59,8 @@ private:
     {
         WiFi.softAPdisconnect();
         WiFi.disconnect();
-        WiFi.setSleep(false);
         WiFi.mode(WIFI_MODE_STA);
+        WiFi.setSleep(false);
         if (wifi[0] != "")
         {
             WiFi.begin(wifi[0], wifi[1]);

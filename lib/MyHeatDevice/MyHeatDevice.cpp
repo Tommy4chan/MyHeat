@@ -7,6 +7,7 @@ void MyHeatDevice::begin()
     updateTemperatures();
     MyHeatCustomFunctions::begin();
     MyHeatRelays::begin();
+    MyHeatSmokeSensor::begin();
 
     initIsSetRelayActive(); 
 
@@ -160,5 +161,6 @@ void MyHeatDevice::tick()
         tickTimerSecondary = millis();
         updateTemperatures();
         updateRelays();
+        updateSmokeSensor();
     }
 }

@@ -13,10 +13,11 @@ namespace MyHeatWeb
         response[F("usedPins")][3] = myHeatHardwareIO.getEncBtn();
         response[F("usedPins")][4] = myHeatHardwareIO.getOledSCL();
         response[F("usedPins")][5] = myHeatHardwareIO.getOledSDA();
+        response[F("usedPins")][6] = myHeatDevice.MyHeatSmokeSensor::getPin();
 
         for (int i = 0; i < myHeatDevice.getRelayCount(); i++)
         {
-            response[F("usedPins")][i + 6] = myHeatDevice.getRelay(i).getPin();
+            response[F("usedPins")][i + 7] = myHeatDevice.getRelay(i).getPin();
         }
     }
 
@@ -59,7 +60,7 @@ namespace MyHeatWeb
 
     void setTelegramBotSettings(JsonObject payload, JsonObject status)
     {
-        MyHeatTelebot::setSettings(payload[F("token")], payload[F("registerPhrase")], payload[F("isActive")]);
+        MyHeatTelebot::setSettings(payload[F("token")], payload[F("registerPhrase")], payload[F("isEnabled")]);
 
         setSuccessMessage(status, "Налаштування збереженні");
     }
@@ -70,16 +71,16 @@ namespace MyHeatWeb
 
         response[F("token")] = MyHeatTelebot::getToken();
         response[F("registerPhrase")] = MyHeatTelebot::getRegisterPhrase();
-        response[F("isActive")] = MyHeatTelebot::getIsActive();
+        response[F("isEnabled")] = MyHeatTelebot::getIsEnabled();
     }
 
     void setHardwareIOSettings(JsonObject payload, JsonObject status)
     {
         MyHeatHardwareIO &myHeatHardwareIO = MyHeatHardwareIO::getInstance();
 
-        myHeatHardwareIO.setSettings(payload[F("oledAddress")], payload[F("oledSCL")], payload[F("oledSDA")], 
-            payload[F("screenPowerSaveInterval")], payload[F("encA")], payload[F("encB")], payload[F("encBtn")], 
-            payload[F("encInvert")], payload[F("isActive")]);
+        myHeatHardwareIO.setSettings(payload[F("oledAddress")], payload[F("oledSCL")], payload[F("oledSDA")],
+                                     payload[F("screenPowerSaveInterval")], payload[F("encA")], payload[F("encB")], payload[F("encBtn")],
+                                     payload[F("encInvert")], payload[F("isEnabled")]);
 
         setSuccessMessage(status, "Налаштування збережені");
     }
@@ -96,7 +97,7 @@ namespace MyHeatWeb
         response[F("encB")] = myHeatHardwareIO.getEncB();
         response[F("encBtn")] = myHeatHardwareIO.getEncBtn();
         response[F("encInvert")] = myHeatHardwareIO.getEncInvert();
-        response[F("isActive")] = myHeatHardwareIO.getIsActive();
+        response[F("isEnabled")] = myHeatHardwareIO.getIsEnabled();
     }
 
     void getAllDeviceSettings(JsonObject response)
@@ -104,6 +105,7 @@ namespace MyHeatWeb
         response[F("MyHeatTemperatures")] = MyHeatUtils::getFileContent("/temperatureSensors.json");
         response[F("MyHeatCustomFunctions")] = MyHeatUtils::getFileContent("/customFunctions.json");
         response[F("MyHeatRelays")] = MyHeatUtils::getFileContent("/relays.json");
+        response[F("MyHeatSmokeSensor")] = MyHeatUtils::getFileContent("/smokeSensor.json");
         response[F("MyHeatHardwareIO")] = MyHeatUtils::getFileContent("/hardwareIO.json");
         response[F("MyHeatWifi")] = MyHeatUtils::getFileContent("/wifi.json");
         response[F("MyHeatTelebot")] = MyHeatUtils::getFileContent("/telebot.json");
@@ -118,11 +120,38 @@ namespace MyHeatWeb
         myHeatDevice.MyHeatTemperatures::manualDeserialize(payload[F("MyHeatTemperatures")]);
         myHeatDevice.MyHeatCustomFunctions::manualDeserialize(payload[F("MyHeatCustomFunctions")]);
         myHeatDevice.MyHeatRelays::manualDeserialize(payload[F("MyHeatRelays")]);
+        myHeatDevice.MyHeatSmokeSensor::manualDeserialize(payload[F("MyHeatSmokeSensor")]);
         myHeatHardwareIO.manualDeserialize(payload[F("MyHeatHardwareIO")]);
         myHeatWifi.manualDeserialize(payload[F("MyHeatWifi")]);
         MyHeatTelebot::manualDeserialize(payload[F("MyHeatTelebot")]);
 
         setSuccessMessage(status, "Налаштування імпортовані");
+    }
+
+    void getSmokeSensorSettings(JsonObject response)
+    {
+        MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
+
+        response[F("threshold")] = myHeatDevice.MyHeatSmokeSensor::getThreshold();
+        response[F("pin")] = myHeatDevice.MyHeatSmokeSensor::getPin();
+        response[F("isEnabled")] = myHeatDevice.MyHeatSmokeSensor::getIsEnabled();
+    }
+
+    void setSmokeSensorSettings(JsonObject payload, JsonObject status)
+    {
+        MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
+
+        myHeatDevice.MyHeatSmokeSensor::setSmokeSensorSettings(payload[F("threshold")], payload[F("pin")], payload[F("isEnabled")]);
+
+        setSuccessMessage(status, "Налаштування збережені");
+    }
+
+    void getSmokeSensor(JsonObject response)
+    {
+        MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
+
+        response[F("value")] = myHeatDevice.MyHeatSmokeSensor::getValue();
+        response[F("isOverTreshold")] = myHeatDevice.MyHeatSmokeSensor::getIsOverTreshold();
     }
 
     void startWifiScan()

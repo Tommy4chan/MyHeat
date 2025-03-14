@@ -17,20 +17,20 @@ namespace MyHeatTelebot
     class BotSave : public MyHeatSaveInterface
     {
     public:
-        bool isActive = true;
+        bool isEnabled = true;
         String registerPhrase = STR(REGISTER_PHRASE);
         String token = STR(TELEGRAM_BOT_TOKEN);
 
         void serialize(JsonDocument &doc)
         {
-            doc[F("isActive")] = isActive;
+            doc[F("isEnabled")] = isEnabled;
             doc[F("registerPhrase")] = registerPhrase;
             doc[F("telegramBotToken")] = token;
         }
 
         void deserialize(JsonDocument &doc)
         {
-            isActive = doc[F("isActive")] | TELEGRAM_BOT_ACTIVE;
+            isEnabled = doc[F("isEnabled")] | TELEGRAM_BOT_ENABLED;
             registerPhrase = doc[F("registerPhrase")] | STR(REGISTER_PHRASE);
             token = doc[F("telegramBotToken")] | STR(TELEGRAM_BOT_TOKEN);
         }
@@ -58,10 +58,10 @@ namespace MyHeatTelebot
 
     void setToken(String token);
     void setRegisterPhrase(String registerPhrase);
-    void setIsActive(bool isActive);
+    void setIsEnabled(bool isEnabled);
     String getToken();
     String getRegisterPhrase();
-    bool getIsActive();
+    bool getIsEnabled();
     void setSettings(String token, String registerPhrase, bool isActive);
     void manualDeserialize(JsonDocument data);
     

@@ -43,30 +43,30 @@ private:
     byte oledAddress = 0x78;
     int screenPowerSaveInterval = 60000;
 
-    bool isActive = true;
+    bool isEnabled = true;
 
     void serialize(JsonDocument &doc)
     {
-        doc["oled_scl"] = oledSCL;
-        doc["oled_sda"] = oledSDA;
-        doc["enc_a"] = encA;
-        doc["enc_b"] = encB;
-        doc["enc_btn"] = encBtn;
-        doc["enc_invert"] = encInvert;
-        doc["is_active"] = isActive;
-        doc["oled_address"] = oledAddress;
-        doc["screen_power_save_interval"] = screenPowerSaveInterval;
+        doc["oledSCL"] = oledSCL;
+        doc["oledSDA"] = oledSDA;
+        doc["encA"] = encA;
+        doc["encB"] = encB;
+        doc["encBtn"] = encBtn;
+        doc["encInvert"] = encInvert;
+        doc["isEnabled"] = isEnabled;
+        doc["oledAddress"] = oledAddress;
+        doc["screenPowerSaveInterval"] = screenPowerSaveInterval;
     }
 
     void deserialize(JsonDocument &doc)
     {
-        oledSCL = doc["oled_scl"] | OLED_SCL;
-        oledSDA = doc["oled_sda"] | OLED_SDA;
-        encA = doc["enc_a"] | ENC_A;
-        encB = doc["enc_b"] | ENC_B;
-        encBtn = doc["enc_btn"] | ENC_BTN;
-        encInvert = doc["enc_invert"] | INVERT_ENCODER;
-        isActive = doc["is_active"] | HARDWARE_IO_IS_ACTIVE;
+        oledSCL = doc["oledSCL"] | OLED_SCL;
+        oledSDA = doc["oledSDA"] | OLED_SDA;
+        encA = doc["encA"] | ENC_A;
+        encB = doc["encB"] | ENC_B;
+        encBtn = doc["encBtn"] | ENC_BTN;
+        encInvert = doc["encInvert"] | INVERT_ENCODER;
+        isEnabled = doc["isEnabled"] | HARDWARE_IO_IS_ENABLED;
         oledAddress = doc["oled_address"] | OLED_ADDRESS;
         screenPowerSaveInterval = doc["screen_power_save_interval"] | SCREEN_POWER_SAVE_INTERVAL;
     }
@@ -214,7 +214,7 @@ public:
 
     void tick()
     {
-        if (!isActive)
+        if (!isEnabled)
         {
             return;
         }
@@ -244,9 +244,9 @@ public:
         maxScreens = maxTemperatureScreens + maxRelayScreens;
     }
 
-    void setSettings(byte oledAddress, byte scl, byte sda, int screenPowerSaveInterval, byte encA, byte encB, byte encBtn, bool encInvert, bool isActive)
+    void setSettings(byte oledAddress, byte scl, byte sda, int screenPowerSaveInterval, byte encA, byte encB, byte encBtn, bool encInvert, bool isEnabled)
     {
-        if (setIsActive(isActive))
+        if (setIsEnabled(isEnabled))
         {
             if (this->oledAddress != oledAddress || this->oledSCL != scl || this->oledSDA != sda)
             {
@@ -304,16 +304,16 @@ public:
         return encInvert;
     }
 
-    bool getIsActive()
+    bool getIsEnabled()
     {
-        return isActive;
+        return isEnabled;
     }
 
-    bool setIsActive(bool isActive)
+    bool setIsEnabled(bool isEnabled)
     {
-        this->isActive = isActive;
+        this->isEnabled = isEnabled;
 
-        if (isActive)
+        if (isEnabled)
         {
             isScreenOn = true;
             screenPowerSaveTimer = millis();

@@ -3,6 +3,7 @@ import Hardware from "./components/Hardware"
 import Device from "./components/Device"
 import NTP from "./components/NTP"
 import Wifi from "./components/Wifi"
+import SmokeSensor from "./components/SmokeSensor"
 
 const SettingsPage = () => {
 
@@ -10,6 +11,7 @@ const SettingsPage = () => {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div className="flex flex-col gap-4">
         <Wifi />
+        <SmokeSensor />
       </div>
       <div className="flex flex-col gap-4">
         <Bot />

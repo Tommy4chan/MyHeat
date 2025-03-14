@@ -15,7 +15,7 @@ namespace MyHeatTelebot
 
     void tick()
     {
-        if (botSave.isActive)
+        if (botSave.isEnabled)
             bot.tick();
     }
 
@@ -407,9 +407,9 @@ namespace MyHeatTelebot
         save();
     }
 
-    void setIsActive(bool isActive)
+    void setIsEnabled(bool isEnabled)
     {
-        botSave.isActive = isActive;
+        botSave.isEnabled = isEnabled;
         save();
     }
 
@@ -423,17 +423,17 @@ namespace MyHeatTelebot
         return botSave.registerPhrase;
     }
 
-    bool getIsActive()
+    bool getIsEnabled()
     {
-        return botSave.isActive;
+        return botSave.isEnabled;
     }
 
-    void setSettings(String token, String registerPhrase, bool isActive)
+    void setSettings(String token, String registerPhrase, bool isEnabled)
     {
         botSave.token = token;
         bot.setToken(token);
         botSave.registerPhrase = registerPhrase;
-        botSave.isActive = isActive;
+        botSave.isEnabled = isEnabled;
         save();
     }
 

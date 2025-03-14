@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import useWebSocketStore from "./websocketStore";
+import { use } from "react";
 
 const useSettingStore = create((set) => ({
   wifiSettings: {},
@@ -12,6 +13,8 @@ const useSettingStore = create((set) => ({
     encoderPins: [0, 0, 0],
   },
   allDeviceSettings: {},
+  smokeSensorSettings: {},
+  smokeSensor: {},
 
   setWifiSettings: (ssid, password, mDNS) => {
     const payload = {
@@ -39,13 +42,13 @@ const useSettingStore = create((set) => ({
     set({ isScanningForWifiNetworks: false, scannedWifiNetworks: payload });
   },
 
-  setTelegramBotSettings: (token, registerPhrase, isActive) => {
-    isActive = isActive === 'true' || isActive === 'false' ? isActive === 'true' : isActive;
+  setTelegramBotSettings: (token, registerPhrase, isEnabled) => {
+    isEnabled = isEnabled === 'true' || isEnabled === 'false' ? isEnabled === 'true' : isEnabled;
 
     const payload = {
       token,
       registerPhrase,
-      isActive,
+      isEnabled,
     };
 
     useWebSocketStore.getState().sendMessage("setTelegramBotSettings", payload);
@@ -96,18 +99,18 @@ const useSettingStore = create((set) => ({
   },
 
   setHardwareIOSettings: (
-    isActive,
+    isEnabled,
     oledAddress,
     screenPowerSaveInterval,
     oledPins,
     encInvert,
     encoderPins
   ) => {
-    isActive = isActive === 'true' || isActive === 'false' ? isActive === 'true' : isActive;
+    isEnabled = isEnabled === 'true' || isEnabled === 'false' ? isEnabled === 'true' : isEnabled;
     encInvert = encInvert === 'true' || encInvert === 'false' ? encInvert === 'true' : encInvert;
 
     const payload = {
-      isActive,
+      isEnabled,
       oledAddress: parseInt(oledAddress, 16),
       screenPowerSaveInterval,
       oledSDA: oledPins[0],
@@ -135,6 +138,34 @@ const useSettingStore = create((set) => ({
 
   restartDevice: () => {
     useWebSocketStore.getState().sendMessage("restartDevice");
+  },
+
+  getSmokeSensorSettings: () => {
+    useWebSocketStore.getState().sendMessage("getSmokeSensorSettings");
+  },
+
+  processGetSmokeSensorSettings: (payload) => {
+    set({ smokeSensorSettings: payload });
+  },
+
+  setSmokeSensorSettings: (isEnabled, threshold, pin) => {
+    isEnabled = isEnabled === 'true' || isEnabled === 'false' ? isEnabled === 'true' : isEnabled;
+
+    const payload = {
+      isEnabled,
+      threshold,
+      pin,
+    };
+
+    useWebSocketStore.getState().sendMessage("setSmokeSensorSettings", payload);
+  },
+
+  getSmokeSensor: () => {
+    useWebSocketStore.getState().sendMessage("getSmokeSensor");
+  },
+
+  processGetSmokeSensor: (payload) => {
+    set({ smokeSensor: payload });
   },
 
 }));
@@ -167,6 +198,16 @@ useWebSocketStore.subscribe(
 useWebSocketStore.subscribe(
   (state) => state.messages["getAllDeviceSettingsResponse"],
   (payload) => useSettingStore.getState().processGetAllDeviceSettings(payload)
+);
+
+useWebSocketStore.subscribe(
+  (state) => state.messages["getSmokeSensorSettingsResponse"],
+  (payload) => useSettingStore.getState().processGetSmokeSensorSettings(payload)
+);
+
+useWebSocketStore.subscribe(
+  (state) => state.messages["getSmokeSensorResponse"],
+  (payload) => useSettingStore.getState().processGetSmokeSensor(payload)
 );
 
 export default useSettingStore;

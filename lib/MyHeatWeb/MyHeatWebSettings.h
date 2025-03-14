@@ -21,6 +21,9 @@ namespace MyHeatWeb
     void getHardwareIOSettings(JsonObject response);
     void getAllDeviceSettings(JsonObject response);
     void setAllDeviceSettings(JsonObject payload, JsonObject status);
+    void getSmokeSensorSettings(JsonObject response);
+    void setSmokeSensorSettings(JsonObject payload, JsonObject status);
+    void getSmokeSensor(JsonObject response);
     void startWifiScan();
     bool isScanCompleted();
     JsonDocument getNetworksData();

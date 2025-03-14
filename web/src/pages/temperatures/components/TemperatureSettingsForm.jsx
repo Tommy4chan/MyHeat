@@ -35,6 +35,26 @@ export const TemperatureSettingsForm = () => {
             className='w-full'
           />
         </FormField>
+        <FormField label='Мінімальна температура для сповіщення'>
+          <Input
+            value={settings.minTemperatureNotification}
+            onChange={handleSettingsChange}
+            isNumber={true}
+            maxLength={3}
+            name='minTemperatureNotification'
+            className='w-full'
+          />
+        </FormField>
+        <FormField label='Максимальна температура для сповіщення'>
+          <Input
+            value={settings.maxTemperatureNotification}
+            onChange={handleSettingsChange}
+            isNumber={true}
+            maxLength={3}
+            name='maxTemperatureNotification'
+            className='w-full'
+          />
+        </FormField>
       </DarkWrapperBlock>
       <SaveButton onClick={handleSettingsSave} />
     </WrapperBlock>

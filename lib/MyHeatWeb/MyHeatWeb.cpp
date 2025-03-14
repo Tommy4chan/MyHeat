@@ -167,6 +167,18 @@ namespace MyHeatWeb
                 restartRequired = true;
                 break;
 
+            case su::SH("getSmokeSensorSettings"):
+                getSmokeSensorSettings(responsePayload);
+                break;
+
+            case su::SH("setSmokeSensorSettings"):
+                setSmokeSensorSettings(payload, responseStatus);
+                break;
+
+            case su::SH("getSmokeSensor"):
+                getSmokeSensor(responsePayload);
+                break;
+
             default:
                 setErrorMessage(responseStatus, "Невідовий тип повідомлення");
                 break;
@@ -256,9 +268,8 @@ namespace MyHeatWeb
 
     void tick()
     {
-        if (websocket.count() > 0 && millis() - lastSendTick > 1000)
+        if (websocket.count() > 0 && millis() - lastSendTick > 2000 && (WiFi.status() == WL_CONNECTED || WiFi.softAPgetStationNum() > 0))
         {
-            Serial.println(WiFi.status());
             sendRepeatableDataToClients();
 
             websocket.cleanupClients();

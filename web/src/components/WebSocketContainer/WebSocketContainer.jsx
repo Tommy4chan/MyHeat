@@ -22,7 +22,7 @@ const WebSocketProvider = ({ children }) => {
             sendJsonMessage({
               messageType,
               payload,
-            });
+            }, false);
           }
         );
       },

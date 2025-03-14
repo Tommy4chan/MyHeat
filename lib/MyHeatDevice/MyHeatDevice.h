@@ -7,11 +7,12 @@
 #include "MyHeatCustomFunctions.h"
 #include "MyHeatRelays.h"
 #include "MyHeatUtils.h"
+#include "MyHeatSmokeSensor.h"
 
 #define XSTR(x) #x
 #define STR(x) XSTR(x)
 
-class MyHeatDevice : public MyHeatRelays, public MyHeatCustomFunctions, public MyHeatTemperatures
+class MyHeatDevice : public MyHeatRelays, public MyHeatCustomFunctions, public MyHeatTemperatures, public MyHeatSmokeSensor
 {
 private:
     uint32_t tickTimerMain;
