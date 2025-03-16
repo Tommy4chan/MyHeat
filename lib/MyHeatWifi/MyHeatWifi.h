@@ -6,6 +6,7 @@
 #include <LittleFS.h>
 #include <ESPmDNS.h>
 #include "MyHeatSave.h"
+#include "MyHeatUtils.h"
 
 #define XSTR(x) #x
 #define STR(x) XSTR(x)

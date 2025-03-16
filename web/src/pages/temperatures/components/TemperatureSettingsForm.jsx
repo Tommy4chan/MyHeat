@@ -37,21 +37,21 @@ export const TemperatureSettingsForm = () => {
         </FormField>
         <FormField label='Мінімальна температура для сповіщення'>
           <Input
-            value={settings.minTemperatureNotification}
+            value={settings.minTemperature}
             onChange={handleSettingsChange}
             isNumber={true}
             maxLength={3}
-            name='minTemperatureNotification'
+            name='minTemperature'
             className='w-full'
           />
         </FormField>
         <FormField label='Максимальна температура для сповіщення'>
           <Input
-            value={settings.maxTemperatureNotification}
+            value={settings.maxTemperature}
             onChange={handleSettingsChange}
             isNumber={true}
             maxLength={3}
-            name='maxTemperatureNotification'
+            name='maxTemperature'
             className='w-full'
           />
         </FormField>

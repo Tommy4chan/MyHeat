@@ -42,13 +42,15 @@ const useSettingStore = create((set) => ({
     set({ isScanningForWifiNetworks: false, scannedWifiNetworks: payload });
   },
 
-  setTelegramBotSettings: (token, registerPhrase, isEnabled) => {
+  setTelegramBotSettings: (token, registerPhrase, isEnabled, isAlertNotificationsEnabled) => {
     isEnabled = isEnabled === 'true' || isEnabled === 'false' ? isEnabled === 'true' : isEnabled;
+    isAlertNotificationsEnabled = isAlertNotificationsEnabled === 'true' || isAlertNotificationsEnabled === 'false' ? isAlertNotificationsEnabled === 'true' : isAlertNotificationsEnabled;
 
     const payload = {
       token,
       registerPhrase,
       isEnabled,
+      isAlertNotificationsEnabled,
     };
 
     useWebSocketStore.getState().sendMessage("setTelegramBotSettings", payload);

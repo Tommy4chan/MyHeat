@@ -60,7 +60,7 @@ namespace MyHeatWeb
 
     void setTelegramBotSettings(JsonObject payload, JsonObject status)
     {
-        MyHeatTelebot::setSettings(payload[F("token")], payload[F("registerPhrase")], payload[F("isEnabled")]);
+        MyHeatTelebot::setSettings(payload[F("token")], payload[F("registerPhrase")], payload[F("isEnabled")], payload[F("isAlertNotificationsEnabled")]);
 
         setSuccessMessage(status, "Налаштування збереженні");
     }
@@ -72,6 +72,7 @@ namespace MyHeatWeb
         response[F("token")] = MyHeatTelebot::getToken();
         response[F("registerPhrase")] = MyHeatTelebot::getRegisterPhrase();
         response[F("isEnabled")] = MyHeatTelebot::getIsEnabled();
+        response[F("isAlertNotificationsEnabled")] = MyHeatTelebot::getIsAlertNotificationsEnabled();
     }
 
     void setHardwareIOSettings(JsonObject payload, JsonObject status)

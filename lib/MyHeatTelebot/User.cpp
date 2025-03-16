@@ -139,4 +139,19 @@ namespace MyHeatTelebot
         MyHeatSave myHeatSave(path.c_str(), &userSave);
         myHeatSave.save();
     }
+
+    byte getUsersCount()
+    {
+        return users.size();
+    }
+
+    String getChatIdByIndex(byte index)
+    {
+        if (index >= users.size())
+        {
+            return "";
+        }
+
+        return std::next(users.begin(), index)->first;
+    }
 }

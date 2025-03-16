@@ -32,10 +32,12 @@ const useTemperatureStore = create((set, get) => ({
     set({ temperatureSettings: payload });
   },
 
-  setTemperatureSensorsSettings: (temperaturePin, temperatureCount) => {
+  setTemperatureSensorsSettings: (temperaturePin, temperatureCount, minTemperature, maxTemperature) => {
     const payload = {
       temperaturePin,
       temperatureCount,
+      minTemperature,
+      maxTemperature,
     };
 
     useWebSocketStore

@@ -8,7 +8,7 @@ import WrapperBlock from "../../../components/layout/WrapperBlock";
 import { useBotSettings } from "../hooks/useBotSettings";
 
 const Bot = () => {
-  const { botToken, setBotToken, botPassword, setBotPassword, isBotEnabled, setIsBotEnabled, setTelegramBotSettings, setIsSecurityNotificationsEnabled, isSecurityNotificationsEnabled } = useBotSettings();
+  const { botToken, setBotToken, botPassword, setBotPassword, isBotEnabled, setIsBotEnabled, setTelegramBotSettings, setIsAlertNotificationsEnabled, isAlertNotificationsEnabled } = useBotSettings();
 
   return (
     <SettingsForm title='Телеграм бот'>
@@ -29,14 +29,14 @@ const Bot = () => {
           </FormField>
           <FormField label='Сповіщення безпеки'>
             <SelectToggle
-              value={isSecurityNotificationsEnabled}
-              onChange={(e) => setIsSecurityNotificationsEnabled(e.target.value)}
+              value={isAlertNotificationsEnabled}
+              onChange={(e) => setIsAlertNotificationsEnabled(e.target.value)}
               className='w-full'
             />
           </FormField>
         </DarkWrapperBlock>
       </WrapperBlock>
-      <SaveButton onClick={() => setTelegramBotSettings(botToken, botPassword, isBotEnabled)} />
+      <SaveButton onClick={() => setTelegramBotSettings(botToken, botPassword, isBotEnabled, isAlertNotificationsEnabled)} />
     </SettingsForm>
   )
 }

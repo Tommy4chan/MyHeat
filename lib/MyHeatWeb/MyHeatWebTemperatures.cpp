@@ -51,15 +51,15 @@ namespace MyHeatWeb
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
         response["temperaturePin"] = myHeatDevice.getTemperaturePin();
         response["temperatureCount"] = myHeatDevice.getTemperatureCount();
+        response["minTemperature"] = myHeatDevice.getMinTemperature();
+        response["maxTemperature"] = myHeatDevice.getMaxTemperature();
     }
 
     void setTemperatureSensorsSettings(JsonObject payload, JsonObject status)
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
-        myHeatDevice.setTemperaturePin(payload["temperaturePin"], false);
-        myHeatDevice.setTemperatureCount(payload["temperatureCount"], false);
-        myHeatDevice.MyHeatTemperatures::save();
+        myHeatDevice.MyHeatTemperatures::setTemperatureSettings(payload["temperaturePin"], payload["temperatureCount"], payload["minTemperature"], payload["maxTemperature"]);
 
         MyHeatHardwareIO::getInstance().reevaluateScreensCount();
         myHeatDevice.validateCustomFunctions();

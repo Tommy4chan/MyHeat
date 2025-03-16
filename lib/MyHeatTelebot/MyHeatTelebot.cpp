@@ -342,6 +342,7 @@ namespace MyHeatTelebot
             break;
         }
         }
+        
 
         bot.answerCallbackQuery(q.id());
         bot.editText(msg);
@@ -393,6 +394,7 @@ namespace MyHeatTelebot
         }
 
         bot.sendMessage(msg);
+
     }
 
     void setToken(String token)
@@ -428,12 +430,18 @@ namespace MyHeatTelebot
         return botSave.isEnabled;
     }
 
-    void setSettings(String token, String registerPhrase, bool isEnabled)
+    bool getIsAlertNotificationsEnabled()
+    {
+        return botSave.isAlertNotificationsEnabled;
+    }
+
+    void setSettings(String token, String registerPhrase, bool isEnabled, bool isAlertNotificationsEnabled)
     {
         botSave.token = token;
         bot.setToken(token);
         botSave.registerPhrase = registerPhrase;
         botSave.isEnabled = isEnabled;
+        botSave.isAlertNotificationsEnabled = isAlertNotificationsEnabled;
         save();
     }
 
@@ -442,6 +450,21 @@ namespace MyHeatTelebot
         botSave.manualDeserialize(data);
         save();
         bot.setToken(botSave.token);
+    }
+
+    void sendAlertNotification(String message)
+    {
+        if (!botSave.isAlertNotificationsEnabled)
+            return;
+
+        String chatId = "";
+
+        for (byte i = 0; i < getUsersCount(); i++)
+        {
+            chatId = getChatIdByIndex(i);
+            fb::Message msg(message, chatId);
+            bot.sendMessage(msg);
+        }
     }
 
     void save()

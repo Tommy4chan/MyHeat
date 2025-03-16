@@ -15,8 +15,8 @@ export const useTemperatureSettings = () => {
   const [settings, setSettings] = useState({
     temperaturePin: 0,
     temperatureCount: 1,
-    minTemperatureNotification: 5,
-    maxTemperatureNotification: 90,
+    minTemperature: 0,
+    maxTemperature: 0,
   });
 
   useEffect(() => {
@@ -28,8 +28,8 @@ export const useTemperatureSettings = () => {
     setSettings({
       temperaturePin: temperatureSettings.temperaturePin,
       temperatureCount: temperatureSettings.temperatureCount,
-      minTemperatureNotification: 5,
-      maxTemperatureNotification: 90,
+      minTemperature: temperatureSettings.minTemperature,
+      maxTemperature: temperatureSettings.maxTemperature,
     });
   }, [temperatureSettings]);
 
@@ -53,7 +53,9 @@ export const useTemperatureSettings = () => {
   const handleSettingsSave = () => {
     setTemperatureSensorsSettings(
       settings.temperaturePin,
-      settings.temperatureCount
+      settings.temperatureCount,
+      settings.minTemperature,
+      settings.maxTemperature
     );
   };
 

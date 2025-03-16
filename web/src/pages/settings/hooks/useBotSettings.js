@@ -6,7 +6,7 @@ export const useBotSettings = () => {
   const [botToken, setBotToken] = useState('');
   const [botPassword, setBotPassword] = useState('');
   const [isBotEnabled, setIsBotEnabled] = useState(false);
-  const [isSecurityNotificationsEnabled, setIsSecurityNotificationsEnabled] = useState(false);
+  const [isAlertNotificationsEnabled, setIsAlertNotificationsEnabled] = useState(false);
 
   const { setTelegramBotSettings, getTelegramBotSettings, telegramBotSettings } = useSettingStore();
 
@@ -18,6 +18,7 @@ export const useBotSettings = () => {
     setBotToken(telegramBotSettings.token);
     setBotPassword(telegramBotSettings.registerPhrase);
     setIsBotEnabled(telegramBotSettings.isEnabled);
+    setIsAlertNotificationsEnabled(telegramBotSettings.isAlertNotificationsEnabled);
   }, [telegramBotSettings]);
 
   return {
@@ -28,7 +29,7 @@ export const useBotSettings = () => {
     isBotEnabled,
     setIsBotEnabled,
     setTelegramBotSettings,
-    isSecurityNotificationsEnabled,
-    setIsSecurityNotificationsEnabled
+    isAlertNotificationsEnabled,
+    setIsAlertNotificationsEnabled
   }
 }

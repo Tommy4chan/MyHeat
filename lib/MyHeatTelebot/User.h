@@ -43,6 +43,8 @@ namespace MyHeatTelebot
     void setUserTempValue2(String chatId, byte tempValue2);
     User getUser(String chatId);
     void saveUser(String chatId);
+    byte getUsersCount();
+    String getChatIdByIndex(byte index);
 }
 
 #endif

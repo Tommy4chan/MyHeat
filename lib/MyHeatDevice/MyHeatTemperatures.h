@@ -7,6 +7,14 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
+enum TemperatureAlerts
+{
+    TA_NONE = 0,
+    TA_MIN = 1,
+    TA_MAX = 2,
+    TA_BAD_CONNECTION = 3
+};
+
 class MyHeatTemperatures : public MyHeatSaveInterface
 {
 private:
@@ -17,12 +25,19 @@ private:
     float *temperatures;
     byte temperatureCount;
     byte temperaturePin;
+    float minTemperature;
+    float maxTemperature;
+    TemperatureAlerts *temperatureAlerts;
+    bool *isNotified;
+
     OneWire oneWire;
     DallasTemperature temperatureSensors;
 
     void serialize(JsonDocument &doc)
     {
         doc[F("temperaturePin")] = temperaturePin;
+        doc[F("minTemperature")] = minTemperature;
+        doc[F("maxTemperature")] = maxTemperature;
         doc[F("temperatureCount")] = temperatureCount;
 
         for (int i = 0; i < temperatureCount; i++)
@@ -36,8 +51,10 @@ private:
 
     void deserialize(JsonDocument &doc)
     {
-        temperaturePin = doc[F("temperaturePin")];
-        realocateMemory(doc[F("temperatureCount")]);
+        temperaturePin = doc[F("temperaturePin")] | TEMPERATURE_PIN;
+        minTemperature = doc[F("minTemperature")] | TEMPERATURE_MIN;
+        maxTemperature = doc[F("maxTemperature")] | TEMPERATURE_MAX;
+        realocateMemory(doc[F("temperatureCount")] | TEMPERATURE_COUNT);
 
         for (int i = 0; i < temperatureCount; i++)
         {
@@ -81,12 +98,16 @@ private:
         temperatureSensorsAddresses = new uint8_t *[newCount];
         discoveredTemperatureSensorsAddresses = new uint8_t *[newCount];
         temperatures = new float[newCount];
+        temperatureAlerts = new TemperatureAlerts[newCount];
+        isNotified = new bool[newCount];
 
         for (byte i = 0; i < newCount; i++)
         {
             temperatureSensorsAddresses[i] = new uint8_t[8]{};
             discoveredTemperatureSensorsAddresses[i] = new uint8_t[8]{};
-            temperatures[i] = -127.00;
+            temperatures[i] = TEMPERATURE_ERROR;
+            temperatureAlerts[i] = TA_NONE;
+            isNotified[i] = false;
 
             if (oldAddresses != nullptr && i < temperatureCount)
             {
@@ -111,9 +132,13 @@ public:
     {
         temperatureCount = 0;
         temperaturePin = TEMPERATURE_PIN;
+        minTemperature = TEMPERATURE_MIN;
+        maxTemperature = TEMPERATURE_MAX;
         temperatureSensorsAddresses = nullptr;
         discoveredTemperatureSensorsAddresses = nullptr;
         temperatures = nullptr;
+        temperatureAlerts = nullptr;
+        isNotified = nullptr;
         realocateMemory(TEMPERATURE_COUNT);
     };
 
@@ -186,9 +211,9 @@ public:
     {
         for (byte i = 0; i < temperatureCount; i++)
         {
-            if (temperatureSensorsAddresses[i][0] == 0)
+            if (isTemperatureSensorAddressEmpty(i))
             {
-                temperatures[i] = -127.00;
+                temperatures[i] = TEMPERATURE_ERROR;
                 continue;
             }
 
@@ -234,6 +259,15 @@ public:
         }
     }
 
+    void setTemperatureSettings(byte newPin, byte newCount, float minTemperature, float maxTemperature)
+    {
+        setTemperaturePin(newPin, false);
+        setTemperatureCount(newCount, false);
+        this->minTemperature = minTemperature;
+        this->maxTemperature = maxTemperature;
+        save();
+    }
+
     byte getTemperatureCount()
     {
         return temperatureCount;
@@ -244,10 +278,83 @@ public:
         return temperaturePin;
     }
 
+    float getMinTemperature()
+    {
+        return minTemperature;
+    }
+
+    float getMaxTemperature()
+    {
+        return maxTemperature;
+    }
+
     void manualDeserialize(JsonDocument data)
     {
         deserialize(data);
         save();
+    }
+
+    bool isTemperatureSensorAddressEmpty(byte index)
+    {
+        return temperatureSensorsAddresses[index][0] == 0;
+    }
+
+    void checkForAlerts() {
+        for (byte i = 0; i < temperatureCount; i++)
+        {
+            if (isTemperatureSensorAddressEmpty(i))
+            {
+                continue;
+            }
+
+            if (checkIsMinTemperature(i))
+            {
+                temperatureAlerts[i] = TA_MIN;
+            }
+            else if (checkIsMaxTemperature(i))
+            {
+                temperatureAlerts[i] = TA_MAX;
+            }
+            else if (checkIsBadConnection(i))
+            {
+                temperatureAlerts[i] = TA_BAD_CONNECTION;
+            }
+            else
+            {
+                temperatureAlerts[i] = TA_NONE;
+            }
+
+            if (temperatureAlerts[i] == TA_NONE && isNotified[i])
+            {
+                isNotified[i] = false;
+            }
+        }
+    }
+
+    bool checkIsMinTemperature(byte index)
+    {
+        return temperatures[index] != TEMPERATURE_ERROR && temperatures[index] < minTemperature;
+    }
+
+    bool checkIsMaxTemperature(byte index)
+    {
+        return temperatures[index] != TEMPERATURE_ERROR && temperatures[index] > maxTemperature;
+    }
+
+    bool checkIsBadConnection(byte index)
+    {
+        return temperatures[index] == TEMPERATURE_ERROR;
+    }
+
+    TemperatureAlerts getTemperatureAlert(byte index)
+    {
+        if (temperatureAlerts[index] != TA_NONE && !isNotified[index])
+        {
+            isNotified[index] = true;
+            return temperatureAlerts[index];
+        }
+
+        return TA_NONE;
     }
 
     void save()

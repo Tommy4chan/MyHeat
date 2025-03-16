@@ -70,5 +70,6 @@
     "[jsx]": {
         "editor.tabSize": 2,
         "editor.insertSpaces": true
-    }
+    },
+    "search.useIgnoreFiles": false
 }

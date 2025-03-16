@@ -11,10 +11,9 @@ private:
     int threshold;
     bool isOverTreshold;
     bool isEnabled;
+    bool isNotified;
     MyHeatSave *smokeSensorData;
     
-    // bool isNotified;
-    // maybe add callback function here
 
     void serialize(JsonDocument &doc)
     {
@@ -35,7 +34,7 @@ public:
         threshold = SMOKE_SENSOR_THRESHOLD;
         isOverTreshold = false;
         isEnabled = true;
-        // isNotified = false;
+        isNotified = false;
     }
 
     void begin()
@@ -55,17 +54,11 @@ public:
         MyHeatAnalogSensor::read();
         
         isOverTreshold = value > threshold;
-        
-        // Serial.print("Smoke sensor value: ");
-        // Serial.println(value);
-        // Serial.print("IsOverTreshold: ");
-        // Serial.println(isOverTreshold);
 
-
-        // if(isNotified && !isOverTreshold)
-        // {
-        //     isNotified = false;
-        // }
+        if(!isOverTreshold && isNotified)
+        {
+            isNotified = false;
+        }
     }
 
     void manualDeserialize(JsonDocument payload)
@@ -89,6 +82,17 @@ public:
         return isOverTreshold;
     }
 
+    bool getIsSendSmokeSensorNotification()
+    {
+        if (isOverTreshold && !isNotified)
+        {
+            isNotified = true;
+            return true;
+        }
+
+        return false;
+    }
+
     void setSmokeSensorSettings(int threshold, int pin, bool isEnabled)
     {
         this->threshold = threshold;
@@ -96,16 +100,6 @@ public:
         MyHeatAnalogSensor::begin(pin);
         smokeSensorData->save();
     }
-
-    // void setIsNotified(bool isNotified)
-    // {
-    //     this->isNotified = isNotified;
-    // }
-
-    // bool isSendNotification()
-    // {
-    //     return isOverTreshold && !isNotified;
-    // }
 };
 
 #endif

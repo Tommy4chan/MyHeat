@@ -4,7 +4,7 @@ namespace MyHeatWeb
 {
     void begin()
     {
-        server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html").setCacheControl("max-age=6000000");;
+        server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html").setCacheControl("max-age=6000000");
         websocket.enable(true);
         setupWebsocket();
         server.begin();
@@ -256,25 +256,49 @@ namespace MyHeatWeb
         }
     }
 
+
+    
+    bool canSendData()
+    {
+        return websocket.count() > 0 && (WiFi.status() == WL_CONNECTED || WiFi.softAPgetStationNum() > 0);
+    }
+
+    void sendAlertNotification(String message)
+    {
+        if (canSendData())
+        {
+            JsonDocument response;
+            JsonObject responseStatus = response["status"].to<JsonObject>();
+            response["messageType"] = F("alertNotification");
+
+            setErrorMessage(responseStatus, message);
+
+            sendDataToClients(response, F("alertNotification"));
+        }
+    }
+
     void sendRepeatableDataToClients()
     {
-        sendTemperaturesData();
-        sendRelaysData();
-        sendFunctionsData();
-        sendNetworksData();
+        if (canSendData())
+        {
+            sendTemperaturesData();
+            sendRelaysData();
+            sendFunctionsData();
+            sendNetworksData();
+        }
 
         lastSendTick = millis();
     }
 
     void tick()
     {
-        if (websocket.count() > 0 && millis() - lastSendTick > 2000 && (WiFi.status() == WL_CONNECTED || WiFi.softAPgetStationNum() > 0))
+        if (websocket.count() > 0 && millis() - lastSendTick > 2000)
         {
             sendRepeatableDataToClients();
 
             websocket.cleanupClients();
 
-            if(restartRequired)
+            if (restartRequired)
             {
                 ESP.restart();
             }
