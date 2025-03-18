@@ -8,7 +8,7 @@ namespace MyHeatTelebot
         botData->read();
 
         bot.setToken(botSave.token);
-        bot.setPollMode(fb::Poll::Long, 20000);
+        bot.setPollMode(fb::Poll::Long, 30000);
         bot.attachUpdate(handleUpdate);
         loadUsers();
     }
@@ -342,7 +342,6 @@ namespace MyHeatTelebot
             break;
         }
         }
-        
 
         bot.answerCallbackQuery(q.id());
         bot.editText(msg);
@@ -394,7 +393,6 @@ namespace MyHeatTelebot
         }
 
         bot.sendMessage(msg);
-
     }
 
     void setToken(String token)

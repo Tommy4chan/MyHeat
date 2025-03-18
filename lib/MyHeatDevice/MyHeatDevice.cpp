@@ -78,12 +78,14 @@ void MyHeatDevice::checkCustomFunctions()
         float tempA = getTemperature(customFunctions[i].getTemperatureIndex(0));
         float tempB = getTemperature(customFunctions[i].getTemperatureIndex(1));
 
-        if (tempA == -127.00 || tempB == -127.00)
+        if (tempA == TEMPERATURE_ERROR || tempB == TEMPERATURE_ERROR)
         {
-            //add some mark near the function in this case it can be error/warning or something
+            setFunctionAlert(i, FA_BAD_TEMPERATURE);
             customFunctions[i].setIsActive(false);
             continue;
         }
+
+        resetFunctionAlert(i);
 
         tempA += customFunctions[i].getDeltaValue(0);
         tempB += customFunctions[i].getDeltaValue(1);

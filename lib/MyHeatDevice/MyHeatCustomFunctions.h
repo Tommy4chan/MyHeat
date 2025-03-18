@@ -5,11 +5,19 @@
 #include "MyHeatSave.h"
 #include <LittleFS.h>
 
+enum FunctionAlert
+{
+    FA_NONE = 0,
+    FA_BAD_TEMPERATURE = 1,
+};
+
 class MyHeatCustomFunctions : public MyHeatSaveInterface
 {
 private:
     MyHeatCustomFunction *customFunctions;
     MyHeatSave *customFunctionsData;
+    FunctionAlert *functionAlerts;
+    bool *isNotified;
 
     byte functionCount;
 
@@ -60,12 +68,17 @@ private:
         delete[] customFunctions;
 
         customFunctions = new MyHeatCustomFunction[newFunctionCount];
+        functionAlerts = new FunctionAlert[newFunctionCount];
+        isNotified = new bool[newFunctionCount];
+
         if (oldFunctions != nullptr)
         {
             byte copyCount = min(functionCount, newFunctionCount);
             for (byte i = 0; i < copyCount; i++)
             {
                 customFunctions[i] = oldFunctions[i];
+                functionAlerts[i] = FunctionAlert::FA_NONE;
+                isNotified[i] = false;
             }
 
             delete[] oldFunctions;
@@ -79,7 +92,7 @@ public:
     {
         functionCount = 0;
         customFunctions = nullptr;
-        realocateMemory(1);
+        realocateMemory(FUNCTION_COUNT);
     }
 
     void begin()
@@ -155,6 +168,28 @@ public:
     {
         deserialize(payload);
         save();
+    }
+
+    void setFunctionAlert(byte functionIndex, FunctionAlert alert)
+    {
+        functionAlerts[functionIndex] = alert;
+    }
+
+    void resetFunctionAlert(byte functionIndex)
+    {
+        functionAlerts[functionIndex] = FunctionAlert::FA_NONE;
+        isNotified[functionIndex] = false;
+    }
+
+    FunctionAlert getFunctionAlert(byte functionIndex)
+    {
+        if (functionAlerts[functionIndex] != FunctionAlert::FA_NONE && !isNotified[functionIndex])
+        {
+            isNotified[functionIndex] = true;
+            return functionAlerts[functionIndex];
+        }
+
+        return FunctionAlert::FA_NONE;
     }
 
     void save()

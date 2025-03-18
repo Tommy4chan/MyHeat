@@ -7,7 +7,7 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
-enum TemperatureAlerts
+enum TemperatureAlert
 {
     TA_NONE = 0,
     TA_MIN = 1,
@@ -27,7 +27,7 @@ private:
     byte temperaturePin;
     float minTemperature;
     float maxTemperature;
-    TemperatureAlerts *temperatureAlerts;
+    TemperatureAlert *temperatureAlerts;
     bool *isNotified;
 
     OneWire oneWire;
@@ -98,7 +98,7 @@ private:
         temperatureSensorsAddresses = new uint8_t *[newCount];
         discoveredTemperatureSensorsAddresses = new uint8_t *[newCount];
         temperatures = new float[newCount];
-        temperatureAlerts = new TemperatureAlerts[newCount];
+        temperatureAlerts = new TemperatureAlert[newCount];
         isNotified = new bool[newCount];
 
         for (byte i = 0; i < newCount; i++)
@@ -220,6 +220,7 @@ public:
             temperatures[i] = temperatureSensors.getTempC(temperatureSensorsAddresses[i]);
         }
         temperatureSensors.requestTemperatures();
+        checkForAlerts();
     }
 
     float *getTemperatures()
@@ -346,7 +347,7 @@ public:
         return temperatures[index] == TEMPERATURE_ERROR;
     }
 
-    TemperatureAlerts getTemperatureAlert(byte index)
+    TemperatureAlert getTemperatureAlert(byte index)
     {
         if (temperatureAlerts[index] != TA_NONE && !isNotified[index])
         {

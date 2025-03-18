@@ -14,7 +14,7 @@ namespace MyHeatAlerts
     void tick();
     void checkTemperatureAlerts();
     void checkSmokeAlerts();
-    // void checkFunctionsAlerts();
+    void checkFunctionsAlerts();
 }
 
 #endif
