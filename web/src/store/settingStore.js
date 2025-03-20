@@ -16,10 +16,12 @@ const useSettingStore = create((set) => ({
   smokeSensorSettings: {},
   smokeSensor: {},
 
-  setWifiSettings: (ssid, password, mDNS) => {
+  setWifiSettings: (wifiSSID, wifiPassword, apSSID, apPassword, mDNS) => {
     const payload = {
-      ssid,
-      password,
+      wifiSSID,
+      wifiPassword,
+      apSSID,
+      apPassword,
       mDNS,
     };
     useWebSocketStore.getState().sendMessage("setWifiSettings", payload);

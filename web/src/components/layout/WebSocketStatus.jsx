@@ -4,7 +4,7 @@ import useWebSocketStore from "@/store/websocketStore";
 import Button from "@/components/ui/Button";
 
 const WebSocketStatus = () => {
-  const { readyState, reconnect } = useWebSocketStore();
+  const { webSocketState, reconnect } = useWebSocketStore();
 
   const connectionStatus = {
     [ReadyState.CONNECTING]: {
@@ -27,12 +27,12 @@ const WebSocketStatus = () => {
       text: "Неініціалізоване",
       color: "text-purple-500",
     },
-  }[readyState];
+  }[webSocketState];
 
   return (
     <div className="flex items-center gap-2">
       <p>З'єданння: <span className={connectionStatus.color}>{connectionStatus.text}</span></p>
-      {(readyState !== ReadyState.OPEN && readyState !== ReadyState.CONNECTING) && (
+      {(webSocketState !== ReadyState.OPEN && webSocketState !== ReadyState.CONNECTING) && (
         <Button 
           onClick={reconnect} 
           buttonText="Під'єднатись" 

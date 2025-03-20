@@ -19,7 +19,7 @@ public:
     MyHeatAnalogSensor()
     {
         pin = 0;
-        value = 0;
+        value = ANALOG_INITIAL_VALUE;
     }
 
     void begin(byte pin)

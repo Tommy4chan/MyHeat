@@ -4,9 +4,9 @@ import { useEffect } from "react";
 
 const WebSocketProvider = ({ children }) => {
 
-  const { onMessage, setSendMessage, setReadyState, setIsConnect, INACTIVITY_TIMEOUT, isConnect } = useWebSocketStore();
+  const { onMessage, setSendMessage, setWebSocketState, setIsConnect, INACTIVITY_TIMEOUT, isConnect } = useWebSocketStore();
 
-  const { sendJsonMessage, readyState } = useWebSocket(
+  const { sendJsonMessage, readyState: webSocketState } = useWebSocket(
     import.meta.env.DEV ? "ws://esp32-typec.local/ws" : `ws://${location.host}/ws`,
     {
       retryOnError: true,
@@ -39,14 +39,14 @@ const WebSocketProvider = ({ children }) => {
   );
 
   useEffect(() => {
-    setReadyState(readyState);
+    setWebSocketState(webSocketState);
 
     const interval = setInterval(() => {
       const now = Date.now();
       const { lastMessageTimestamp } = useWebSocketStore.getState();
 
       if (
-        readyState === ReadyState.OPEN &&
+        webSocketState === ReadyState.OPEN &&
         lastMessageTimestamp &&
         now - lastMessageTimestamp > INACTIVITY_TIMEOUT
       ) {
@@ -58,7 +58,7 @@ const WebSocketProvider = ({ children }) => {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [readyState]);
+  }, [webSocketState]);
 
   return children;
 };

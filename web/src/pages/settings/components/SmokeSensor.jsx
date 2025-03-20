@@ -67,7 +67,7 @@ const SmokeSensor = () => {
       <WrapperBlock>
         <DarkWrapperBlock className="justify-between">
           <p className="text-gray-300">
-            Значення: <span className={isSensorOverThreshold ? "text-red-700" : ""}>{sensorValue}</span>
+            Значення: <span className={isSensorOverThreshold ? "text-red-700" : ""}>{sensorValue === -1 ? "Ініціалізація" : sensorValue}</span>
           </p>
         </DarkWrapperBlock>
         <DarkWrapperBlock className='md:!flex-col'>

@@ -25,7 +25,7 @@ namespace MyHeatWeb
     {
         MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
 
-        myHeatWifi.setWifiSettings(payload[F("ssid")], payload[F("password")], payload[F("mDNS")]);
+        myHeatWifi.setWifiSettings(payload[F("wifiSSID")], payload[F("wifiPassword")], payload[F("apSSID")], payload[F("apPassword")], payload[F("mDNS")]);
 
         setSuccessMessage(status, "Налаштування збереженні");
     }
@@ -34,8 +34,10 @@ namespace MyHeatWeb
     {
         MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
 
-        response[F("ssid")] = myHeatWifi.getSSID();
-        response[F("password")] = myHeatWifi.getPassword();
+        response[F("wifiSSID")] = myHeatWifi.getWifiSSID();
+        response[F("wifiPassword")] = myHeatWifi.getWifiPassword();
+        response[F("apSSID")] = myHeatWifi.getAPSSID();
+        response[F("apPassword")] = myHeatWifi.getAPPassword();
         response[F("mDNS")] = myHeatWifi.getMDNS();
     }
 

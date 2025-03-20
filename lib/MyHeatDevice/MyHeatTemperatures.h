@@ -308,17 +308,17 @@ public:
                 continue;
             }
 
-            if (checkIsMinTemperature(i))
+            if (checkIsBadConnection(i))
+            {
+                temperatureAlerts[i] = TA_BAD_CONNECTION;
+            }
+            else if (checkIsMinTemperature(i))
             {
                 temperatureAlerts[i] = TA_MIN;
             }
             else if (checkIsMaxTemperature(i))
             {
                 temperatureAlerts[i] = TA_MAX;
-            }
-            else if (checkIsBadConnection(i))
-            {
-                temperatureAlerts[i] = TA_BAD_CONNECTION;
             }
             else
             {
@@ -334,12 +334,12 @@ public:
 
     bool checkIsMinTemperature(byte index)
     {
-        return temperatures[index] != TEMPERATURE_ERROR && temperatures[index] < minTemperature;
+        return temperatures[index] < minTemperature;
     }
 
     bool checkIsMaxTemperature(byte index)
     {
-        return temperatures[index] != TEMPERATURE_ERROR && temperatures[index] > maxTemperature;
+        return temperatures[index] > maxTemperature;
     }
 
     bool checkIsBadConnection(byte index)

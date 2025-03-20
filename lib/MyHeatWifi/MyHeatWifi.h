@@ -14,7 +14,10 @@
 class MyHeatWifi : public MyHeatSaveInterface
 {
 private:
-    String wifi[2];
+    String wifiSSID;
+    String wifiPassword;
+    String apSSID;
+    String apPassword;
     String mDNS;
     String ntpServer;
     String ntpIANA;
@@ -29,8 +32,10 @@ private:
 
     void serialize(JsonDocument &doc)
     {
-        doc["wifi_ssid"] = wifi[0];
-        doc["wifi_password"] = wifi[1];
+        doc["wifi_ssid"] = wifiSSID;
+        doc["wifi_password"] = wifiPassword;
+        doc["ap_ssid"] = apSSID;
+        doc["ap_password"] = apPassword;
         doc["mDNS"] = mDNS;
         doc["ntp_server"] = ntpServer;
         doc["ntp_iana"] = ntpIANA;
@@ -40,8 +45,10 @@ private:
 
     void deserialize(JsonDocument &doc)
     {
-        wifi[0] = doc["wifi_ssid"] | STR(WIFI_SSID);
-        wifi[1] = doc["wifi_password"] | STR(WIFI_PASSWORD);
+        wifiSSID = doc["wifi_ssid"] | STR(WIFI_SSID);
+        wifiPassword = doc["wifi_password"] | STR(WIFI_PASSWORD);
+        apSSID = doc["ap_ssid"] | STR(SOFTAP_SSID);
+        apPassword = doc["ap_password"] | STR(SOFTAP_PASSWORD);
         mDNS = doc["mDNS"] | STR(MDNS_ADDRESS);
         ntpServer = doc["ntp_server"]| STR(NTP_SERVER);
         ntpIANA = doc["ntp_iana"] | STR(NTP_IANA);
@@ -52,7 +59,7 @@ private:
     void setAPMode()
     {
         WiFi.disconnect();
-        WiFi.softAP(STR(SOFTAP_SSID), STR(SOFTAP_PASSWORD));
+        WiFi.softAP(apSSID, apPassword);
         WiFi.mode(WIFI_MODE_AP);
     }
 
@@ -62,9 +69,9 @@ private:
         WiFi.disconnect();
         WiFi.mode(WIFI_MODE_STA);
         WiFi.setSleep(false);
-        if (wifi[0] != "")
+        if (wifiSSID != "")
         {
-            WiFi.begin(wifi[0], wifi[1]);
+            WiFi.begin(wifiSSID, wifiPassword);
         }
         else
         {
@@ -73,8 +80,10 @@ private:
     }
 
     MyHeatWifi() {
-        wifi[0] = STR(WIFI_SSID);
-        wifi[1] = STR(WIFI_PASSWORD);
+        wifiSSID = STR(WIFI_SSID);
+        wifiPassword = STR(WIFI_PASSWORD);
+        apSSID = STR(SOFTAP_SSID);
+        apPassword = STR(SOFTAP_PASSWORD);
         mDNS = STR(MDNS_ADDRESS);
         ntpServer = STR(NTP_SERVER);
         ntpIANA = STR(NTP_IANA);
@@ -162,10 +171,12 @@ public:
         save();
     }
 
-    void setWifiSettings(String ssid, String password, String mDNS)
+    void setWifiSettings(String wifiSSID, String wifiPassword, String apSSID, String apPassword, String mDNS)
     {
-        wifi[0] = ssid;
-        wifi[1] = password;
+        this->wifiSSID = wifiSSID;
+        this->wifiPassword = wifiPassword;
+        this->apSSID = apSSID;
+        this->apPassword = apPassword;
         this->mDNS = mDNS;
         restartMDNS();
         save();
@@ -173,22 +184,32 @@ public:
 
     void setSSID(String ssid)
     {
-        wifi[0] = ssid;
+        wifiSSID = ssid;
     }
 
     void setPassword(String password)
     {
-        wifi[1] = password;
+        wifiPassword = password;
     }
 
-    String getSSID()
+    String getWifiSSID()
     {
-        return wifi[0];
+        return wifiSSID;
     }
 
-    String getPassword()
+    String getWifiPassword()
     {
-        return wifi[1];
+        return wifiPassword;
+    }
+
+    String getAPSSID()
+    {
+        return apSSID;
+    }
+
+    String getAPPassword()
+    {
+        return apPassword;
     }
 
     void switchWifiMode()

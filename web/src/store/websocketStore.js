@@ -6,7 +6,7 @@ import { showToast } from "../components/CustomToast";
 const useWebSocketStore = create(
   subscribeWithSelector((set, get) => ({
     messages: {},
-    readyState: ReadyState.UNINSTANTIATED,
+    webSocketState: ReadyState.UNINSTANTIATED,
     isConnect: true,
     lastMessageTimestamp: null,
     INACTIVITY_TIMEOUT: 8000,
@@ -46,8 +46,8 @@ const useWebSocketStore = create(
       set({ isConnect: true });
     },
 
-    setReadyState: (readyState) => {
-      set({ readyState });
+    setWebSocketState: (webSocketState) => {
+      set({ webSocketState });
     },
 
     setIsConnect: (isConnect) => {

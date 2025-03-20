@@ -292,7 +292,7 @@ namespace MyHeatWeb
 
     void tick()
     {
-        if (websocket.count() > 0 && millis() - lastSendTick > 2000)
+        if (millis() - lastSendTick > 2000)
         {
             sendRepeatableDataToClients();
 

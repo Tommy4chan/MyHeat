@@ -10,8 +10,14 @@ import useSettingStore from '../../../store/settingStore';
 import WifiSignal from '../../../components/ui/WifiSignal';
 
 const Wifi = () => {
-  const [ssid, setSsid] = useState('');
-  const [password, setPassword] = useState('');
+  const [wifiSSID, setWifiSSID] = useState('');
+  const [wifiPassword, setWifiPassword] = useState('');
+
+  const [apSSID, setApSSID] = useState('');
+  const [apPassword, setApPassword] = useState('');
+
+  const [mDNS, setMDNS] = useState('');
+  const [networks, setNetworks] = useState([]);
 
   const { setWifiSettings, getWifiSettings, startWifiScan, wifiSettings, scannedWifiNetworks, isScanningForWifiNetworks } = useSettingStore();
 
@@ -20,14 +26,12 @@ const Wifi = () => {
   }, []);
 
   useEffect(() => {
-    setSsid(wifiSettings.ssid);
-    setPassword(wifiSettings.password);
+    setWifiSSID(wifiSettings.wifiSSID);
+    setWifiPassword(wifiSettings.wifiPassword);
+    setApSSID(wifiSettings.apSSID);
+    setApPassword(wifiSettings.apPassword);
     setMDNS(wifiSettings.mDNS);
   }, [wifiSettings]);
-
-  const [mDNS, setMDNS] = useState('');
-
-  const [networks, setNetworks] = useState([]);
 
   useEffect(() => {
     setNetworks(scannedWifiNetworks);
@@ -53,7 +57,7 @@ const Wifi = () => {
               </div>
               <Button
                 buttonText={'Обрати'}
-                onClick={() => setSsid(network.ssid)}
+                onClick={() => setWifiSSID(network.ssid)}
               />
             </DarkWrapperBlock>
           ))
@@ -64,10 +68,21 @@ const Wifi = () => {
         <h3 className='text-xl'>Мережа:</h3>
         <DarkWrapperBlock className='md:!flex-col'>
           <FormField label="Ім'я">
-            <Input className='w-full' value={ssid} onChange={(e) => setSsid(e.target.value)} />
+            <Input className='w-full' value={wifiSSID} onChange={(e) => setWifiSSID(e.target.value)} />
           </FormField>
           <FormField label="Пароль">
-            <Input className='w-full' value={password} onChange={(e) => setPassword(e.target.value)} />
+            <Input className='w-full' value={wifiPassword} onChange={(e) => setWifiPassword(e.target.value)} />
+          </FormField>
+        </DarkWrapperBlock>
+      </WrapperBlock>
+      <WrapperBlock>
+        <h3 className='text-xl'>Точка доступу:</h3>
+        <DarkWrapperBlock className='md:!flex-col'>
+          <FormField label="Ім'я">
+            <Input className='w-full' value={apSSID} onChange={(e) => setApSSID(e.target.value)} />
+          </FormField>
+          <FormField label="Пароль">
+            <Input className='w-full' value={apPassword} onChange={(e) => setApPassword(e.target.value)} />
           </FormField>
         </DarkWrapperBlock>
       </WrapperBlock>
@@ -82,7 +97,7 @@ const Wifi = () => {
           </FormField>
         </DarkWrapperBlock>
       </WrapperBlock>
-      <SaveButton onClick={() => setWifiSettings(ssid, password, mDNS)} />
+      <SaveButton onClick={() => setWifiSettings(wifiSSID, wifiPassword, apSSID, apPassword, mDNS)} />
     </SettingsForm>
   )
 }

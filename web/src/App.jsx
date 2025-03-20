@@ -7,6 +7,7 @@ import { FunctionsPage } from './pages/functions';
 import { SettingsPage } from './pages/settings';
 import { WebSocketContainer } from './components/WebSocketContainer';
 import { ToastContainer } from 'react-toastify';
+import useWebSocketStore from './store/websocketStore';
 
 function App() {
   const [page, setPage] = useState('dashboard');

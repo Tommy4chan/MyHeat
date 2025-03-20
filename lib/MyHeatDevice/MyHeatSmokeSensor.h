@@ -13,7 +13,6 @@ private:
     bool isEnabled;
     bool isNotified;
     MyHeatSave *smokeSensorData;
-    
 
     void serialize(JsonDocument &doc)
     {
@@ -45,6 +44,10 @@ public:
 
     void updateSmokeSensor()
     {
+        if (millis() < 25000) {
+            return;
+        }
+
         if(!isEnabled)
         {
             value = 0;
