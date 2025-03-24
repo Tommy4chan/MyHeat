@@ -9,7 +9,7 @@ class MyHeatSmokeSensor : public MyHeatAnalogSensor, public MyHeatSaveInterface
 {
 private:
     int threshold;
-    bool isOverTreshold;
+    bool isOverThreshold;
     bool isEnabled;
     bool isNotified;
     MyHeatSave *smokeSensorData;
@@ -31,7 +31,7 @@ public:
     {
         pin = SMOKE_SENSOR_PIN;
         threshold = SMOKE_SENSOR_THRESHOLD;
-        isOverTreshold = false;
+        isOverThreshold = false;
         isEnabled = true;
         isNotified = false;
     }
@@ -56,9 +56,9 @@ public:
 
         MyHeatAnalogSensor::read();
         
-        isOverTreshold = value > threshold;
+        isOverThreshold = value > threshold;
 
-        if(!isOverTreshold && isNotified)
+        if(!isOverThreshold && isNotified)
         {
             isNotified = false;
         }
@@ -80,14 +80,14 @@ public:
         return isEnabled;
     }
 
-    bool getIsOverTreshold()
+    bool getIsOverThreshold()
     {
-        return isOverTreshold;
+        return isOverThreshold;
     }
 
     bool getIsSendSmokeSensorNotification()
     {
-        if (isOverTreshold && !isNotified)
+        if (isOverThreshold && !isNotified)
         {
             isNotified = true;
             return true;

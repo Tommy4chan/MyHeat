@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import useSettingStore from "@/store/settingStore";
 
-
 export const useBotSettings = () => {
   const [botToken, setBotToken] = useState('');
   const [botPassword, setBotPassword] = useState('');

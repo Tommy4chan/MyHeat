@@ -44,7 +44,7 @@ const useTemperatureStore = create((set, get) => ({
       .getState()
       .sendMessage("setTemperatureSensorsSettings", payload);
 
-    useTemperatureStore.getState().getTemperatureSensorsSettings();
+    get().getTemperatureSensorsSettings();
   },
 
   getDiscoveredTemperatureSensors: () => {

@@ -1,10 +1,10 @@
-import Input from "../../../components/ui/Input";
-import DarkWrapperBlock from "../../../components/layout/DarkWrapperBlock";
-import SaveButton from "../../../components/ui/SaveButton";
-import SettingsForm from "../../../components/layout/SettingsForm";
-import FormField from "../../../components/ui/FormField";
-import SelectToggle from "../../../components/ui/SelectToggle";
-import WrapperBlock from "../../../components/layout/WrapperBlock";
+import Input from "@/components/ui/Input";
+import DarkWrapperBlock from "@/components/layout/DarkWrapperBlock";
+import SaveButton from "@/components/ui/SaveButton";
+import SettingsForm from "@/components/layout/SettingsForm";
+import FormField from "@/components/ui/FormField";
+import SelectToggle from "@/components/ui/SelectToggle";
+import WrapperBlock from "@/components/layout/WrapperBlock";
 import { useBotSettings } from "../hooks/useBotSettings";
 
 const Bot = () => {

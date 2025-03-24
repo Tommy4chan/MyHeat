@@ -154,7 +154,7 @@ namespace MyHeatWeb
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
         response[F("value")] = myHeatDevice.MyHeatSmokeSensor::getValue();
-        response[F("isOverTreshold")] = myHeatDevice.MyHeatSmokeSensor::getIsOverTreshold();
+        response[F("isOverThreshold")] = myHeatDevice.MyHeatSmokeSensor::getIsOverThreshold();
     }
 
     void startWifiScan()

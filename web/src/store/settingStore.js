@@ -1,8 +1,7 @@
 import { create } from "zustand";
 import useWebSocketStore from "./websocketStore";
-import { use } from "react";
 
-const useSettingStore = create((set) => ({
+const useSettingStore = create((set, get) => ({
   wifiSettings: {},
   scannedWifiNetworks: [],
   isScanningForWifiNetworks: false,
@@ -25,6 +24,7 @@ const useSettingStore = create((set) => ({
       mDNS,
     };
     useWebSocketStore.getState().sendMessage("setWifiSettings", payload);
+    get().getWifiSettings();
   },
 
   startWifiScan: () => {
@@ -45,8 +45,8 @@ const useSettingStore = create((set) => ({
   },
 
   setTelegramBotSettings: (token, registerPhrase, isEnabled, isAlertNotificationsEnabled) => {
-    isEnabled = isEnabled === 'true' || isEnabled === 'false' ? isEnabled === 'true' : isEnabled;
-    isAlertNotificationsEnabled = isAlertNotificationsEnabled === 'true' || isAlertNotificationsEnabled === 'false' ? isAlertNotificationsEnabled === 'true' : isAlertNotificationsEnabled;
+    isEnabled = convertToBoolean(isEnabled);
+    isAlertNotificationsEnabled = convertToBoolean(isAlertNotificationsEnabled);
 
     const payload = {
       token,
@@ -56,6 +56,7 @@ const useSettingStore = create((set) => ({
     };
 
     useWebSocketStore.getState().sendMessage("setTelegramBotSettings", payload);
+    get().getTelegramBotSettings();
   },
 
   getTelegramBotSettings: () => {
@@ -75,6 +76,7 @@ const useSettingStore = create((set) => ({
     };
 
     useWebSocketStore.getState().sendMessage("setNTPSettings", payload);
+    get().getNtpSettings();
   },
 
   getNtpSettings: () => {
@@ -90,7 +92,6 @@ const useSettingStore = create((set) => ({
   },
 
   processGetHardwareIOSettings: (payload) => {
-    payload["screenPowerSaveInterval"] = payload["screenPowerSaveInterval"];
     payload["oledPins"] = [payload["oledSDA"], payload["oledSCL"]];
     payload["encoderPins"] = [
       payload["encA"],
@@ -110,8 +111,8 @@ const useSettingStore = create((set) => ({
     encInvert,
     encoderPins
   ) => {
-    isEnabled = isEnabled === 'true' || isEnabled === 'false' ? isEnabled === 'true' : isEnabled;
-    encInvert = encInvert === 'true' || encInvert === 'false' ? encInvert === 'true' : encInvert;
+    isEnabled = convertToBoolean(isEnabled);
+    encInvert = convertToBoolean(encInvert);
 
     const payload = {
       isEnabled,
@@ -126,6 +127,7 @@ const useSettingStore = create((set) => ({
     };
 
     useWebSocketStore.getState().sendMessage("setHardwareIOSettings", payload);
+    get().getHardwareIOSettings();
   },
 
   getAllDeviceSettings: () => {
@@ -138,6 +140,7 @@ const useSettingStore = create((set) => ({
 
   setAllDeviceSettings: (payload) => {
     useWebSocketStore.getState().sendMessage("setAllDeviceSettings", payload);
+    get().getAllDeviceSettings();
   },
 
   restartDevice: () => {
@@ -153,7 +156,7 @@ const useSettingStore = create((set) => ({
   },
 
   setSmokeSensorSettings: (isEnabled, threshold, pin) => {
-    isEnabled = isEnabled === 'true' || isEnabled === 'false' ? isEnabled === 'true' : isEnabled;
+    isEnabled = convertToBoolean(isEnabled);
 
     const payload = {
       isEnabled,
@@ -162,6 +165,7 @@ const useSettingStore = create((set) => ({
     };
 
     useWebSocketStore.getState().sendMessage("setSmokeSensorSettings", payload);
+    get().getSmokeSensorSettings();
   },
 
   getSmokeSensor: () => {
@@ -173,6 +177,8 @@ const useSettingStore = create((set) => ({
   },
 
 }));
+
+const convertToBoolean = (value) => value === 'true' || value === 'false' ? value === 'true' : value;
 
 useWebSocketStore.subscribe(
   (state) => state.messages["getWifiSettingsResponse"],
