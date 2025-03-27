@@ -279,12 +279,18 @@ namespace MyHeatWeb
 
     void sendRepeatableDataToClients()
     {
+        MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
+
         if (canSendData())
         {
             sendTemperaturesData();
             sendRelaysData();
             sendFunctionsData();
             sendNetworksData();
+            MyHeatWifi::getInstance().setIsWebsocketClientsConnected(true);
+        }
+        else {
+            MyHeatWifi::getInstance().setIsWebsocketClientsConnected(false);
         }
 
         lastSendTick = millis();

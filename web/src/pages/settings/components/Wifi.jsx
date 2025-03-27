@@ -6,6 +6,7 @@ import SaveButton from '@/components/ui/SaveButton';
 import FormField from '@/components/ui/FormField';
 import WrapperBlock from '@/components/layout/WrapperBlock';
 import WifiSignal from '@/components/ui/WifiSignal';
+import SelectToggle from "@/components/ui/SelectToggle";
 import { useWifiSettings } from '../hooks/useWifiSettings';
 
 const Wifi = () => {
@@ -64,6 +65,14 @@ const Wifi = () => {
           </FormField>
           <FormField label="Пароль">
             <Input className='w-full' value={settings.apPassword} onChange={handleSettingsChange} name='apPassword' />
+          </FormField>
+          <FormField label="Резервна точка доступу">
+            <SelectToggle
+              value={settings.isFallbackAPEnabled}
+              onChange={handleSettingsChange}
+              className='w-full'
+              name='isFallbackAPEnabled'
+            />
           </FormField>
         </DarkWrapperBlock>
       </WrapperBlock>

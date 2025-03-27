@@ -25,7 +25,7 @@ namespace MyHeatWeb
     {
         MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
 
-        myHeatWifi.setWifiSettings(payload[F("wifiSSID")], payload[F("wifiPassword")], payload[F("apSSID")], payload[F("apPassword")], payload[F("mDNS")]);
+        myHeatWifi.setWifiSettings(payload[F("wifiSSID")], payload[F("wifiPassword")], payload[F("apSSID")], payload[F("apPassword")], payload[F("isFallbackAPEnabled")], payload[F("mDNS")]);
 
         setSuccessMessage(status, "Налаштування збереженні");
     }
@@ -38,6 +38,7 @@ namespace MyHeatWeb
         response[F("wifiPassword")] = myHeatWifi.getWifiPassword();
         response[F("apSSID")] = myHeatWifi.getAPSSID();
         response[F("apPassword")] = myHeatWifi.getAPPassword();
+        response[F("isFallbackAPEnabled")] = myHeatWifi.getIsFallbackAPEnabled();
         response[F("mDNS")] = myHeatWifi.getMDNS();
     }
 

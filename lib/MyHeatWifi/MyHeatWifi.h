@@ -18,6 +18,7 @@ private:
     String wifiPassword;
     String apSSID;
     String apPassword;
+    bool isFallbackAPEnabled;
     String mDNS;
     String ntpServer;
     String ntpIANA;
@@ -27,6 +28,9 @@ private:
     unsigned long ntpSyncTick = 0;
     MyHeatSave *wifiData;
     bool isSyncTimeManually = false;
+    bool isAPActive = false;
+    bool isFallbackAPActive = false;
+    bool isWebsocketClientsConnected = false;
 
     byte wifiConnectAttemptsCount = 0;
 
@@ -36,6 +40,7 @@ private:
         doc["wifi_password"] = wifiPassword;
         doc["ap_ssid"] = apSSID;
         doc["ap_password"] = apPassword;
+        doc["is_fallback_ap_enabled"] = isFallbackAPEnabled;
         doc["mDNS"] = mDNS;
         doc["ntp_server"] = ntpServer;
         doc["ntp_iana"] = ntpIANA;
@@ -49,8 +54,9 @@ private:
         wifiPassword = doc["wifi_password"] | STR(WIFI_PASSWORD);
         apSSID = doc["ap_ssid"] | STR(SOFTAP_SSID);
         apPassword = doc["ap_password"] | STR(SOFTAP_PASSWORD);
+        isFallbackAPEnabled = doc["is_fallback_ap_enabled"] | IS_FALLBACK_AP_ENABLED;
         mDNS = doc["mDNS"] | STR(MDNS_ADDRESS);
-        ntpServer = doc["ntp_server"]| STR(NTP_SERVER);
+        ntpServer = doc["ntp_server"] | STR(NTP_SERVER);
         ntpIANA = doc["ntp_iana"] | STR(NTP_IANA);
         ntpOffset = doc["ntp_offset"] | NTP_OFFSET;
         ntpDaylightOffset = doc["ntp_daylight_offset"] | NTP_DAYLIGHT_OFFSET;
@@ -58,20 +64,37 @@ private:
 
     void setAPMode()
     {
-        WiFi.disconnect();
+        delay(100);
+        WiFi.setAutoReconnect(false);
         WiFi.softAP(apSSID, apPassword);
+        isAPActive = true;
+    }
+
+    void setManualAPMode()
+    {
         WiFi.mode(WIFI_MODE_AP);
+        setAPMode();
+    }
+
+    void setFallbackAPMode()
+    {
+        WiFi.mode(WIFI_MODE_APSTA);
+        isFallbackAPActive = true;
+        setAPMode();
     }
 
     void setSTAMode()
     {
+        isAPActive = false;
+        isFallbackAPActive = false;
+        wifiConnectAttemptsCount = 0;
         WiFi.softAPdisconnect();
-        WiFi.disconnect();
         WiFi.mode(WIFI_MODE_STA);
         WiFi.setSleep(false);
         if (wifiSSID != "")
         {
             WiFi.begin(wifiSSID, wifiPassword);
+            WiFi.setAutoReconnect(true);
         }
         else
         {
@@ -79,7 +102,8 @@ private:
         }
     }
 
-    MyHeatWifi() {
+    MyHeatWifi()
+    {
         wifiSSID = STR(WIFI_SSID);
         wifiPassword = STR(WIFI_PASSWORD);
         apSSID = STR(SOFTAP_SSID);
@@ -108,37 +132,41 @@ public:
 
         setSTAMode();
 
-        if (!MDNS.begin(mDNS))
-            Serial.println(F("Error setting up MDNS responder!"));
-        else
-            Serial.println(mDNS);
+        MDNS.begin(mDNS);
 
         beginNTP();
     }
 
     void tick()
     {
-        if (WiFi.getMode() != WIFI_MODE_AP)
+        if (isFallbackAPEnabled)
         {
-            if ((WiFi.status() != WL_CONNECTED && isScanCompleted() != -1) && (millis() - wifiReconnectTick >= WIFI_RECONNECT_INTERVAL))
+            if (!WiFi.isConnected() && isScanCompleted() != -1 && !isAPActive && (millis() - wifiReconnectTick >= WIFI_AP_FALLBACK_TIME))
             {
-                Serial.println("Reconnecting to WiFi...");
-                WiFi.reconnect();
-                wifiReconnectTick = millis();
-                wifiConnectAttemptsCount++;
-            }
-
-            if (wifiConnectAttemptsCount == 5)
-            {
-                setAPMode();
+                setFallbackAPMode();
                 wifiConnectAttemptsCount = 0;
             }
 
-            if (WiFi.status() == WL_CONNECTED && (millis() - ntpSyncTick >= NTP_SYNC_INTERVAL || (MyHeatUtils::isTimeDefault() && millis() - ntpSyncTick >= 10000) || isSyncTimeManually))
+            if (isFallbackAPActive && !isWebsocketClientsConnected && (millis() - wifiReconnectTick >= WIFI_AP_RECONNECT_INTERVAL))
+            {
+                WiFi.reconnect();
+                wifiReconnectTick = millis();
+            }
+
+            if (isFallbackAPActive && WiFi.isConnected())
+            {
+                setSTAMode();
+            }
+        }
+        if (WiFi.isConnected())
+        {
+            wifiReconnectTick = millis();
+            if (millis() - ntpSyncTick >= NTP_SYNC_INTERVAL || (MyHeatUtils::isTimeDefault() && millis() - ntpSyncTick >= 10000) || isSyncTimeManually)
             {
                 beginNTP();
             }
         }
+
     }
 
     bool isConnected()
@@ -158,26 +186,24 @@ public:
 
     void beginNTP()
     {
-        Serial.println("Syncing time...");
         configTime(ntpOffset, ntpDaylightOffset, ntpServer.c_str());
         ntpSyncTick = millis();
         isSyncTimeManually = false;
     }
 
-    void setWifiCredentials(String ssid, String password)
-    {
-        setSSID(ssid);
-        setPassword(password);
-        save();
-    }
-
-    void setWifiSettings(String wifiSSID, String wifiPassword, String apSSID, String apPassword, String mDNS)
+    void setWifiSettings(String wifiSSID, String wifiPassword, String apSSID, String apPassword, bool isFallbackAPEnabled, String mDNS)
     {
         this->wifiSSID = wifiSSID;
         this->wifiPassword = wifiPassword;
         this->apSSID = apSSID;
         this->apPassword = apPassword;
+        this->isFallbackAPEnabled = isFallbackAPEnabled;
         this->mDNS = mDNS;
+
+        if (!isFallbackAPEnabled)
+        {
+        }
+
         restartMDNS();
         save();
     }
@@ -212,17 +238,22 @@ public:
         return apPassword;
     }
 
+    bool getIsFallbackAPEnabled()
+    {
+        return isFallbackAPEnabled;
+    }
+
     void switchWifiMode()
     {
         WiFi.disconnect();
-        if (WiFi.getMode() == WIFI_MODE_AP)
+        if (WiFi.getMode() == WIFI_MODE_AP || WiFi.getMode() == WIFI_MODE_APSTA)
         {
             setSTAMode();
             Serial.println("Switching to STA mode");
         }
         else
         {
-            setAPMode();
+            setManualAPMode();
             Serial.println("Switching to AP mode");
         }
     }
@@ -294,6 +325,16 @@ public:
     int getNTPDaylightOffset()
     {
         return ntpDaylightOffset;
+    }
+
+    void setIsWebsocketClientsConnected(bool isConnected)
+    {
+        isWebsocketClientsConnected = isConnected;
+
+        if (isConnected)
+        {
+            wifiReconnectTick = millis();
+        }
     }
 
     void manualDeserialize(JsonDocument data)

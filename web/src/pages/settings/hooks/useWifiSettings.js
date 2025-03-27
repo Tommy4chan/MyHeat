@@ -7,6 +7,7 @@ export const useWifiSettings = () => {
     wifiPassword: "",
     apSSID: "",
     apPassword: "",
+    isFallbackAPEnabled: false,
     mDNS: "",
   });
 
@@ -45,7 +46,7 @@ export const useWifiSettings = () => {
   };
 
   const handleWifiSettingsSave = () => {
-    setWifiSettings(settings.wifiSSID, settings.wifiPassword, settings.apSSID, settings.apPassword, settings.mDNS);
+    setWifiSettings(settings.wifiSSID, settings.wifiPassword, settings.apSSID, settings.apPassword, settings.isFallbackAPEnabled, settings.mDNS);
   };
 
   return {

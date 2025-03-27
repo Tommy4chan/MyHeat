@@ -7,7 +7,7 @@ const WebSocketProvider = ({ children }) => {
   const { onMessage, setSendMessage, setWebSocketState, setIsConnect, INACTIVITY_TIMEOUT, isConnect } = useWebSocketStore();
 
   const { sendJsonMessage, readyState: webSocketState } = useWebSocket(
-    import.meta.env.DEV ? "ws://192.168.137.96/ws" : `ws://${location.host}/ws`,
+    import.meta.env.DEV ? "ws://esp32-typec.local/ws" : `ws://${location.host}/ws`,
     {
       retryOnError: true,
       shouldReconnect: () => true,

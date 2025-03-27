@@ -15,12 +15,15 @@ const useSettingStore = create((set, get) => ({
   smokeSensorSettings: {},
   smokeSensor: {},
 
-  setWifiSettings: (wifiSSID, wifiPassword, apSSID, apPassword, mDNS) => {
+  setWifiSettings: (wifiSSID, wifiPassword, apSSID, apPassword, isFallbackAPEnabled, mDNS) => {
+    isFallbackAPEnabled = convertToBoolean(isFallbackAPEnabled);
+
     const payload = {
       wifiSSID,
       wifiPassword,
       apSSID,
       apPassword,
+      isFallbackAPEnabled,
       mDNS,
     };
     useWebSocketStore.getState().sendMessage("setWifiSettings", payload);
