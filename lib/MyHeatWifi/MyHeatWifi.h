@@ -245,8 +245,7 @@ public:
 
     void switchWifiMode()
     {
-        WiFi.disconnect();
-        if (WiFi.getMode() == WIFI_MODE_AP || WiFi.getMode() == WIFI_MODE_APSTA)
+        if (isAPMode())
         {
             setSTAMode();
             Serial.println("Switching to STA mode");
@@ -325,6 +324,25 @@ public:
     int getNTPDaylightOffset()
     {
         return ntpDaylightOffset;
+    }
+
+    bool isAPMode()
+    {
+        return WiFi.getMode() == WIFI_MODE_AP || WiFi.getMode() == WIFI_MODE_APSTA;
+    }
+
+    String getIpAddress()
+    {
+        if (isAPMode())
+        {
+            return WiFi.softAPIP().toString();
+        }
+        else if(WiFi.isConnected())
+        {
+            return WiFi.localIP().toString();
+        }
+
+        return "";
     }
 
     void setIsWebsocketClientsConnected(bool isConnected)

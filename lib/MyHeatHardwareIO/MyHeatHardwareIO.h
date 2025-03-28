@@ -9,6 +9,7 @@
 #include "MyHeatWifi.h"
 #include "MyHeatDevice.h"
 #include "MyHeatSave.h"
+#include <QRCode.h>
 
 #ifdef U8X8_HAVE_HW_SPI
 #include <SPI.h>
@@ -39,9 +40,11 @@ private:
     byte encA = ENC_A;
     byte encB = ENC_B;
     byte encBtn = ENC_BTN;
-    bool encInvert = false;
-    byte oledAddress = 0x78;
-    int screenPowerSaveInterval = 60000;
+    bool encInvert = INVERT_ENCODER;
+    byte oledAddress = OLED_ADDRESS;
+    int screenPowerSaveInterval = SCREEN_POWER_SAVE_INTERVAL;
+
+    bool isModalActive = false;
 
     bool isEnabled = true;
 
@@ -125,17 +128,89 @@ private:
         {
             updateScreenManual();
         }
-        else if (eb->hold(2))
+        else if (eb->hold(1))
         {
             MyHeatWifi::getInstance().switchWifiMode();
+            showWifiSwitchModal();
+        }
+        else if (!isModalActive && eb->holdFor(5000))
+        {
+            showQRCodeModal();
         }
     }
 
     void updateScreenManual()
     {
+        isModalActive = false;
         isScreenOn = true;
         screenPowerSaveTimer = millis();
         updateScreen();
+    }
+
+    void showWifiSwitchModal()
+    {
+        u8g2->clearBuffer();
+        isModalActive = true;
+
+        MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
+
+        u8g2->setFont(u8g2_font_8x13_t_cyrillic);
+        u8g2->setCursor(0, 24);
+        if (myHeatWifi.isAPMode()) {
+            u8g2->print("Точка доступу");
+            u8g2->setCursor(0, 40);
+            u8g2->print(myHeatWifi.getAPSSID());
+            u8g2->setCursor(0, 56);
+            u8g2->print(myHeatWifi.getAPPassword());
+        }
+        else {
+            u8g2->print("WiFi мережа");
+            u8g2->setCursor(0, 40);
+            u8g2->print("активна");
+        }
+
+        u8g2->sendBuffer();
+    }
+
+    void showQRCodeModal()
+    {
+        u8g2->clearBuffer();
+        isModalActive = true;
+        QRCode qrcode;
+        uint8_t qrcodeData[qrcode_getBufferSize(2)];
+
+        String localIP = MyHeatWifi::getInstance().getIpAddress();
+
+        if (localIP != "")
+        {
+            String webUIURL = "http://" + localIP + "/";
+            qrcode_initText(&qrcode, qrcodeData, 2, ECC_LOW, webUIURL.c_str());
+    
+            uint8_t scale = 2;
+            int xOffset = (128 - qrcode.size * scale) / 2;  
+            int yOffset = (64 - qrcode.size * scale) / 2;   
+          
+            for (uint8_t y = 0; y < qrcode.size; y++)
+            {
+                for (uint8_t x = 0; x < qrcode.size; x++)
+                {
+                    if (qrcode_getModule(&qrcode, x, y))
+                    {
+                        u8g2->drawBox(xOffset + x * scale, yOffset + y * scale, scale, scale);
+                    }
+                }
+            }
+        }
+        else
+        {
+            u8g2->setFont(u8g2_font_8x13_t_cyrillic);
+            u8g2->setCursor(0, 24);
+            u8g2->print("Нема підключення");
+            u8g2->setCursor(0, 40);
+            u8g2->print("до інтернету(");
+        }
+
+        u8g2->sendBuffer();
     }
 
     void updateScreen()
@@ -164,14 +239,16 @@ private:
         oledSDA = sda;
         oledAddress = address;
 
-        //u8g2 = new U8G2_SSD1306_128X64_NONAME_F_HW_I2C(U8G2_R0, /* reset=*/U8X8_PIN_NONE, scl, sda)  (for oled 0.96);;
+        //u8g2 = new U8G2_SSD1306_128X64_NONAME_F_HW_I2C(U8G2_R0, /* reset=*/U8X8_PIN_NONE, scl, sda)  (for oled 0.96);
         u8g2 = new U8G2_SH1106_128X64_NONAME_F_HW_I2C(U8G2_R0, /* reset=*/U8X8_PIN_NONE, scl, sda);
-
-        u8g2->begin();
+        
         u8g2->setI2CAddress(address);
+        u8g2->begin();
         u8g2->clearBuffer();
         u8g2->enableUTF8Print();
         u8g2->sendBuffer();
+
+        isModalActive = false;
     }
 
     void initEncoder(byte a, byte b, byte btn, bool invert)
@@ -222,10 +299,11 @@ public:
         if (isScreenOn && millis() - screenPowerSaveTimer >= screenPowerSaveInterval)
         {
             isScreenOn = false;
+            isModalActive = false;
             u8g2->setPowerSave(true);
         }
 
-        if (isScreenOn && millis() - screenUpdateTimer >= 1000)
+        if (isScreenOn && !isModalActive && millis() - screenUpdateTimer >= 1000)
         {
             screenUpdateTimer = millis();
             updateScreen();
