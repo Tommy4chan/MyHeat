@@ -40,31 +40,37 @@ const Navbar = ({ setPage, page }) => {
             <img className="w-8 h-8" src="/logo-transparent.png" />
             <h2 className="text-2xl font-semibold">MyHeat</h2>
           </div>
-          <WebSocketStatus />
+          <div className="hidden lg:block">
+            <WebSocketStatus/>
+          </div>
         </div>
 
         <div>
           <ul className="flex">
             {navOptions.map((option) => (
-              <li className={`hidden md:block hover:bg-gray-900 transition duration-300 ${option.page == page && 'bg-gray-900'}`} key={option.name}>
+              <li className={`hidden lg:block hover:bg-gray-900 transition duration-300 ${option.page == page && 'bg-gray-900'}`} key={option.name}>
                 <button className="p-4" onClick={() => setPage(option.page)}>{option.name}</button>
               </li>
             ))}
-            <li className="block md:hidden hover:bg-gray-900 transition duration-300">
+            <li className="block lg:hidden hover:bg-gray-900 transition duration-300">
               <button className="p-4" onClick={handleNav}>{nav ? <AiOutlineClose size={20} /> : <AiOutlineMenu size={20} />}</button>
             </li>
           </ul>
         </div>
       </div>
-      <div className="md:hidden">
+      <div className="lg:hidden">
         <ul
           className={`absolute w-full bg-gray-800 overflow-hidden transition-all duration-300 ease-in-out ${nav ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
             }`}
         >
+          <li className="w-full flex justify-center items-center py-4 border-b border-gray-700">
+          <WebSocketStatus />
+          </li>
+          
           {navOptions.map((option) => (
             <li
               key={option.name}
-              className="hover:bg-gray-900 transition duration-300"
+              className={`hover:bg-gray-900 transition duration-300 ${option.page == page && 'bg-gray-900'}`}
             >
               <button
                 className="py-4 w-full"
