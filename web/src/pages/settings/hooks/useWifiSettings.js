@@ -49,6 +49,10 @@ export const useWifiSettings = () => {
     setWifiSettings(settings.wifiSSID, settings.wifiPassword, settings.apSSID, settings.apPassword, settings.isFallbackAPEnabled, settings.mDNS);
   };
 
+  const setWifiSSID = (ssid) => {
+    setSettings((prev) => ({ ...prev, wifiSSID: ssid }));
+  };
+
   return {
     settings,
     networks,
@@ -56,5 +60,6 @@ export const useWifiSettings = () => {
     handleWifiSettingsSave,
     startWifiScan,
     isScanningForWifiNetworks,
+    setWifiSSID,
   };
 };

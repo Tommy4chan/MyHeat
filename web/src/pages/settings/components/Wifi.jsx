@@ -17,6 +17,7 @@ const Wifi = () => {
     handleWifiSettingsSave,
     startWifiScan,
     isScanningForWifiNetworks,
+    setWifiSSID
   } = useWifiSettings();
 
   return (

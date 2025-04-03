@@ -16,8 +16,8 @@ const Hardware = () => {
   } = usePinStore();
 
   const {
-    isActive,
-    setIsActive,
+    isEnabled,
+    setIsEnabled,
     oledAddress,
     setOledAddress,
     screenPowerSaveInterval,
@@ -36,8 +36,8 @@ const Hardware = () => {
     <SettingsForm title='Фізичний Ввід\Вивід'>
       <FormField label='Увімкнений'>
         <SelectToggle
-          value={isActive}
-          onChange={(e) => setIsActive(e.target.value)}
+          value={isEnabled}
+          onChange={(e) => setIsEnabled(e.target.value)}
           className='w-full'
           color="light-gray"
         />

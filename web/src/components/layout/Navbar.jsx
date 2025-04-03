@@ -40,9 +40,7 @@ const Navbar = ({ setPage, page }) => {
             <img className="w-8 h-8" src="/logo-transparent.png" />
             <h2 className="text-2xl font-semibold">MyHeat</h2>
           </div>
-          <div className="hidden lg:block">
-            <WebSocketStatus/>
-          </div>
+            <WebSocketStatus className="hidden lg:flex" />
         </div>
 
         <div>

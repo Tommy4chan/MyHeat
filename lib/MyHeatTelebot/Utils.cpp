@@ -48,7 +48,7 @@ namespace MyHeatTelebot
             relayText = "Н/Д";
         }
 
-        return isValidText + "Функція " + String(functionIndex + 1) + ": \n" +
+        return isValidText + "Функція " + String(functionIndex) + ": \n" +
                result[0] + " " + sign + " " + result[1] +
                "\nРеле: " + relayText +
                "\nСтан: " + MyHeatUtils::getConvertedStateToText(customFunction.getIsEnabled()) +
