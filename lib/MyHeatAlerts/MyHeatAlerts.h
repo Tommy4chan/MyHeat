@@ -8,7 +8,7 @@
 
 namespace MyHeatAlerts
 {
-    inline uint32_t lastCheckTick = -10000;
+    inline uint32_t lastCheckTick = -20000;
 
     // void begin();
     void tick();

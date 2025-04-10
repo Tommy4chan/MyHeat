@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import useSettingStore from "@/store/settingStore";
-import { showErrorToast, showSuccessToast, showWarningToast } from "../../../components/CustomToast";
+import { showErrorToast, showSuccessToast, showWarningToast } from "@/components/CustomToast";
 
 export const useDeviceSettings = () => {
   const { getAllDeviceSettings, allDeviceSettings, setAllDeviceSettings, restartDevice } = useSettingStore();

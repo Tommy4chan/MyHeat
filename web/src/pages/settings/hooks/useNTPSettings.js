@@ -35,8 +35,6 @@ export const useNTPSettings = () => {
       return;
     }
 
-    result.offset = now.offset * 60;
-
     const janOffset = DateTime.local(now.year, 1, 1).setZone(
       newTimeZone
     ).offset;
@@ -44,6 +42,7 @@ export const useNTPSettings = () => {
       newTimeZone
     ).offset;
 
+    result.offset = janOffset * 60;
     result.dst = janOffset !== julOffset;
     
     setNtpData(result);

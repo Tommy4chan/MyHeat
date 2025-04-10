@@ -143,7 +143,13 @@ const useSettingStore = create((set, get) => ({
 
   setAllDeviceSettings: (payload) => {
     useWebSocketStore.getState().sendMessage("setAllDeviceSettings", payload);
-    get().getAllDeviceSettings();
+
+    if (payload["MyHeatWifi"]["mDNS"] !== get().wifiSettings["mDNS"]) {
+      location.replace(`http://${payload["MyHeatWifi"]["mDNS"]}.local`);
+    }
+    else {
+      get().getAllDeviceSettings();
+    }
   },
 
   restartDevice: () => {

@@ -9,6 +9,8 @@ enum FunctionAlert
 {
     FA_NONE = 0,
     FA_BAD_TEMPERATURE = 1,
+    FA_BAD_TEMPERATURE_NUMBER = 2,
+    FA_BAD_RELAY_NUMBER = 3,
 };
 
 class MyHeatCustomFunctions : public MyHeatSaveInterface

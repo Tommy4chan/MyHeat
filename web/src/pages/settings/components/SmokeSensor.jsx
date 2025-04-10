@@ -15,7 +15,7 @@ const SmokeSensor = () => {
   const { settings, sensor, handleSettingsChange, handleSmokeSensorSettingsSave } = useSmokeSensorSettings();
 
   return (
-    <SettingsForm title='Детектор диму'>
+    <SettingsForm title='Датчик диму'>
       <WrapperBlock>
         <DarkWrapperBlock className="justify-between">
           <p className="text-gray-300">

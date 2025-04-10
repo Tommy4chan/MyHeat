@@ -79,6 +79,14 @@ namespace MyHeatAlerts
             {
                 message = "Функція " + String(i) + " не може бути активною через проблеми з датчиками температури";
             }
+            else if (alert == FunctionAlert::FA_BAD_TEMPERATURE_NUMBER)
+            {
+                message = "Функція " + String(i) + " не може бути активною через використання неіснуйочуго датчика температури";
+            }
+            else if (alert == FunctionAlert::FA_BAD_RELAY_NUMBER)
+            {
+                message = "Функція " + String(i) + " не може бути активною через використання неіснуйочуго реле";
+            }
 
             MyHeatWeb::sendAlertNotification(message);
             MyHeatTelebot::sendAlertNotification(message);

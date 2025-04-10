@@ -73,16 +73,20 @@ private:
         }
 
         uint8_t **oldAddresses = nullptr;
-        if (temperatureCount > 0 && temperatureSensorsAddresses != nullptr)
+        float *oldTemperatures = nullptr;
+
+        if (temperatureCount > 0 && temperatureSensorsAddresses != nullptr && temperatures != nullptr)
         {
             oldAddresses = new uint8_t *[temperatureCount];
+            oldTemperatures = new float[temperatureCount];
             for (byte i = 0; i < temperatureCount; i++)
             {
                 oldAddresses[i] = new uint8_t[8];
                 memcpy(oldAddresses[i], temperatureSensorsAddresses[i], 8);
+                oldTemperatures[i] = temperatures[i];
             }
         }
-
+            
         if (temperatureSensorsAddresses != nullptr)
         {
             for (byte i = 0; i < temperatureCount; i++)
@@ -105,13 +109,17 @@ private:
         {
             temperatureSensorsAddresses[i] = new uint8_t[8]{};
             discoveredTemperatureSensorsAddresses[i] = new uint8_t[8]{};
-            temperatures[i] = TEMPERATURE_ERROR;
             temperatureAlerts[i] = TA_NONE;
             isNotified[i] = false;
 
             if (oldAddresses != nullptr && i < temperatureCount)
             {
                 memcpy(temperatureSensorsAddresses[i], oldAddresses[i], 8);
+                temperatures[i] = oldTemperatures[i];
+            }
+            else
+            {
+                temperatures[i] = TEMPERATURE_ERROR;
             }
         }
 

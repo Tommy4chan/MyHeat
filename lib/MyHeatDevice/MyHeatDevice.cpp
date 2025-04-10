@@ -36,20 +36,25 @@ void MyHeatDevice::validateCustomFunctions()
     {
         bool isInvalid = false;
 
+        resetFunctionAlert(i);
+
         if (customFunctions[i].getTemperatureIndex(0) >= getTemperatureCount() && customFunctions[i].getTemperatureIndex(0) != TN_INDEX)
         {
+            setFunctionAlert(i, FA_BAD_TEMPERATURE_NUMBER);
             customFunctions[i].setTemperatureIndex(0, TEMP_UNKNOWN);
             isInvalid = true;
         }
 
         if (customFunctions[i].getTemperatureIndex(1) >= getTemperatureCount() && customFunctions[i].getTemperatureIndex(1) != TN_INDEX)
         {
+            setFunctionAlert(i, FA_BAD_TEMPERATURE_NUMBER);
             customFunctions[i].setTemperatureIndex(1, TEMP_UNKNOWN);
             isInvalid = true;
         }
 
         if (customFunctions[i].getRelayIndex() >= getRelayCount())
         {
+            setFunctionAlert(i, FA_BAD_RELAY_NUMBER);
             customFunctions[i].setRelayIndex(RELAY_UNKNOWN);
             isInvalid = true;
         }
