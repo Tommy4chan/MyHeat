@@ -116,6 +116,16 @@ private:
         u8g2->print("Активне: " + MyHeatUtils::getConvertedActiveToText(relay.getIsActive()));
     }
 
+    void showSmokeSensor()
+    {
+        MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
+        u8g2->print(F("Датчик диму: "));
+        u8g2->setCursor(0, 40);
+        u8g2->print(myHeatDevice.MyHeatSmokeSensor::getValue() == -1 ? "Ініціалізація" : String(myHeatDevice.MyHeatSmokeSensor::getValue()));
+        u8g2->setCursor(0, 56);
+        u8g2->print("Небезпечно: " + MyHeatUtils::getConvertedActiveToText(myHeatDevice.MyHeatSmokeSensor::getIsOverThreshold()));
+    }
+
     void handleEncoder()
     {
         if (eb->turn())
@@ -224,10 +234,15 @@ private:
             u8g2->setFont(u8g2_font_10x20_t_cyrillic);
             showTemperature();
         }
-        else if (menuIndex >= maxTemperatureScreens && menuIndex < maxScreens)
+        else if (menuIndex >= maxTemperatureScreens && menuIndex < maxTemperatureScreens + maxRelayScreens)
         {
             u8g2->setFont(u8g2_font_8x13_t_cyrillic);
             showRelay();
+        }
+        else if (menuIndex >= maxTemperatureScreens + maxRelayScreens && menuIndex < maxScreens)
+        {
+            u8g2->setFont(u8g2_font_8x13_t_cyrillic);
+            showSmokeSensor();
         }
 
         u8g2->sendBuffer();
@@ -319,7 +334,7 @@ public:
 
         maxTemperatureScreens = ceil((float)myHeatDevice.getTemperatureCount() / 3);
         maxRelayScreens = myHeatDevice.getRelayCount();
-        maxScreens = maxTemperatureScreens + maxRelayScreens;
+        maxScreens = maxTemperatureScreens + maxRelayScreens + 1;
     }
 
     void setSettings(byte oledAddress, byte scl, byte sda, int screenPowerSaveInterval, byte encA, byte encB, byte encBtn, bool encInvert, bool isEnabled)

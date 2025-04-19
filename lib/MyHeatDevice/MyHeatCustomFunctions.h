@@ -122,13 +122,15 @@ public:
         save();
     }
 
-    void setCustomFunctionIsEnabled(byte functionIndex, bool isEnabled)
+    bool setCustomFunctionIsEnabled(byte functionIndex, bool isEnabled)
     {
         if (!customFunctions[functionIndex].isValid())
-            return;
+            return false;
 
         customFunctions[functionIndex].setIsEnabled(isEnabled);
         save();
+        
+        return true;
     }
 
     void setCustomFunctionSign(byte functionIndex, byte sign)

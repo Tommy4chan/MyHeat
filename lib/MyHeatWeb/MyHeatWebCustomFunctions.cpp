@@ -6,14 +6,19 @@ namespace MyHeatWeb
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
+        myHeatDevice.resetFunctionAlert(payload["functionIndex"]);
+
         if (payload["functionIndex"] >= myHeatDevice.getCustomFunctionCount())
         {
             setErrorMessage(status, F("Неіснуюча функція"));
         }
-        myHeatDevice.setCustomFunctionIsEnabled(payload["functionIndex"], payload["isEnabled"]);
-        myHeatDevice.checkCustomFunctions();
-
-        setSuccessMessage(status, "Стан функції " + payload["functionIndex"].as<String>() + " змінено");
+        if (myHeatDevice.setCustomFunctionIsEnabled(payload["functionIndex"], payload["isEnabled"])) {
+            setSuccessMessage(status, "Стан функції " + payload["functionIndex"].as<String>() + " змінено");
+            myHeatDevice.checkCustomFunctions();
+        }
+        else {
+            setErrorMessage(status, "Не вдалося змінити стан функції " + payload["functionIndex"].as<String>() + ", перевірте її параметри");
+        }
     }
 
     void setFunctionsSettings(JsonObject payload, JsonObject status)

@@ -171,7 +171,7 @@ public:
 
     bool isConnected()
     {
-        return WiFi.status() == WL_CONNECTED;
+        return WiFi.isConnected();
     }
 
     void setNTPSettings(String ntpServer, String ntpIANA, int ntpOffset, int ntpDaylightOffset)
