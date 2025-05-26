@@ -5,7 +5,7 @@ namespace MyHeatTelebot
     fb::Menu &getMainReplyMenu()
     {
         replyMenu.resize = 1;
-        replyMenu.text = F("Температура ; Реле \n Функції ; Налаштування");
+        replyMenu.text = F("Температура ; Реле \n Функції ; Інформація");
 
         return replyMenu;
     }
@@ -27,10 +27,14 @@ namespace MyHeatTelebot
 
     fb::InlineMenu &getTemperatureInlineMenu()
     {
-        inlineMenu = fb::InlineMenu(
-            F("Виявити датчик \n Видалити датчик \n Оновити"),
-            F("discoverTemperatureSensor;deleteTemperatureSensor;refreshTemperatures"));
+        // inlineMenu = fb::InlineMenu(
+        //     F("Виявити датчик \n Видалити датчик \n Оновити"),
+        //     F("discoverTemperatureSensor;deleteTemperatureSensor;refreshTemperatures"));
 
+        inlineMenu = fb::InlineMenu(
+            F("Оновити"),
+            F("refreshTemperatures")
+        );
 
         return inlineMenu;
     }

@@ -185,9 +185,9 @@ public:
         isNotified[functionIndex] = false;
     }
 
-    FunctionAlert getFunctionAlert(byte functionIndex)
+    FunctionAlert getFunctionAlert(byte functionIndex, bool forceNotification)
     {
-        if (functionAlerts[functionIndex] != FunctionAlert::FA_NONE && !isNotified[functionIndex])
+        if (functionAlerts[functionIndex] != FunctionAlert::FA_NONE && (!isNotified[functionIndex] || forceNotification))
         {
             isNotified[functionIndex] = true;
             return functionAlerts[functionIndex];

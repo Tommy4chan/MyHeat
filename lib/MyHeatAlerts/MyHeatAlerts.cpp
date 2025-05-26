@@ -4,18 +4,12 @@ namespace MyHeatAlerts
 {
     void tick()
     {
-        if (millis() - lastCheckTick < 5000)
-        {
-            return;
-        }
-
-        checkTemperatureAlerts();
-        checkSmokeAlerts();
-        checkFunctionsAlerts();
-        // lastCheckTick = millis();
+        checkTemperatureAlerts(false);
+        checkSmokeAlerts(false);
+        checkFunctionsAlerts(false);
     }
 
-    void checkTemperatureAlerts()
+    void checkTemperatureAlerts(bool forceNotification)
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
@@ -28,7 +22,7 @@ namespace MyHeatAlerts
 
             String message = "";
 
-            TemperatureAlert alert = myHeatDevice.getTemperatureAlert(i);
+            TemperatureAlert alert = myHeatDevice.getTemperatureAlert(i, forceNotification);
             if (alert == TA_NONE)
             {
                 continue;
@@ -51,23 +45,36 @@ namespace MyHeatAlerts
         }
     }
 
-    void checkSmokeAlerts()
+    void checkSmokeAlerts(bool forceNotification)
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
-        if (myHeatDevice.MyHeatSmokeSensor::getIsSendSmokeSensorNotification())
-        {
-            MyHeatWeb::sendAlertNotification("Димовий датчик виявив дим");
-            MyHeatTelebot::sendAlertNotification("Димовий датчик виявив дим");
+        SmokeSensorAlert alert = myHeatDevice.MyHeatSmokeSensor::getSmokeSensorAlert(forceNotification);
+
+        String message = "";
+
+        if (alert == SSA_NONE) {
+            return;
         }
+        if (alert == SSA_BAD_CONNECTION)
+        {
+            message = "Димовий датчик не підключений";
+        }
+        else if (alert == SSA_OVER_THRESHOLD)
+        {
+            message = "Димовий датчик виявив дим";
+        }
+
+        MyHeatWeb::sendAlertNotification(message);
+        MyHeatTelebot::sendAlertNotification(message);
     }
 
-    void checkFunctionsAlerts() {
+    void checkFunctionsAlerts(bool forceNotification) {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
         for (byte i = 0; i < myHeatDevice.getCustomFunctionCount(); i++)
         {
-            FunctionAlert alert = myHeatDevice.getFunctionAlert(i);
+            FunctionAlert alert = myHeatDevice.getFunctionAlert(i, forceNotification);
 
             String message = "";
 

@@ -355,9 +355,9 @@ public:
         return temperatures[index] == TEMPERATURE_ERROR;
     }
 
-    TemperatureAlert getTemperatureAlert(byte index)
+    TemperatureAlert getTemperatureAlert(byte index, bool forceNotification)
     {
-        if (temperatureAlerts[index] != TA_NONE && !isNotified[index])
+        if (temperatureAlerts[index] != TA_NONE && (!isNotified[index] || forceNotification))
         {
             isNotified[index] = true;
             return temperatureAlerts[index];

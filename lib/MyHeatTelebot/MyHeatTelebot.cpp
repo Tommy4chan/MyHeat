@@ -120,9 +120,18 @@ namespace MyHeatTelebot
             msg.setInlineMenu(getFunctionListInlineMenu());
             break;
         }
-        case su::SH("Налаштування"):
+        case su::SH("Інформація"):
         {
-            msg.text = F("Налаштування: інфа");
+            MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
+
+            msg.text = "Веб-інтерфейс: http://" + myHeatWifi.getMDNS() + ".local\n\n"
+                        "Мережа: \n" +
+                        "Ім'я: " + myHeatWifi.getWifiSSID() + "\n" +
+                        "Пароль: " + myHeatWifi.getWifiPassword() + "\n\n" +
+                        "Точка доступу: \n" +
+                        "Ім'я: " + myHeatWifi.getAPSSID() + "\n" +
+                        "Пароль: " + myHeatWifi.getAPPassword() + "\n" +
+                        "Режим резервна точки доступу: " + MyHeatUtils::getConvertedStateToText(myHeatWifi.getIsFallbackAPEnabled());
             break;
         }
         }

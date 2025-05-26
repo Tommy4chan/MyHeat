@@ -26,8 +26,15 @@ const useSettingStore = create((set, get) => ({
       isFallbackAPEnabled,
       mDNS,
     };
+    
     useWebSocketStore.getState().sendMessage("setWifiSettings", payload);
-    get().getWifiSettings();
+
+    if (mDNS !== get().wifiSettings["mDNS"]) {
+      location.replace(`http://${mDNS}.local`);
+    }
+    else {
+      get().getWifiSettings();
+    }
   },
 
   startWifiScan: () => {

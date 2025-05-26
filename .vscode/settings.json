@@ -59,7 +59,8 @@
         "mutex": "cpp",
         "thread": "cpp",
         "format": "cpp",
-        "span": "cpp"
+        "span": "cpp",
+        "charconv": "cpp"
     },
     "[javascript]": {
         "editor.tabSize": 2,

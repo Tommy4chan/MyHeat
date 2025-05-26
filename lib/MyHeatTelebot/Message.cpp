@@ -23,7 +23,7 @@ namespace MyHeatTelebot
         for (byte i = 0; i < myHeatDevice.getTemperatureCount(); i++)
         {
             float temperature = myHeatDevice.getTemperature(i);
-            text += "T" + String(i) + ": " + (temperature == -127 ? "не визначено" : (String(temperature)) + "°C") + "\n";
+            text += "T" + String(i) + ": " + (temperature == -127 ? "Н/Д" : (String(temperature)) + "°C") + "\n";
         }
 
         return text;

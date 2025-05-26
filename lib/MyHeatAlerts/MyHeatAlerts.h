@@ -8,13 +8,11 @@
 
 namespace MyHeatAlerts
 {
-    inline uint32_t lastCheckTick = -20000;
-
     // void begin();
     void tick();
-    void checkTemperatureAlerts();
-    void checkSmokeAlerts();
-    void checkFunctionsAlerts();
+    void checkTemperatureAlerts(bool forceNotification);
+    void checkSmokeAlerts(bool forceNotification);
+    void checkFunctionsAlerts(bool forceNotification);
 }
 
 #endif

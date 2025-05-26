@@ -256,11 +256,9 @@ namespace MyHeatWeb
         }
     }
 
-
-    
     bool canSendData()
     {
-        return websocket.count() > 0 && (WiFi.status() == WL_CONNECTED || WiFi.softAPgetStationNum() > 0);
+        return websocket.count() > 0 && (WiFi.isConnected() || WiFi.softAPgetStationNum() > 0);
     }
 
     void sendAlertNotification(String message)

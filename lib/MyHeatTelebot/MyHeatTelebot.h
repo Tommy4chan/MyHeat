@@ -8,6 +8,7 @@
 #include "MyHeatDevice.h"
 #include "MyHeatUtils.h"
 #include "MyHeatSave.h"
+#include "MyHeatWifi.h"
 
 #define XSTR(x) #x
 #define STR(x) XSTR(x)
