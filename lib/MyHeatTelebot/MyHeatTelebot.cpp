@@ -63,7 +63,6 @@ namespace MyHeatTelebot
 
             commands.addCommand("start", "Запустити бота");
             commands.addCommand("menu", "Головне меню");
-            commands.addCommand("help", "Допомога");
 
             bot.setMyCommands(commands);
 
