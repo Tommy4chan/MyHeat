@@ -70,8 +70,8 @@ private:
         encBtn = doc["encBtn"] | ENC_BTN;
         encInvert = doc["encInvert"] | INVERT_ENCODER;
         isEnabled = doc["isEnabled"] | HARDWARE_IO_IS_ENABLED;
-        oledAddress = doc["oled_address"] | OLED_ADDRESS;
-        screenPowerSaveInterval = doc["screen_power_save_interval"] | SCREEN_POWER_SAVE_INTERVAL;
+        oledAddress = doc["oledAddress"] | OLED_ADDRESS;
+        screenPowerSaveInterval = doc["screenPowerSaveInterval"] | SCREEN_POWER_SAVE_INTERVAL;
     }
 
     void showTemperature()

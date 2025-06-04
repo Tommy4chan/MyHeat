@@ -30,7 +30,9 @@ const useSettingStore = create((set, get) => ({
     useWebSocketStore.getState().sendMessage("setWifiSettings", payload);
 
     if (mDNS !== get().wifiSettings["mDNS"]) {
-      location.replace(`http://${mDNS}.local`);
+      setTimeout(() => {
+        location.replace(`http://${mDNS}.local`);
+      }, 1500);
     }
     else {
       get().getWifiSettings();
@@ -151,12 +153,9 @@ const useSettingStore = create((set, get) => ({
   setAllDeviceSettings: (payload) => {
     useWebSocketStore.getState().sendMessage("setAllDeviceSettings", payload);
 
-    if (payload["MyHeatWifi"]["mDNS"] !== get().wifiSettings["mDNS"]) {
+    setTimeout(() => {
       location.replace(`http://${payload["MyHeatWifi"]["mDNS"]}.local`);
-    }
-    else {
-      get().getAllDeviceSettings();
-    }
+    }, 1500);
   },
 
   restartDevice: () => {

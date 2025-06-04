@@ -80,7 +80,7 @@ namespace MyHeatTelebot
 
         for (byte i = 0; i < functionCount; i++)
         {
-            inlineMenu.addButton("Функція " + String(i + 1), "function_" + String(i));
+            inlineMenu.addButton("Функція " + String(i), "function_" + String(i));
             if (i % 2 != 0)
             {
                 inlineMenu.newRow();

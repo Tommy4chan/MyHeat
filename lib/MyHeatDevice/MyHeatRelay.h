@@ -14,6 +14,10 @@ private:
     void setPin(byte pin)
     {
         this->pin = pin;
+
+        if (pin == 0) 
+            return; // Pin 0 is not valid
+
         pinMode(pin, OUTPUT);
     }
 
@@ -23,6 +27,9 @@ private:
     }
 
     void updateState() {
+        if (pin == 0) 
+            return; // Pin 0 is not valid
+            
         digitalWrite(pin, isActive == isActiveOnHigh);
     }
 

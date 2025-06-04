@@ -140,7 +140,7 @@ public:
     }
 
     void setCustomFunctionTemperatureIndex(byte functionIndex, byte tempIndex, byte tempSensorIndex)
-    {
+    {   
         customFunctions[functionIndex].setTemperatureIndex(tempIndex, tempSensorIndex);
         save();
     }

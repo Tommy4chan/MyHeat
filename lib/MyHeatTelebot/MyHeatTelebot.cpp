@@ -70,6 +70,7 @@ namespace MyHeatTelebot
             msg.text = F("Привіт! \nЯ бот, для контролю системи опалення.");
 
             setUserScreen(chat_id, ScreenType::MAIN_SCREEN);
+            setUserInputMode(chat_id, false);
             break;
         }
         case su::SH("/menu"):
@@ -78,11 +79,7 @@ namespace MyHeatTelebot
             msg.setMenu(getMainReplyMenu());
 
             setUserScreen(chat_id, ScreenType::MAIN_SCREEN);
-            break;
-        }
-        case su::SH("/help"):
-        {
-            msg.text = F("Тут буде допомога");
+            setUserInputMode(chat_id, false);
             break;
         }
         }
@@ -102,6 +99,7 @@ namespace MyHeatTelebot
         case su::SH("Температура"):
         {
             setUserScreen(chat_id, ScreenType::TEMP_SCREEN);
+            setUserInputMode(chat_id, false);
             msg.text = getTemperatureScreenText();
             msg.setInlineMenu(getTemperatureInlineMenu());
             break;
@@ -109,6 +107,7 @@ namespace MyHeatTelebot
         case su::SH("Реле"):
         {
             setUserScreen(msg.chatID, ScreenType::RELAYS_SCREEN);
+            setUserInputMode(chat_id, false);
             msg.text = getRelayScreenText();
             msg.setInlineMenu(getRelayInlineMenu());
             break;
@@ -116,22 +115,28 @@ namespace MyHeatTelebot
         case su::SH("Функції"):
         {
             setUserScreen(chat_id, ScreenType::FUNCTIONS_LIST_SCREEN);
+            setUserInputMode(chat_id, false);
             msg.text = getFunctionsListScreenText();
             msg.setInlineMenu(getFunctionListInlineMenu());
             break;
         }
         case su::SH("Інформація"):
         {
+            setUserInputMode(chat_id, false);
             MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
 
-            msg.text = "Веб-інтерфейс: http://" + myHeatWifi.getMDNS() + ".local\n\n"
-                        "Мережа: \n" +
-                        "Ім'я: " + myHeatWifi.getWifiSSID() + "\n" +
-                        "Пароль: " + myHeatWifi.getWifiPassword() + "\n\n" +
-                        "Точка доступу: \n" +
-                        "Ім'я: " + myHeatWifi.getAPSSID() + "\n" +
-                        "Пароль: " + myHeatWifi.getAPPassword() + "\n" +
-                        "Режим резервна точки доступу: " + MyHeatUtils::getConvertedStateToText(myHeatWifi.getIsFallbackAPEnabled());
+            msg.text = "Датчик диму: \n"
+                       "Значення: " + (myHeatDevice.MyHeatSmokeSensor::getValue() == -1 ? "Ініціалізація" : String(myHeatDevice.MyHeatSmokeSensor::getValue())) + "\n" +
+                       "Увімкнений: " + MyHeatUtils::getConvertedActiveToText(myHeatDevice.MyHeatSmokeSensor::getIsEnabled()) + "\n" +
+                       "Поріг спрацювання: " + String(myHeatDevice.MyHeatSmokeSensor::getThreshold()) + " \n\n" +
+                       "Веб-інтерфейс: http://" + myHeatWifi.getMDNS() + ".local\n\n" +
+                       "Мережа: \n" +
+                       "Ім'я: " + myHeatWifi.getWifiSSID() + "\n" +
+                       "Пароль: " + myHeatWifi.getWifiPassword() + "\n\n" +
+                       "Точка доступу: \n" +
+                       "Ім'я: " + myHeatWifi.getAPSSID() + "\n" +
+                       "Пароль: " + myHeatWifi.getAPPassword() + "\n" +
+                       "Режим резервна точки доступу: " + MyHeatUtils::getConvertedStateToText(myHeatWifi.getIsFallbackAPEnabled());
             break;
         }
         }
@@ -205,6 +210,8 @@ namespace MyHeatTelebot
         case su::SH("relay"):
         {
             myHeatDevice.changeRelayMode(value);
+            myHeatDevice.manualTick();
+
             msg.text = getRelayScreenText();
             msg.setInlineMenu(getRelayInlineMenu());
             break;
@@ -220,6 +227,7 @@ namespace MyHeatTelebot
             User user = getUser(chat_id);
 
             myHeatDevice.toggleCustomFunctionIsEnabled(user.tempValue1);
+            myHeatDevice.manualTick();
 
             setFunctionScreen(msg, myHeatDevice.getCustomFunction(user.tempValue1), user.tempValue1);
             break;
@@ -238,6 +246,7 @@ namespace MyHeatTelebot
             if (user.screenType == ScreenType::FUNCTION_CHANGE_SIGN_SCREEN)
             {
                 myHeatDevice.setCustomFunctionSign(user.tempValue1, value);
+                myHeatDevice.manualTick();
 
                 setFunctionScreen(msg, myHeatDevice.getCustomFunction(user.tempValue1), user.tempValue1);
             }
@@ -259,6 +268,8 @@ namespace MyHeatTelebot
             if (user.screenType == ScreenType::FUNCTION_CHANGE_TEMPERATURE_SCREEN)
             {
                 myHeatDevice.setCustomFunctionTemperatureIndex(user.tempValue1, user.tempValue2, value);
+                myHeatDevice.validateCustomFunctions();
+                myHeatDevice.manualTick();
 
                 setFunctionScreen(msg, myHeatDevice.getCustomFunction(user.tempValue1), user.tempValue1);
             }
@@ -279,6 +290,8 @@ namespace MyHeatTelebot
             if (user.screenType == ScreenType::FUNCTION_CHANGE_RELAY_SCREEN)
             {
                 myHeatDevice.setCustomFunctionRelayIndex(user.tempValue1, value);
+                myHeatDevice.validateCustomFunctions();
+                myHeatDevice.manualTick();
 
                 setFunctionScreen(msg, myHeatDevice.getCustomFunction(user.tempValue1), user.tempValue1);
             }
@@ -379,14 +392,10 @@ namespace MyHeatTelebot
         Text chat_id = u.message().chat().id();
         fb::Message msg("", chat_id);
 
-        Serial.println("Input mode");
-
         User user = getUser(u.message().chat().id());
 
         if (user.screenType == ScreenType::FUNCTION_CHANGE_DELTA_TEMPERATURE_SCREEN)
         {
-            Serial.println("Change delta temp");
-
             if (!MyHeatUtils::isFloat(u.message().text()))
             {
                 msg.text = F("Введіть коректне значення");
@@ -395,10 +404,16 @@ namespace MyHeatTelebot
             {
                 myHeatDevice.setCustomFunctionDeltaValue(user.tempValue1, user.tempValue2, u.message().text().toFloat());
                 setUserScreen(chat_id, ScreenType::FUNCTION_SCREEN);
+                myHeatDevice.manualTick();
+
                 msg.text = getFunctionScreenText(myHeatDevice.getCustomFunction(user.tempValue1), user.tempValue1);
                 msg.setInlineMenu(getFunctionInlineMenu());
                 setUserInputMode(chat_id, false);
             }
+        }
+        else
+        {
+            setUserInputMode(chat_id, false);
         }
 
         bot.sendMessage(msg);
@@ -461,7 +476,7 @@ namespace MyHeatTelebot
 
     void sendAlertNotification(String message)
     {
-        if (!botSave.isAlertNotificationsEnabled)
+        if (!botSave.isAlertNotificationsEnabled || !MyHeatWifi::getInstance().isConnected())
             return;
 
         String chatId = "";
