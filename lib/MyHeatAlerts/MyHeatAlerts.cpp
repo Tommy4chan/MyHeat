@@ -13,6 +13,8 @@ namespace MyHeatAlerts
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
+        bool manualTick = false;
+
         for (byte i = 0; i < myHeatDevice.getTemperatureCount(); i++)
         {
             if (myHeatDevice.isTemperatureSensorAddressEmpty(i))
@@ -38,10 +40,16 @@ namespace MyHeatAlerts
             else if (alert == TA_BAD_CONNECTION)
             {
                 message = "Датчик температури Т" + String(i) + " відключився";
+                manualTick = true;
             }
 
             MyHeatWeb::sendAlertNotification(message);
             MyHeatTelebot::sendAlertNotification(message);
+        }
+
+        if (manualTick)
+        {
+            myHeatDevice.manualTick();
         }
     }
 

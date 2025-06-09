@@ -15,7 +15,7 @@ namespace MyHeatTelebot
 
     void tick()
     {
-        if (botSave.isEnabled)
+        if (botSave.isEnabled && botSave.token.length() > 0)
             bot.tick();
     }
 
@@ -135,7 +135,7 @@ namespace MyHeatTelebot
                        "Точка доступу: \n" +
                        "Ім'я: " + myHeatWifi.getAPSSID() + "\n" +
                        "Пароль: " + myHeatWifi.getAPPassword() + "\n" +
-                       "Режим резервна точки доступу: " + MyHeatUtils::getConvertedStateToText(myHeatWifi.getIsFallbackAPEnabled());
+                       "Режим резервної точки доступу: " + MyHeatUtils::getConvertedStateToText(myHeatWifi.getIsFallbackAPEnabled());
             break;
         }
         }
@@ -475,7 +475,7 @@ namespace MyHeatTelebot
 
     void sendAlertNotification(String message)
     {
-        if (!botSave.isAlertNotificationsEnabled || !MyHeatWifi::getInstance().isConnected())
+        if (!botSave.isEnabled || !botSave.isAlertNotificationsEnabled || !MyHeatWifi::getInstance().isConnected())
             return;
 
         String chatId = "";

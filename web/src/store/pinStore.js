@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import useWebSocketStore from "./websocketStore";
 
 const PIN_CONFIG = [
+  { pin: 0, name: 'Н/Д', isInput: true, isOutput: true, isUsed: 0 },
   { pin: 2, name: 'D2', isInput: true, isOutput: true, isUsed: 0 },
   { pin: 4, name: 'D4', isInput: true, isOutput: true, isUsed: 0 },
   { pin: 12, name: 'D12', isInput: false, isOutput: true, isUsed: 0 },
@@ -84,12 +85,12 @@ const usePinStore = create((set, get) => ({
   getAvailableInputPins: (selectedPin) => 
     get().pins
       .filter(pin => pin.isInput)
-      .map(pin => ({ value: pin.pin, text: pin.name + ((pin.isUsed == 1 && pin.pin !== selectedPin) ? ' 🔧' : pin.isUsed >= 2 ? '❗' : '') })),
+      .map(pin => ({ value: pin.pin, text: pin.name + ((pin.isUsed == 1 && pin.pin !== selectedPin) ? ' 🔧' : pin.isUsed >= 2 ? '❗' : ''), isDisabled: pin.pin === 0 })),
 
   getAvailableOutputPins: (selectedPin) => 
     get().pins
       .filter(pin => pin.isOutput)
-      .map(pin => ({ value: pin.pin, text: pin.name + ((pin.isUsed == 1 && pin.pin !== selectedPin) ? ' 🔧' : pin.isUsed >= 2 ? '❗' : '') })),
+      .map(pin => ({ value: pin.pin, text: pin.name + ((pin.isUsed == 1 && pin.pin !== selectedPin) ? ' 🔧' : pin.isUsed >= 2 ? '❗' : ''), isDisabled: pin.pin === 0 })),
 }));
 
 useWebSocketStore.subscribe(

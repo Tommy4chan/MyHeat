@@ -162,7 +162,7 @@ void MyHeatDevice::tick()
         checkCustomFunctions();
     }
 
-    if (millis() - tickTimerSecondary >= 1000)
+    if (millis() - tickTimerSecondary >= 750)
     {
         tickTimerSecondary = millis();
         updateTemperatures();

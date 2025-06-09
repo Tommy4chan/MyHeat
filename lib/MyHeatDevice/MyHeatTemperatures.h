@@ -23,6 +23,7 @@ private:
     MyHeatSave *temperatureSensorData;
 
     float *temperatures;
+    bool *temperaturesFail;
     byte temperatureCount;
     byte temperaturePin;
     float minTemperature;
@@ -98,10 +99,12 @@ private:
             delete[] discoveredTemperatureSensorsAddresses;
         }
         delete[] temperatures;
+        delete[] temperaturesFail;
 
         temperatureSensorsAddresses = new uint8_t *[newCount];
         discoveredTemperatureSensorsAddresses = new uint8_t *[newCount];
         temperatures = new float[newCount];
+        temperaturesFail = new bool[newCount];
         temperatureAlerts = new TemperatureAlert[newCount];
         isNotified = new bool[newCount];
 
@@ -111,6 +114,7 @@ private:
             discoveredTemperatureSensorsAddresses[i] = new uint8_t[8]{};
             temperatureAlerts[i] = TA_NONE;
             isNotified[i] = false;
+            temperaturesFail[i] = false;
 
             if (oldAddresses != nullptr && i < temperatureCount)
             {
@@ -145,6 +149,7 @@ public:
         temperatureSensorsAddresses = nullptr;
         discoveredTemperatureSensorsAddresses = nullptr;
         temperatures = nullptr;
+        temperaturesFail = nullptr;
         temperatureAlerts = nullptr;
         isNotified = nullptr;
         realocateMemory(TEMPERATURE_COUNT);
@@ -159,7 +164,8 @@ public:
         temperatureSensors.setOneWire(&oneWire);
         temperatureSensors.setWaitForConversion(false);
         temperatureSensors.begin();
-
+        temperatureSensors.setResolution(11);
+        
         temperatureSensors.requestTemperatures();
         delay(1000);
     }
@@ -225,7 +231,25 @@ public:
                 continue;
             }
 
-            temperatures[i] = temperatureSensors.getTempC(temperatureSensorsAddresses[i]);
+            float newTemperature = temperatureSensors.getTempC(temperatureSensorsAddresses[i]);
+
+            if (temperaturesFail[i]) {
+                temperatures[i] = newTemperature;
+
+                if (newTemperature != TEMPERATURE_ERROR)
+                {
+                    temperaturesFail[i] = false;
+                }
+            }
+            else {
+                if (newTemperature == TEMPERATURE_ERROR)
+                {
+                    temperaturesFail[i] = true;
+                }
+                else {
+                    temperatures[i] = newTemperature;
+                }
+            }
         }
         temperatureSensors.requestTemperatures();
         checkForAlerts();
@@ -250,6 +274,7 @@ public:
         oneWire = OneWire(temperaturePin);
         temperatureSensors.setOneWire(&oneWire);
         temperatureSensors.setWaitForConversion(false);
+        temperatureSensors.setResolution(11);
         temperatureSensors.begin();
 
         if (isSave)

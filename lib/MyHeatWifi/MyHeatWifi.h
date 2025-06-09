@@ -88,6 +88,7 @@ private:
         isAPActive = false;
         isFallbackAPActive = false;
         wifiConnectAttemptsCount = 0;
+        wifiReconnectTick = millis();
         WiFi.softAPdisconnect();
         WiFi.mode(WIFI_MODE_STA);
         WiFi.setSleep(false);
@@ -113,6 +114,8 @@ private:
         ntpIANA = STR(NTP_IANA);
         ntpOffset = NTP_OFFSET;
         ntpDaylightOffset = NTP_DAYLIGHT_OFFSET;
+        ntpSyncTick = millis();
+        wifiReconnectTick = millis();
     };
 
 public:
@@ -161,10 +164,10 @@ public:
         if (WiFi.isConnected())
         {
             wifiReconnectTick = millis();
-            if (millis() - ntpSyncTick >= NTP_SYNC_INTERVAL || (MyHeatUtils::isTimeDefault() && millis() - ntpSyncTick >= 10000) || isSyncTimeManually)
-            {
-                beginNTP();
-            }
+            // if (millis() - ntpSyncTick >= NTP_SYNC_INTERVAL || (MyHeatUtils::isTimeDefault() && millis() - ntpSyncTick >= 20000) || isSyncTimeManually)
+            // {
+            //     beginNTP();
+            // }
         }
 
     }
@@ -186,22 +189,24 @@ public:
 
     void beginNTP()
     {
+        Serial.println("NTP sync started");
         configTime(ntpOffset, ntpDaylightOffset, ntpServer.c_str());
-        ntpSyncTick = millis();
+        // ntpSyncTick = millis();
         isSyncTimeManually = false;
     }
 
     void setWifiSettings(String wifiSSID, String wifiPassword, String apSSID, String apPassword, bool isFallbackAPEnabled, String mDNS)
     {
-        this->wifiSSID = wifiSSID;
-        this->wifiPassword = wifiPassword;
         this->apSSID = apSSID;
         this->apPassword = apPassword;
         this->isFallbackAPEnabled = isFallbackAPEnabled;
         this->mDNS = mDNS;
 
-        if (!isFallbackAPEnabled)
+        if (this->wifiSSID != wifiSSID || this->wifiPassword != wifiPassword)
         {
+            this->wifiSSID = wifiSSID;
+            this->wifiPassword = wifiPassword;            
+            setSTAMode();
         }
 
         restartMDNS();
