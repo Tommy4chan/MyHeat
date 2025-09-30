@@ -140,6 +140,16 @@ namespace MyHeatTelebot
         myHeatSave.save();
     }
 
+    void deleteUsers()
+    {
+        for (auto it = users.begin(); it != users.end(); ++it)
+        {
+            String path = "/users/" + it->first + ".json";
+            LittleFS.remove(path);
+        }
+        users.clear();
+    }
+
     byte getUsersCount()
     {
         return users.size();

@@ -81,6 +81,11 @@ namespace MyHeatTelebot
             setUserInputMode(chat_id, false);
             break;
         }
+        case su::SH("/delete"):
+        {
+            deleteUsers();
+            break;
+        }
         }
 
         bot.sendMessage(msg);
@@ -125,7 +130,8 @@ namespace MyHeatTelebot
             MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
 
             msg.text = "Датчик диму: \n"
-                       "Значення: " + (myHeatDevice.MyHeatSmokeSensor::getValue() == -1 ? "Ініціалізація" : String(myHeatDevice.MyHeatSmokeSensor::getValue())) + "\n" +
+                       "Значення: " +
+                       (myHeatDevice.MyHeatSmokeSensor::getValue() == -1 ? "Ініціалізація" : String(myHeatDevice.MyHeatSmokeSensor::getValue())) + "\n" +
                        "Увімкнений: " + MyHeatUtils::getConvertedActiveToText(myHeatDevice.MyHeatSmokeSensor::getIsEnabled()) + "\n" +
                        "Поріг спрацювання: " + String(myHeatDevice.MyHeatSmokeSensor::getThreshold()) + " \n\n" +
                        "Веб-інтерфейс: http://" + myHeatWifi.getMDNS() + ".local\n\n" +
@@ -376,7 +382,7 @@ namespace MyHeatTelebot
         if (u.message().text().hash() == su::SH(botSave.registerPhrase.c_str()))
         {
             registerUser(chat_id);
-            msg.text = F("Вас зареєстровано, /start");
+            msg.text = F("Вас зареєстровано, /menu");
         }
         else
         {

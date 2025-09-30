@@ -37,6 +37,7 @@ namespace MyHeatTelebot
     bool isUserRegistered(String chatId);
     bool isUserInputMode(String chatId);
     void registerUser(String chatId);
+    void deleteUsers();
     void setUserScreen(String chatId, ScreenType type);
     void setUserInputMode(String chatId, bool inputMode);
     void setUserTempValue1(String chatId, byte tempValue1);
