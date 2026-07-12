@@ -12,10 +12,10 @@
 
 namespace MyHeatTelebot
 {
-    String getConvertedFunctionToText(MyHeatCustomFunction customFunction, byte functionIndex);
+    String getConvertedFunctionToText(const MyHeatCustomFunction& customFunction, byte functionIndex);
     Text getCallbackFromQuery(Text query);
-    byte getValueFromQuery(String query);
-    void setFunctionScreen(fb::TextEdit &msg, MyHeatCustomFunction customFunction, byte functionIndex);
+    byte getValueFromQuery(const String& query);
+    void setFunctionScreen(fb::TextEdit &msg, const MyHeatCustomFunction& customFunction, byte functionIndex);
 }
 
 #endif

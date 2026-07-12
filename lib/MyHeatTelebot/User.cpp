@@ -62,12 +62,12 @@ namespace MyHeatTelebot
         }
     }
 
-    bool isUserRegistered(String chatId)
+    bool isUserRegistered(const String& chatId)
     {
         return users.find(chatId) != users.end();
     }
 
-    bool isUserInputMode(String chatId)
+    bool isUserInputMode(const String& chatId)
     {
         if (isUserRegistered(chatId))
         {
@@ -76,7 +76,7 @@ namespace MyHeatTelebot
         return false;
     }
 
-    void registerUser(String chatId)
+    void registerUser(const String& chatId)
     {
         if (!isUserRegistered(chatId))
         {
@@ -86,43 +86,39 @@ namespace MyHeatTelebot
         }
     }
 
-    void setUserScreen(String chatId, ScreenType type)
+    void setUserScreen(const String& chatId, ScreenType type)
     {
         if (isUserRegistered(chatId))
         {
             users[chatId].screenType = type;
-            saveUser(chatId);
         }
     }
 
-    void setUserInputMode(String chatId, bool inputMode)
+    void setUserInputMode(const String& chatId, bool inputMode)
     {
         if (isUserRegistered(chatId))
         {
             users[chatId].isInputMode = inputMode;
-            saveUser(chatId);
         }
     }
 
-    void setUserTempValue1(String chatId, byte tempValue1)
+    void setUserTempValue1(const String& chatId, byte tempValue1)
     {
         if (isUserRegistered(chatId))
         {
             users[chatId].tempValue1 = tempValue1;
-            saveUser(chatId);
         }
     }
 
-    void setUserTempValue2(String chatId, byte tempValue2)
+    void setUserTempValue2(const String& chatId, byte tempValue2)
     {
         if (isUserRegistered(chatId))
         {
             users[chatId].tempValue2 = tempValue2;
-            saveUser(chatId);
         }
     }
 
-    User getUser(String chatId)
+    User getUser(const String& chatId)
     {
         if (isUserRegistered(chatId))
         {
@@ -131,7 +127,7 @@ namespace MyHeatTelebot
         return {MAIN_SCREEN, false, 0, 0}; // Return default user if not found
     }
 
-    void saveUser(String chatId)
+    void saveUser(const String& chatId)
     {
         UserSave userSave;
         userSave.user = users[chatId];

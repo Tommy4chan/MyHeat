@@ -1,4 +1,5 @@
 #include "MyHeatTelebot.h"
+#include <MyHeatAlerts.h>
 
 namespace MyHeatTelebot
 {
@@ -11,12 +12,20 @@ namespace MyHeatTelebot
         bot.setPollMode(fb::Poll::Long, 30000);
         bot.attachUpdate(handleUpdate);
         loadUsers();
+
+        MyHeatAlerts::registerHandler(MyHeatTelebot::sendAlertNotification);
     }
 
     void tick()
     {
         if (botSave.isEnabled && botSave.token.length() > 0)
-            bot.tick();
+        {
+            if (!MyHeatUtils::isTimeDefault())
+            {
+                // TODO: Add a preloader/connecting screen on OLED here because bot.tick() blocks loop for ~7s during the initial DNS/SSL handshake
+                bot.tick();
+            }
+        }
     }
 
     void handleUpdate(fb::Update &u)
@@ -110,7 +119,7 @@ namespace MyHeatTelebot
         }
         case su::SH("Реле"):
         {
-            setUserScreen(msg.chatID, ScreenType::RELAYS_SCREEN);
+            setUserScreen(chat_id, ScreenType::RELAYS_SCREEN);
             setUserInputMode(chat_id, false);
             msg.text = getRelayScreenText();
             msg.setInlineMenu(getRelayInlineMenu());
@@ -131,9 +140,9 @@ namespace MyHeatTelebot
 
             msg.text = "Датчик диму: \n"
                        "Значення: " +
-                       (myHeatDevice.MyHeatSmokeSensor::getValue() == -1 ? "Ініціалізація" : String(myHeatDevice.MyHeatSmokeSensor::getValue())) + "\n" +
-                       "Увімкнений: " + MyHeatUtils::getConvertedActiveToText(myHeatDevice.MyHeatSmokeSensor::getIsEnabled()) + "\n" +
-                       "Поріг спрацювання: " + String(myHeatDevice.MyHeatSmokeSensor::getThreshold()) + " \n\n" +
+                       (myHeatDevice.smokeSensor.getValue() == -1 ? "Ініціалізація" : String(myHeatDevice.smokeSensor.getValue())) + "\n" +
+                       "Увімкнений: " + MyHeatUtils::getConvertedActiveToText(myHeatDevice.smokeSensor.getIsEnabled()) + "\n" +
+                       "Поріг спрацювання: " + String(myHeatDevice.smokeSensor.getThreshold()) + " \n\n" +
                        "Веб-інтерфейс: http://" + myHeatWifi.getMDNS() + ".local\n\n" +
                        "Мережа: \n" +
                        "Ім'я: " + myHeatWifi.getWifiSSID() + "\n" +
@@ -163,12 +172,12 @@ namespace MyHeatTelebot
         case su::SH("discoverTemperatureSensor"):
         {
             setUserScreen(chat_id, ScreenType::TEMP_DISCOVER_SCREEN);
-            byte addressesCount = myHeatDevice.discoverTemperatureSensor();
+            byte addressesCount = myHeatDevice.temperatures.discoverTemperatureSensor();
 
             if (addressesCount)
             {
                 msg.text = F("\nДатчики виявлено");
-                msg.setInlineMenu(getDiscoveredTemperatureSensorsInlineMenu(addressesCount, myHeatDevice.getDiscoveredTemperatureSensorAddresses()));
+                msg.setInlineMenu(getDiscoveredTemperatureSensorsInlineMenu(addressesCount, myHeatDevice.temperatures.getDiscoveredTemperatureSensorAddresses()));
             }
             else
             {
@@ -198,12 +207,12 @@ namespace MyHeatTelebot
             User user = getUser(chat_id);
             if (user.screenType == ScreenType::TEMP_DISCOVER_SCREEN)
             {
-                myHeatDevice.setTemperatureSensorAddress(value, user.tempValue1);
+                myHeatDevice.temperatures.setTemperatureSensorAddress(value, user.tempValue1);
                 msg.text = F("Датчик встановлено \n\n");
             }
             else if (user.screenType == ScreenType::TEMP_DELETE_SCREEN)
             {
-                myHeatDevice.deleteTemperatureSensorAddress(value);
+                myHeatDevice.temperatures.deleteTemperatureSensorAddress(value);
                 msg.text = F("Датчик видалено \n\n");
             }
 
@@ -214,7 +223,7 @@ namespace MyHeatTelebot
         }
         case su::SH("relay"):
         {
-            myHeatDevice.changeRelayMode(value);
+            myHeatDevice.relays.changeRelayMode(value);
             myHeatDevice.manualTick();
 
             msg.text = getRelayScreenText();
@@ -224,17 +233,18 @@ namespace MyHeatTelebot
         case su::SH("function"):
         {
             setUserTempValue1(chat_id, value);
-            setFunctionScreen(msg, myHeatDevice.getCustomFunction(value), value);
+            setFunctionScreen(msg, myHeatDevice.customFunctions.getCustomFunction(value), value);
             break;
         }
         case su::SH("functionChangeState"):
         {
             User user = getUser(chat_id);
 
-            myHeatDevice.toggleCustomFunctionIsEnabled(user.tempValue1);
+            bool currentState = myHeatDevice.customFunctions.getCustomFunction(user.tempValue1).getIsEnabled();
+            myHeatDevice.customFunctions.setCustomFunctionIsEnabled(user.tempValue1, !currentState);
             myHeatDevice.manualTick();
 
-            setFunctionScreen(msg, myHeatDevice.getCustomFunction(user.tempValue1), user.tempValue1);
+            setFunctionScreen(msg, myHeatDevice.customFunctions.getCustomFunction(user.tempValue1), user.tempValue1);
             break;
         }
         case su::SH("functionChangeSign"):
@@ -250,10 +260,10 @@ namespace MyHeatTelebot
 
             if (user.screenType == ScreenType::FUNCTION_CHANGE_SIGN_SCREEN)
             {
-                myHeatDevice.setCustomFunctionSign(user.tempValue1, value);
+                myHeatDevice.customFunctions.setCustomFunctionSign(user.tempValue1, (CustomFunctionSign)value);
                 myHeatDevice.manualTick();
 
-                setFunctionScreen(msg, myHeatDevice.getCustomFunction(user.tempValue1), user.tempValue1);
+                setFunctionScreen(msg, myHeatDevice.customFunctions.getCustomFunction(user.tempValue1), user.tempValue1);
             }
 
             break;
@@ -272,11 +282,11 @@ namespace MyHeatTelebot
 
             if (user.screenType == ScreenType::FUNCTION_CHANGE_TEMPERATURE_SCREEN)
             {
-                myHeatDevice.setCustomFunctionTemperatureIndex(user.tempValue1, user.tempValue2, value);
+                myHeatDevice.customFunctions.setCustomFunctionTemperatureIndex(user.tempValue1, user.tempValue2, value);
                 myHeatDevice.validateCustomFunctions();
                 myHeatDevice.manualTick();
 
-                setFunctionScreen(msg, myHeatDevice.getCustomFunction(user.tempValue1), user.tempValue1);
+                setFunctionScreen(msg, myHeatDevice.customFunctions.getCustomFunction(user.tempValue1), user.tempValue1);
             }
 
             break;
@@ -294,11 +304,11 @@ namespace MyHeatTelebot
 
             if (user.screenType == ScreenType::FUNCTION_CHANGE_RELAY_SCREEN)
             {
-                myHeatDevice.setCustomFunctionRelayIndex(user.tempValue1, value);
+                myHeatDevice.customFunctions.setCustomFunctionRelayIndex(user.tempValue1, value);
                 myHeatDevice.validateCustomFunctions();
                 myHeatDevice.manualTick();
 
-                setFunctionScreen(msg, myHeatDevice.getCustomFunction(user.tempValue1), user.tempValue1);
+                setFunctionScreen(msg, myHeatDevice.customFunctions.getCustomFunction(user.tempValue1), user.tempValue1);
             }
 
             break;
@@ -316,7 +326,7 @@ namespace MyHeatTelebot
         {
             User user = getUser(chat_id);
 
-            setFunctionScreen(msg, myHeatDevice.getCustomFunction(user.tempValue1), user.tempValue1);
+            setFunctionScreen(msg, myHeatDevice.customFunctions.getCustomFunction(user.tempValue1), user.tempValue1);
             setUserInputMode(chat_id, false);
             break;
         }
@@ -344,7 +354,7 @@ namespace MyHeatTelebot
             User user = getUser(chat_id);
             if (user.screenType == ScreenType::FUNCTION_SCREEN)
             {
-                setFunctionScreen(msg, myHeatDevice.getCustomFunction(user.tempValue1), user.tempValue1);
+                setFunctionScreen(msg, myHeatDevice.customFunctions.getCustomFunction(user.tempValue1), user.tempValue1);
             }
             break;
         }
@@ -407,11 +417,11 @@ namespace MyHeatTelebot
             }
             else
             {
-                myHeatDevice.setCustomFunctionDeltaValue(user.tempValue1, user.tempValue2, u.message().text().toFloat());
+                myHeatDevice.customFunctions.setCustomFunctionDeltaValue(user.tempValue1, user.tempValue2, u.message().text().toFloat());
                 setUserScreen(chat_id, ScreenType::FUNCTION_SCREEN);
                 myHeatDevice.manualTick();
 
-                msg.text = getFunctionScreenText(myHeatDevice.getCustomFunction(user.tempValue1), user.tempValue1);
+                msg.text = getFunctionScreenText(myHeatDevice.customFunctions.getCustomFunction(user.tempValue1), user.tempValue1);
                 msg.setInlineMenu(getFunctionInlineMenu());
                 setUserInputMode(chat_id, false);
             }
@@ -462,7 +472,7 @@ namespace MyHeatTelebot
         return botSave.isAlertNotificationsEnabled;
     }
 
-    void setSettings(String token, String registerPhrase, bool isEnabled, bool isAlertNotificationsEnabled)
+    void setSettings(const String& token, const String& registerPhrase, bool isEnabled, bool isAlertNotificationsEnabled)
     {
         botSave.token = token;
         bot.setToken(token);
@@ -479,7 +489,7 @@ namespace MyHeatTelebot
         bot.setToken(botSave.token);
     }
 
-    void sendAlertNotification(String message)
+    void sendAlertNotification(const String& message)
     {
         if (!botSave.isEnabled || !botSave.isAlertNotificationsEnabled || !MyHeatWifi::getInstance().isConnected())
             return;

@@ -1,4 +1,5 @@
 #include "MyHeatMqtt.h"
+#include <MyHeatWifi.h>
 
 namespace MyHeatMqtt
 {
@@ -61,9 +62,9 @@ namespace MyHeatMqtt
         mqtt.setCallback(onMessage);
         mqtt.setKeepAlive(60);
 
-        lastTemperatureCount = myHeatDevice.getTemperatureCount();
-        lastRelayCount = myHeatDevice.getRelayCount();
-        lastFunctionCount = myHeatDevice.getCustomFunctionCount();
+        lastTemperatureCount = myHeatDevice.temperatures.getTemperatureCount();
+        lastRelayCount = myHeatDevice.relays.getRelayCount();
+        lastFunctionCount = myHeatDevice.customFunctions.getCustomFunctionCount();
     }
 
     void connect()
@@ -104,7 +105,7 @@ namespace MyHeatMqtt
 
     void tick()
     {
-        if (!settings.isEnabled || !WiFi.isConnected())
+        if (!settings.isEnabled || !MyHeatWifi::getInstance().isConnected())
         {
             if (wasConnected)
             {
@@ -112,6 +113,16 @@ namespace MyHeatMqtt
                 wasConnected = false;
             }
             return;
+        }
+
+        // Prevent LwIP sys_untimeout crash by waiting for SNTP DNS to finish.
+        // We know SNTP is finished when time is synced.
+        // If there's no internet, time will never sync, so we allow MQTT to connect
+        // after 15 seconds to ensure local HA works without internet!
+        struct tm timeinfo;
+        if (!getLocalTime(&timeinfo, 0) || timeinfo.tm_year < 100)
+        {
+            if (millis() < 15000) return;
         }
 
         if (!mqtt.connected())
@@ -129,9 +140,9 @@ namespace MyHeatMqtt
 
         mqtt.loop();
 
-        if (myHeatDevice.getTemperatureCount() != lastTemperatureCount ||
-            myHeatDevice.getRelayCount() != lastRelayCount ||
-            myHeatDevice.getCustomFunctionCount() != lastFunctionCount)
+        if (myHeatDevice.temperatures.getTemperatureCount() != lastTemperatureCount ||
+            myHeatDevice.relays.getRelayCount() != lastRelayCount ||
+            myHeatDevice.customFunctions.getCustomFunctionCount() != lastFunctionCount)
         {
             handleEntityCountChange();
         }
@@ -145,13 +156,13 @@ namespace MyHeatMqtt
 
     void publishAllDiscoveryConfigs()
     {
-        for (byte i = 0; i < myHeatDevice.getTemperatureCount(); i++)
+        for (byte i = 0; i < myHeatDevice.temperatures.getTemperatureCount(); i++)
         {
             publishTemperatureDiscovery(i);
             delay(20);
         }
 
-        for (byte i = 0; i < myHeatDevice.getRelayCount(); i++)
+        for (byte i = 0; i < myHeatDevice.relays.getRelayCount(); i++)
         {
             publishRelayModeDiscovery(i);
             delay(20);
@@ -159,7 +170,7 @@ namespace MyHeatMqtt
             delay(20);
         }
 
-        for (byte i = 0; i < myHeatDevice.getCustomFunctionCount(); i++)
+        for (byte i = 0; i < myHeatDevice.customFunctions.getCustomFunctionCount(); i++)
         {
             publishFunctionDiscovery(i);
             delay(20);
@@ -336,18 +347,18 @@ namespace MyHeatMqtt
 
     void publishAllStates()
     {
-        for (byte i = 0; i < myHeatDevice.getTemperatureCount(); i++)
+        for (byte i = 0; i < myHeatDevice.temperatures.getTemperatureCount(); i++)
         {
             publishTemperatureState(i);
         }
 
-        for (byte i = 0; i < myHeatDevice.getRelayCount(); i++)
+        for (byte i = 0; i < myHeatDevice.relays.getRelayCount(); i++)
         {
             publishRelayModeState(i);
             publishRelayActiveState(i);
         }
 
-        for (byte i = 0; i < myHeatDevice.getCustomFunctionCount(); i++)
+        for (byte i = 0; i < myHeatDevice.customFunctions.getCustomFunctionCount(); i++)
         {
             publishFunctionState(i);
         }
@@ -358,7 +369,7 @@ namespace MyHeatMqtt
 
     void publishTemperatureState(byte index)
     {
-        float temp = myHeatDevice.getTemperature(index);
+        float temp = myHeatDevice.temperatures.getTemperature(index);
         String stateTopic = baseTopic + "/temperature/" + String(index);
         String availTopicLocal = baseTopic + "/temperature/" + String(index) + "/status";
 
@@ -372,7 +383,7 @@ namespace MyHeatMqtt
 
     void publishRelayModeState(byte index)
     {
-        byte mode = myHeatDevice.getRelay(index).getMode();
+        byte mode = static_cast<byte>(myHeatDevice.relays.getRelay(index).getMode());
         String modeStr = "off";
         if (mode == 1)
             modeStr = "on";
@@ -385,21 +396,21 @@ namespace MyHeatMqtt
 
     void publishRelayActiveState(byte index)
     {
-        bool active = myHeatDevice.getRelay(index).getIsActive();
+        bool active = myHeatDevice.relays.getRelay(index).getIsActive();
         String topic = baseTopic + "/relay/" + String(index) + "/active";
         mqtt.publish(topic.c_str(), active ? "ON" : "OFF", true);
     }
 
     void publishFunctionState(byte index)
     {
-        bool enabled = myHeatDevice.getCustomFunction(index).getIsEnabled();
+        bool enabled = myHeatDevice.customFunctions.getCustomFunction(index).getIsEnabled();
         String topic = baseTopic + "/function/" + String(index) + "/enabled";
         mqtt.publish(topic.c_str(), enabled ? "ON" : "OFF", true);
     }
 
     void publishSmokeState()
     {
-        bool enabled = myHeatDevice.MyHeatSmokeSensor::getIsEnabled();
+        bool enabled = myHeatDevice.smokeSensor.getIsEnabled();
         String topic = baseTopic + "/smoke/state";
         
         if (!enabled) {
@@ -411,13 +422,13 @@ namespace MyHeatMqtt
             return;
         }
 
-        bool active = myHeatDevice.getSmokeSensorAlert(false) == SSA_OVER_THRESHOLD;
+        bool active = myHeatDevice.smokeSensor.getSmokeSensorAlert() == SSA_OVER_THRESHOLD;
         mqtt.publish(topic.c_str(), active ? "ON" : "OFF", true);
     }
 
     void publishSmokeValueState()
     {
-        int val = myHeatDevice.MyHeatSmokeSensor::getValue();
+        int val = myHeatDevice.smokeSensor.getValue();
         String topic = baseTopic + "/smoke/value";
         mqtt.publish(topic.c_str(), String(val).c_str(), true);
     }
@@ -460,24 +471,24 @@ namespace MyHeatMqtt
 
     void handleRelayModeCommand(byte index, const String &value)
     {
-        if (index >= myHeatDevice.getRelayCount())
+        if (index >= myHeatDevice.relays.getRelayCount())
             return;
-        byte mode = 0;
+        RelayMode mode = RelayMode::OFF;
         if (value == "on")
-            mode = 1;
+            mode = RelayMode::ON;
         else if (value == "auto")
-            mode = 2;
-        myHeatDevice.setRelayMode(index, mode);
+            mode = RelayMode::AUTO;
+        myHeatDevice.relays.setRelayMode(index, mode);
         publishRelayModeState(index);
         publishRelayActiveState(index);
     }
 
     void handleFunctionEnabledCommand(byte index, const String &value)
     {
-        if (index >= myHeatDevice.getCustomFunctionCount())
+        if (index >= myHeatDevice.customFunctions.getCustomFunctionCount())
             return;
         bool enabled = (value == "ON");
-        myHeatDevice.setCustomFunctionIsEnabled(index, enabled);
+        myHeatDevice.customFunctions.setCustomFunctionIsEnabled(index, enabled);
         publishFunctionState(index);
     }
 
@@ -522,16 +533,16 @@ namespace MyHeatMqtt
 
     void handleEntityCountChange()
     {
-        for (byte i = myHeatDevice.getTemperatureCount(); i < lastTemperatureCount; i++)
+        for (byte i = myHeatDevice.temperatures.getTemperatureCount(); i < lastTemperatureCount; i++)
         {
             clearDiscoveryConfig("sensor", "temperature_" + String(i));
         }
-        for (byte i = myHeatDevice.getRelayCount(); i < lastRelayCount; i++)
+        for (byte i = myHeatDevice.relays.getRelayCount(); i < lastRelayCount; i++)
         {
             clearDiscoveryConfig("select", "relay_" + String(i) + "_mode");
             clearDiscoveryConfig("binary_sensor", "relay_" + String(i) + "_active");
         }
-        for (byte i = myHeatDevice.getCustomFunctionCount(); i < lastFunctionCount; i++)
+        for (byte i = myHeatDevice.customFunctions.getCustomFunctionCount(); i < lastFunctionCount; i++)
         {
             clearDiscoveryConfig("switch", "function_" + String(i));
         }
@@ -539,9 +550,9 @@ namespace MyHeatMqtt
         publishAllDiscoveryConfigs();
         subscribeToCommands();
 
-        lastTemperatureCount = myHeatDevice.getTemperatureCount();
-        lastRelayCount = myHeatDevice.getRelayCount();
-        lastFunctionCount = myHeatDevice.getCustomFunctionCount();
+        lastTemperatureCount = myHeatDevice.temperatures.getTemperatureCount();
+        lastRelayCount = myHeatDevice.relays.getRelayCount();
+        lastFunctionCount = myHeatDevice.customFunctions.getCustomFunctionCount();
     }
 
 }

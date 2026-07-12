@@ -6,10 +6,10 @@ namespace MyHeatWeb
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
-        for (int i = 0; i < myHeatDevice.getRelayCount(); i++)
+        for (int i = 0; i < myHeatDevice.relays.getRelayCount(); i++)
         {
-            response["relays"][i]["pin"] = myHeatDevice.getRelay(i).getPin();
-            response["relays"][i]["isActiveOnHigh"] = myHeatDevice.getRelay(i).getIsActiveOnHigh();
+            response["relays"][i]["pin"] = myHeatDevice.relays.getRelay(i).getPin();
+            response["relays"][i]["isActiveOnHigh"] = myHeatDevice.relays.getRelay(i).getIsActiveOnHigh();
         }
     }
 
@@ -17,7 +17,7 @@ namespace MyHeatWeb
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
-        if (payload["relayIndex"] >= myHeatDevice.getRelayCount())
+        if (payload["relayIndex"] >= myHeatDevice.relays.getRelayCount())
         {
             setErrorMessage(status, F("Неіснуюче реле"));
             return;
@@ -25,28 +25,28 @@ namespace MyHeatWeb
 
         setSuccessMessage(status, "Змінено статус Реле " + String(payload["relayIndex"]));
 
-        myHeatDevice.setRelayMode(payload["relayIndex"], payload["relayMode"]);
+        myHeatDevice.relays.setRelayMode(payload["relayIndex"], static_cast<RelayMode>(payload["relayMode"].as<byte>()));
     }
 
     void setRelaysSettings(JsonObject payload, JsonObject status)
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
-        for (int i = 0; i < myHeatDevice.getRelayCount(); i++)
+        for (int i = 0; i < myHeatDevice.relays.getRelayCount(); i++)
         {
-            myHeatDevice.setRelaySettings(i, payload["relays"][i]["pin"], payload["relays"][i]["isActiveOnHigh"], false);
+            myHeatDevice.relays.setRelaySettings(i, payload["relays"][i]["pin"], payload["relays"][i]["isActiveOnHigh"], false);
         }
 
         setSuccessMessage(status, "Налаштування реле збережено");
 
-        myHeatDevice.MyHeatRelays::save();
+        myHeatDevice.relays.save();
     }
 
     void setRelayCount(JsonObject payload, JsonObject status)
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
-        myHeatDevice.setRelayCount(payload["relayCount"]);
+        myHeatDevice.relays.setRelayCount(payload["relayCount"]);
 
         myHeatDevice.initIsSetRelayActive();
         MyHeatHardwareIO::getInstance().reevaluateScreensCount();
@@ -57,7 +57,7 @@ namespace MyHeatWeb
 
     void getRelayCount(JsonObject response)
     {
-        response["relayCount"] = MyHeatDevice::getInstance().getRelayCount();
+        response["relayCount"] = MyHeatDevice::getInstance().relays.getRelayCount();
     }
 
     JsonDocument getRelaysData()
@@ -65,10 +65,10 @@ namespace MyHeatWeb
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
         JsonDocument relaysData;
 
-        for (int i = 0; i < myHeatDevice.getRelayCount(); i++)
+        for (int i = 0; i < myHeatDevice.relays.getRelayCount(); i++)
         {
-            MyHeatRelay relay = myHeatDevice.getRelay(i);
-            relaysData[F("relays")][i][F("mode")] = relay.getMode();
+            MyHeatRelay relay = myHeatDevice.relays.getRelay(i);
+            relaysData[F("relays")][i][F("mode")] = static_cast<byte>(relay.getMode());
             relaysData[F("relays")][i][F("isActive")] = relay.getIsActive();
         }
 

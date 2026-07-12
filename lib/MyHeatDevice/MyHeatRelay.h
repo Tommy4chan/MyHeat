@@ -2,11 +2,12 @@
 #define MYHEATRELAY_H
 
 #include <Arduino.h>
+#include "MyHeatEnums.h"
 
 class MyHeatRelay
 {
 private:
-    byte mode;
+    RelayMode mode;
     byte pin;
     bool isActiveOnHigh;
     bool isActive;
@@ -37,7 +38,7 @@ public:
     MyHeatRelay()
     {
         pin = 0;
-        mode = 0;
+        mode = RelayMode::OFF;
         isActiveOnHigh = false;
         isActive = false;
     }
@@ -52,11 +53,11 @@ public:
 
     void changeMode()
     {        
-        mode = (mode + 1) % 3;
+        mode = static_cast<RelayMode>((static_cast<byte>(mode) + 1) % 3);
         updateState();
     }
 
-    void setMode(byte mode)
+    void setMode(RelayMode mode)
     {
         this->mode = mode;
     }
@@ -67,7 +68,7 @@ public:
         updateState();
     }
 
-    byte getMode()
+    RelayMode getMode()
     {
         return mode;
     }

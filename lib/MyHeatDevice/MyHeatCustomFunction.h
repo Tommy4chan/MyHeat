@@ -2,11 +2,12 @@
 #define MYHEATCUSTOMFUNCTION_H
 
 #include <Arduino.h>
+#include "MyHeatEnums.h"
 
 class MyHeatCustomFunction
 {
 private:
-    byte sign;
+    CustomFunctionSign sign;
     byte temperatureIndex[2];
     float deltaValue[2];
     byte relayIndex;
@@ -16,7 +17,7 @@ private:
 public:
     MyHeatCustomFunction()
     {
-        this->sign = 0;
+        this->sign = CustomFunctionSign::LESS;
         this->temperatureIndex[0] = 0;
         this->temperatureIndex[1] = 0;
         this->deltaValue[0] = 0;
@@ -26,7 +27,7 @@ public:
         this->isActive = false;
     }
 
-    void setSign(byte sign)
+    void setSign(CustomFunctionSign sign)
     {
         this->sign = sign;
     }
@@ -56,7 +57,7 @@ public:
         this->isEnabled = !this->isEnabled;
     }
 
-    bool isValid()
+    bool isValid() const
     {
         return this->temperatureIndex[0] != TEMP_UNKNOWN && this->temperatureIndex[1] != TEMP_UNKNOWN && this->relayIndex != RELAY_UNKNOWN;
     }
@@ -66,32 +67,32 @@ public:
         this->isActive = isActive;
     }
 
-    byte getSign()
+    CustomFunctionSign getSign() const
     {
         return this->sign;
     }
 
-    byte getTemperatureIndex(byte tempIndex)
+    byte getTemperatureIndex(byte tempIndex) const
     {
         return this->temperatureIndex[tempIndex];
     }
 
-    float getDeltaValue(byte deltaValueIndex)
+    float getDeltaValue(byte deltaValueIndex) const
     {
         return this->deltaValue[deltaValueIndex];
     }
 
-    byte getRelayIndex()
+    byte getRelayIndex() const
     {
         return this->relayIndex;
     }
 
-    bool getIsEnabled()
+    bool getIsEnabled() const
     {
         return this->isEnabled;
     }
 
-    bool getIsActive()
+    bool getIsActive() const
     {
         return this->isActive;
     }

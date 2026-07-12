@@ -2,12 +2,12 @@
 
 void MyHeatDevice::begin()
 {
-    MyHeatTemperatures::begin();
+    temperatures.begin();
 
-    updateTemperatures();
-    MyHeatCustomFunctions::begin();
-    MyHeatRelays::begin();
-    MyHeatSmokeSensor::begin();
+    temperatures.updateTemperatures();
+    customFunctions.begin();
+    relays.begin();
+    smokeSensor.begin();
 
     initIsSetRelayActive(); 
 
@@ -18,7 +18,7 @@ void MyHeatDevice::begin()
 
 void MyHeatDevice::initIsSetRelayActive() 
 {
-    byte size = getRelayCount();
+    byte size = relays.getRelayCount();
     delete[] isSetRelayActive;
 
     isSetRelayActive = new bool[size];
@@ -30,116 +30,116 @@ void MyHeatDevice::initIsSetRelayActive()
 
 void MyHeatDevice::validateCustomFunctions()
 {
-    MyHeatCustomFunction *customFunctions = getCustomFunctions();
+    MyHeatCustomFunction *cfArray = customFunctions.getCustomFunctions();
 
-    for (int i = 0; i < getCustomFunctionCount(); i++)
+    for (int i = 0; i < customFunctions.getCustomFunctionCount(); i++)
     {
         bool isInvalid = false;
 
-        resetFunctionAlert(i);
+        customFunctions.resetFunctionAlert(i);
 
-        if (customFunctions[i].getTemperatureIndex(0) >= getTemperatureCount() && customFunctions[i].getTemperatureIndex(0) != TN_INDEX)
+        if (cfArray[i].getTemperatureIndex(0) >= temperatures.getTemperatureCount() && cfArray[i].getTemperatureIndex(0) != TN_INDEX)
         {
-            setFunctionAlert(i, FA_BAD_TEMPERATURE_NUMBER);
-            customFunctions[i].setTemperatureIndex(0, TEMP_UNKNOWN);
+            customFunctions.setFunctionAlert(i, FA_BAD_TEMPERATURE_NUMBER);
+            cfArray[i].setTemperatureIndex(0, TEMP_UNKNOWN);
             isInvalid = true;
         }
 
-        if (customFunctions[i].getTemperatureIndex(1) >= getTemperatureCount() && customFunctions[i].getTemperatureIndex(1) != TN_INDEX)
+        if (cfArray[i].getTemperatureIndex(1) >= temperatures.getTemperatureCount() && cfArray[i].getTemperatureIndex(1) != TN_INDEX)
         {
-            setFunctionAlert(i, FA_BAD_TEMPERATURE_NUMBER);
-            customFunctions[i].setTemperatureIndex(1, TEMP_UNKNOWN);
+            customFunctions.setFunctionAlert(i, FA_BAD_TEMPERATURE_NUMBER);
+            cfArray[i].setTemperatureIndex(1, TEMP_UNKNOWN);
             isInvalid = true;
         }
 
-        if (customFunctions[i].getRelayIndex() >= getRelayCount())
+        if (cfArray[i].getRelayIndex() >= relays.getRelayCount())
         {
-            setFunctionAlert(i, FA_BAD_RELAY_NUMBER);
-            customFunctions[i].setRelayIndex(RELAY_UNKNOWN);
+            customFunctions.setFunctionAlert(i, FA_BAD_RELAY_NUMBER);
+            cfArray[i].setRelayIndex(RELAY_UNKNOWN);
             isInvalid = true;
         }
 
         if (isInvalid)
         {
-            customFunctions[i].setIsEnabled(false);
+            cfArray[i].setIsEnabled(false);
         }
     }
 
-    MyHeatCustomFunctions::save();
+    customFunctions.save();
 }
 
 void MyHeatDevice::checkCustomFunctions()
 {
-    MyHeatCustomFunction *customFunctions = getCustomFunctions();
+    MyHeatCustomFunction *cfArray = customFunctions.getCustomFunctions();
 
-    for (int i = 0; i < getCustomFunctionCount(); i++)
+    for (int i = 0; i < customFunctions.getCustomFunctionCount(); i++)
     {
-        if (!customFunctions[i].getIsEnabled())
+        if (!cfArray[i].getIsEnabled())
         {
-            customFunctions[i].setIsActive(false);
+            cfArray[i].setIsActive(false);
             continue;
         }
 
-        float tempA = getTemperature(customFunctions[i].getTemperatureIndex(0));
-        float tempB = getTemperature(customFunctions[i].getTemperatureIndex(1));
+        float tempA = temperatures.getTemperature(cfArray[i].getTemperatureIndex(0));
+        float tempB = temperatures.getTemperature(cfArray[i].getTemperatureIndex(1));
 
-        if (tempA == TEMPERATURE_ERROR || tempB == TEMPERATURE_ERROR)
+        if (tempA <= TEMPERATURE_ERROR + 0.1 || tempB <= TEMPERATURE_ERROR + 0.1)
         {
-            setFunctionAlert(i, FA_BAD_TEMPERATURE);
-            customFunctions[i].setIsActive(false);
+            customFunctions.setFunctionAlert(i, FA_BAD_TEMPERATURE);
+            cfArray[i].setIsActive(false);
             continue;
         }
 
-        resetFunctionAlert(i);
+        customFunctions.resetFunctionAlert(i);
 
-        tempA += customFunctions[i].getDeltaValue(0);
-        tempB += customFunctions[i].getDeltaValue(1);
+        tempA += cfArray[i].getDeltaValue(0);
+        tempB += cfArray[i].getDeltaValue(1);
 
-        if (customFunctions[i].getSign() == 0 && tempA < tempB)
+        if (cfArray[i].getSign() == CustomFunctionSign::LESS && tempA < tempB)
         {
-            customFunctions[i].setIsActive(true);
+            cfArray[i].setIsActive(true);
         }
-        else if (customFunctions[i].getSign() == 1 && tempA == tempB)
+        else if (cfArray[i].getSign() == CustomFunctionSign::EQUAL && abs(tempA - tempB) < 0.1)
         {
-            customFunctions[i].setIsActive(true);
+            cfArray[i].setIsActive(true);
         }
-        else if (customFunctions[i].getSign() == 2 && tempA > tempB)
+        else if (cfArray[i].getSign() == CustomFunctionSign::GREATER && tempA > tempB)
         {
-            customFunctions[i].setIsActive(true);
+            cfArray[i].setIsActive(true);
         }
         else
         {
-            customFunctions[i].setIsActive(false);
+            cfArray[i].setIsActive(false);
         }
     }
 }
 
 void MyHeatDevice::updateRelays()
 {
-    MyHeatCustomFunction *customFunctions = getCustomFunctions();
-    MyHeatRelay *relays = getRelays();
+    MyHeatCustomFunction *cfArray = customFunctions.getCustomFunctions();
+    MyHeatRelay *relaysArray = relays.getRelays();
 
-    for (int i = 0; i < getCustomFunctionCount(); i++)
+    for (int i = 0; i < customFunctions.getCustomFunctionCount(); i++)
     {
-        if (customFunctions[i].getIsEnabled())
+        if (cfArray[i].getIsEnabled())
         {
-            isSetRelayActive[customFunctions[i].getRelayIndex()] = isSetRelayActive[customFunctions[i].getRelayIndex()] || customFunctions[i].getIsActive();
+            isSetRelayActive[cfArray[i].getRelayIndex()] = isSetRelayActive[cfArray[i].getRelayIndex()] || cfArray[i].getIsActive();
         }
     }
 
-    for (int i = 0; i < getRelayCount(); i++)
+    for (int i = 0; i < relays.getRelayCount(); i++)
     {
-        if (relays[i].getMode() == 0)
+        if (relaysArray[i].getMode() == RelayMode::OFF)
         {
-            relays[i].setIsActive(false);
+            relaysArray[i].setIsActive(false);
         }
-        else if (relays[i].getMode() == 1)
+        else if (relaysArray[i].getMode() == RelayMode::ON)
         {
-            relays[i].setIsActive(true);
+            relaysArray[i].setIsActive(true);
         }
         else
         {
-            relays[i].setIsActive(isSetRelayActive[i]);
+            relaysArray[i].setIsActive(isSetRelayActive[i]);
         }
 
         isSetRelayActive[i] = false;
@@ -165,8 +165,8 @@ void MyHeatDevice::tick()
     if (millis() - tickTimerSecondary >= 750)
     {
         tickTimerSecondary = millis();
-        updateTemperatures();
+        temperatures.updateTemperatures();
         updateRelays();
-        updateSmokeSensor();
+        smokeSensor.updateSmokeSensor();
     }
 }

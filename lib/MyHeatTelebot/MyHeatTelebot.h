@@ -60,15 +60,15 @@ namespace MyHeatTelebot
     void handleUserRegistration(fb::Update &u);
     void handleUserInput(fb::Update &u);
 
-    void setToken(String token);
-    void setRegisterPhrase(String registerPhrase);
+    void setToken(const String& token);
+    void setRegisterPhrase(const String& registerPhrase);
     void setIsEnabled(bool isEnabled);
     String getToken();
     String getRegisterPhrase();
     bool getIsEnabled();
     bool getIsAlertNotificationsEnabled();
-    void setSettings(String token, String registerPhrase, bool isActive, bool alertNotifications);
-    void sendAlertNotification(String message);
+    void setSettings(const String& token, const String& registerPhrase, bool isActive, bool alertNotifications);
+    void sendAlertNotification(const String& message);
     void manualDeserialize(JsonDocument data);
     
     void save();

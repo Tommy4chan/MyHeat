@@ -1,4 +1,5 @@
 #include "MyHeatWeb.h"
+#include <MyHeatAlerts.h>
 
 namespace MyHeatWeb
 {
@@ -8,6 +9,7 @@ namespace MyHeatWeb
         websocket.enable(true);
         setupWebsocket();
         server.begin();
+        MyHeatAlerts::registerHandler(sendAlertNotification);
     }
 
     void setupWebsocket()
@@ -269,7 +271,7 @@ namespace MyHeatWeb
         return websocket.count() > 0 && (WiFi.isConnected() || WiFi.softAPgetStationNum() > 0);
     }
 
-    void sendAlertNotification(String message)
+    void sendAlertNotification(const String& message)
     {
         if (canSendData())
         {

@@ -38,5 +38,4 @@ void loop()
 	hardwareIO.tick();
 	MyHeatWeb::tick();
 	MyHeatMqtt::tick();
-	MyHeatAlerts::tick();
 }

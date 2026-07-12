@@ -2,9 +2,11 @@
 
 namespace MyHeatTelebot
 {
-    String getConvertedFunctionToText(MyHeatCustomFunction customFunction, byte functionIndex)
+    String getConvertedFunctionToText(const MyHeatCustomFunction& customFunction, byte functionIndex)
     {
         String result[2] = {"", ""};
+        result[0].reserve(30);
+        result[1].reserve(30);
 
         for (int i = 0; i < 2; i++)
         {
@@ -34,7 +36,7 @@ namespace MyHeatTelebot
             }
         }
 
-        String sign(char(60 + customFunction.getSign()));
+        String sign(char(60 + static_cast<byte>(customFunction.getSign())));
         String isValidText = "";
         String relayText = "Реле " + String(customFunction.getRelayIndex());
 
@@ -48,11 +50,26 @@ namespace MyHeatTelebot
             relayText = "Н/Д";
         }
 
-        return isValidText + "Функція " + String(functionIndex) + ": \n" +
-               result[0] + " " + sign + " " + result[1] +
-               "\nРеле: " + relayText +
-               "\nСтан: " + MyHeatUtils::getConvertedStateToText(customFunction.getIsEnabled()) +
-               "\nАктивна: " + MyHeatUtils::getConvertedActiveToText(customFunction.getIsActive()) + "\n\n";
+        String finalResult = "";
+        finalResult.reserve(200);
+        finalResult += isValidText;
+        finalResult += "Функція ";
+        finalResult += String(functionIndex);
+        finalResult += ": \n";
+        finalResult += result[0];
+        finalResult += " ";
+        finalResult += sign;
+        finalResult += " ";
+        finalResult += result[1];
+        finalResult += "\nРеле: ";
+        finalResult += relayText;
+        finalResult += "\nСтан: ";
+        finalResult += MyHeatUtils::getConvertedStateToText(customFunction.getIsEnabled());
+        finalResult += "\nАктивна: ";
+        finalResult += MyHeatUtils::getConvertedActiveToText(customFunction.getIsActive());
+        finalResult += "\n\n";
+        
+        return finalResult;
     }
 
     Text getCallbackFromQuery(Text query)
@@ -60,14 +77,14 @@ namespace MyHeatTelebot
         return query.indexOf("_") == -1 ? query : query.substring(0, query.indexOf("_"));
     }
 
-    byte getValueFromQuery(String query)
+    byte getValueFromQuery(const String& query)
     {
         return query.substring(query.indexOf("_") + 1).toInt();
     }
 
-    void setFunctionScreen(fb::TextEdit &msg, MyHeatCustomFunction customFunction, byte functionIndex)
+    void setFunctionScreen(fb::TextEdit &msg, const MyHeatCustomFunction& customFunction, byte functionIndex)
     {
-        setUserScreen(msg.chatID, ScreenType::FUNCTION_SCREEN);
+        setUserScreen((Text)msg.chatID, ScreenType::FUNCTION_SCREEN);
         msg.text = getConvertedFunctionToText(customFunction, functionIndex);
         msg.setInlineMenu(getFunctionInlineMenu());
     }

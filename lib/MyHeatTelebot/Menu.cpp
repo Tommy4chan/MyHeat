@@ -15,9 +15,9 @@ namespace MyHeatTelebot
         inlineMenu = fb::InlineMenu();
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
-        for (byte i = 0; i < myHeatDevice.getRelayCount(); i++)
+        for (byte i = 0; i < myHeatDevice.relays.getRelayCount(); i++)
         {
-            inlineMenu.addButton("Реле " + String(i) + ": " + MyHeatUtils::getConvertedStateToText(myHeatDevice.getRelay(i).getMode()), "relay_" + String(i)).newRow();
+            inlineMenu.addButton("Реле " + String(i) + ": " + MyHeatUtils::getConvertedStateToText(static_cast<byte>(myHeatDevice.relays.getRelay(i).getMode())), "relay_" + String(i)).newRow();
         }
 
         inlineMenu.addButton("Оновити", "refreshRelays");
@@ -59,7 +59,7 @@ namespace MyHeatTelebot
     {
         inlineMenu = fb::InlineMenu();
 
-        byte temperatureCount = MyHeatDevice::getInstance().getTemperatureCount();
+        byte temperatureCount = MyHeatDevice::getInstance().temperatures.getTemperatureCount();
 
         for (byte i = 0; i < temperatureCount; i++)
         {
@@ -76,7 +76,7 @@ namespace MyHeatTelebot
     fb::InlineMenu &getFunctionListInlineMenu()
     {
         inlineMenu = fb::InlineMenu();
-        byte functionCount = MyHeatDevice::getInstance().getCustomFunctionCount();
+        byte functionCount = MyHeatDevice::getInstance().customFunctions.getCustomFunctionCount();
 
         for (byte i = 0; i < functionCount; i++)
         {
@@ -119,7 +119,7 @@ namespace MyHeatTelebot
     {
         inlineMenu = fb::InlineMenu();
 
-        for (byte i = 0; i < MyHeatDevice::getInstance().getTemperatureCount(); i++)
+        for (byte i = 0; i < MyHeatDevice::getInstance().temperatures.getTemperatureCount(); i++)
         {
             inlineMenu.addButton("T" + String(i), "functionSetTemp_" + String(i));
             if (i % 2 != 0)
@@ -137,7 +137,7 @@ namespace MyHeatTelebot
     {
         inlineMenu = fb::InlineMenu();
 
-        byte relayCount = MyHeatDevice::getInstance().getRelayCount(); 
+        byte relayCount = MyHeatDevice::getInstance().relays.getRelayCount(); 
 
         for (byte i = 0; i < relayCount; i++)
         {

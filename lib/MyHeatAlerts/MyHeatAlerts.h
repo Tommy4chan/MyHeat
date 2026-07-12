@@ -2,17 +2,14 @@
 #define MYHEATALERTS_H
 
 #include <Arduino.h>
-#include <MyHeatWeb.h>
-#include <MyHeatDevice.h>
-#include <MyHeatTelebot.h>
+#include <vector>
+
+typedef void (*AlertHandler)(const String& message);
 
 namespace MyHeatAlerts
 {
-    // void begin();
-    void tick();
-    void checkTemperatureAlerts(bool forceNotification);
-    void checkSmokeAlerts(bool forceNotification);
-    void checkFunctionsAlerts(bool forceNotification);
+    void registerHandler(AlertHandler handler);
+    void triggerAlert(const String& message);
 }
 
 #endif

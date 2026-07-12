@@ -80,11 +80,11 @@ private:
         byte temperatureIndexStart = 3 * menuIndex;
 
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
-        byte temperatureIndexEnd = min((byte)(temperatureIndexStart + 3), myHeatDevice.getTemperatureCount());
+        byte temperatureIndexEnd = min((byte)(temperatureIndexStart + 3), myHeatDevice.temperatures.getTemperatureCount());
 
         for (byte i = temperatureIndexStart; i < temperatureIndexEnd; i++)
         {
-            float temperature = myHeatDevice.getTemperature(i);
+            float temperature = myHeatDevice.temperatures.getTemperature(i);
 
             u8g2->print("T" + String(i) + ":");
             if (temperature == -127.00)
@@ -107,11 +107,11 @@ private:
     void showRelay()
     {
         byte relayIndex = menuIndex - maxTemperatureScreens;
-        MyHeatRelay relay = MyHeatDevice::getInstance().getRelay(relayIndex);
+        MyHeatRelay relay = MyHeatDevice::getInstance().relays.getRelay(relayIndex);
         u8g2->print(F("Реле "));
         u8g2->print(String(relayIndex) + ":");
         u8g2->setCursor(0, 40);
-        u8g2->print("Стан: " + MyHeatUtils::getConvertedStateToText(relay.getMode()));
+        u8g2->print("Стан: " + MyHeatUtils::getConvertedStateToText(static_cast<byte>(relay.getMode())));
         u8g2->setCursor(0, 56);
         u8g2->print("Активне: " + MyHeatUtils::getConvertedActiveToText(relay.getIsActive()));
     }
@@ -121,9 +121,9 @@ private:
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
         u8g2->print(F("Датчик диму: "));
         u8g2->setCursor(0, 40);
-        u8g2->print(myHeatDevice.MyHeatSmokeSensor::getValue() == -1 ? "Ініціалізація" : String(myHeatDevice.MyHeatSmokeSensor::getValue()));
+        u8g2->print(myHeatDevice.smokeSensor.getValue() == -1 ? "Ініціалізація" : String(myHeatDevice.smokeSensor.getValue()));
         u8g2->setCursor(0, 56);
-        u8g2->print("Небезпечно: " + MyHeatUtils::getConvertedActiveToText(myHeatDevice.MyHeatSmokeSensor::getIsOverThreshold()));
+        u8g2->print("Небезпечно: " + MyHeatUtils::getConvertedActiveToText(myHeatDevice.smokeSensor.getIsOverThreshold()));
     }
 
     void handleEncoder()
@@ -332,8 +332,8 @@ public:
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
-        maxTemperatureScreens = ceil((float)myHeatDevice.getTemperatureCount() / 3);
-        maxRelayScreens = myHeatDevice.getRelayCount();
+        maxTemperatureScreens = ceil((float)myHeatDevice.temperatures.getTemperatureCount() / 3);
+        maxRelayScreens = myHeatDevice.relays.getRelayCount();
         maxScreens = maxTemperatureScreens + maxRelayScreens + 1;
     }
 

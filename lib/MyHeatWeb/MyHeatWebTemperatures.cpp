@@ -6,8 +6,8 @@ namespace MyHeatWeb
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
-        byte count = myHeatDevice.discoverTemperatureSensor();
-        uint8_t **addresses = myHeatDevice.getDiscoveredTemperatureSensorAddresses();
+        byte count = myHeatDevice.temperatures.discoverTemperatureSensor();
+        uint8_t **addresses = myHeatDevice.temperatures.getDiscoveredTemperatureSensorAddresses();
         for (int i = 0; i < count; i++)
         {
             response["discoveredTemperatureSensors"][i] = MyHeatUtils::getAddressToString(addresses[i]);
@@ -27,7 +27,7 @@ namespace MyHeatWeb
     {
         byte tempIndex = payload["tempIndex"];
         byte sensorAddressIndex = payload["sensorAddressIndex"];
-        byte tempCount = MyHeatDevice::getInstance().getTemperatureCount();
+        byte tempCount = MyHeatDevice::getInstance().temperatures.getTemperatureCount();
 
         if(tempIndex >= tempCount || sensorAddressIndex >= tempCount)
         {
@@ -35,13 +35,13 @@ namespace MyHeatWeb
             return;
         }
 
-        MyHeatDevice::getInstance().setTemperatureSensorAddress(tempIndex, payload["sensorAddressIndex"]);
+        MyHeatDevice::getInstance().temperatures.setTemperatureSensorAddress(tempIndex, payload["sensorAddressIndex"]);
         setSuccessMessage(status, F("Датчик температури збережений"));
     }
 
     void deleteTemperatureSensor(JsonObject payload, JsonObject status)
     {
-        MyHeatDevice::getInstance().deleteTemperatureSensorAddress(payload["tempIndex"]);
+        MyHeatDevice::getInstance().temperatures.deleteTemperatureSensorAddress(payload["tempIndex"]);
 
         setSuccessMessage(status, F("Датчик температури видалений"));
     }
@@ -49,17 +49,17 @@ namespace MyHeatWeb
     void getTemperatureSensorsSettings(JsonObject response)
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
-        response["temperaturePin"] = myHeatDevice.getTemperaturePin();
-        response["temperatureCount"] = myHeatDevice.getTemperatureCount();
-        response["minTemperature"] = myHeatDevice.getMinTemperature();
-        response["maxTemperature"] = myHeatDevice.getMaxTemperature();
+        response["temperaturePin"] = myHeatDevice.temperatures.getTemperaturePin();
+        response["temperatureCount"] = myHeatDevice.temperatures.getTemperatureCount();
+        response["minTemperature"] = myHeatDevice.temperatures.getMinTemperature();
+        response["maxTemperature"] = myHeatDevice.temperatures.getMaxTemperature();
     }
 
     void setTemperatureSensorsSettings(JsonObject payload, JsonObject status)
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
-        myHeatDevice.MyHeatTemperatures::setTemperatureSettings(payload["temperaturePin"], payload["temperatureCount"], payload["minTemperature"], payload["maxTemperature"]);
+        myHeatDevice.temperatures.setTemperatureSettings(payload["temperaturePin"], payload["temperatureCount"], payload["minTemperature"], payload["maxTemperature"]);
 
         MyHeatHardwareIO::getInstance().reevaluateScreensCount();
         myHeatDevice.validateCustomFunctions();
@@ -71,7 +71,7 @@ namespace MyHeatWeb
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
         JsonDocument temperaturesData;
-        copyArray(myHeatDevice.getTemperatures(), myHeatDevice.getTemperatureCount(), temperaturesData[F("temperatures")]);
+        copyArray(myHeatDevice.temperatures.getTemperatures(), myHeatDevice.temperatures.getTemperatureCount(), temperaturesData[F("temperatures")]);
         return temperaturesData;
     }
 }

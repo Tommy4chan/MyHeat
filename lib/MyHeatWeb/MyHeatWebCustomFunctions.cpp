@@ -6,13 +6,13 @@ namespace MyHeatWeb
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
-        myHeatDevice.resetFunctionAlert(payload["functionIndex"]);
+        myHeatDevice.customFunctions.resetFunctionAlert(payload["functionIndex"]);
 
-        if (payload["functionIndex"] >= myHeatDevice.getCustomFunctionCount())
+        if (payload["functionIndex"] >= myHeatDevice.customFunctions.getCustomFunctionCount())
         {
             setErrorMessage(status, F("Неіснуюча функція"));
         }
-        if (myHeatDevice.setCustomFunctionIsEnabled(payload["functionIndex"], payload["isEnabled"])) {
+        if (myHeatDevice.customFunctions.setCustomFunctionIsEnabled(payload["functionIndex"], payload["isEnabled"])) {
             setSuccessMessage(status, "Стан функції " + payload["functionIndex"].as<String>() + " змінено");
             myHeatDevice.checkCustomFunctions();
         }
@@ -25,13 +25,13 @@ namespace MyHeatWeb
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
-        byte oldFunctionCount = myHeatDevice.getCustomFunctionCount();
+        byte oldFunctionCount = myHeatDevice.customFunctions.getCustomFunctionCount();
         byte functionCount = payload["functionCount"];
-        myHeatDevice.setCustomFunctionCount(functionCount);
-        MyHeatCustomFunction *customFunctions = myHeatDevice.getCustomFunctions();
+        myHeatDevice.customFunctions.setCustomFunctionCount(functionCount);
+        MyHeatCustomFunction *customFunctions = myHeatDevice.customFunctions.getCustomFunctions();
 
-        byte temperatureCount = myHeatDevice.getTemperatureCount();
-        byte relayCount = myHeatDevice.getRelayCount();
+        byte temperatureCount = myHeatDevice.temperatures.getTemperatureCount();
+        byte relayCount = myHeatDevice.relays.getRelayCount();
 
         for (int i = 0; i < functionCount; i++)
         {
@@ -51,7 +51,7 @@ namespace MyHeatWeb
                 continue;
             }
 
-            customFunctions[i].setSign(payload["functions"][i]["sign"]);
+            customFunctions[i].setSign(static_cast<CustomFunctionSign>(payload["functions"][i]["sign"].as<byte>()));
             customFunctions[i].setTemperatureIndex(0, payload["functions"][i]["temperatureIndex"][0]);
             customFunctions[i].setTemperatureIndex(1, payload["functions"][i]["temperatureIndex"][1]);
             customFunctions[i].setDeltaValue(0, payload["functions"][i]["deltaValue"][0]);
@@ -59,7 +59,7 @@ namespace MyHeatWeb
             customFunctions[i].setRelayIndex(payload["functions"][i]["relayIndex"]);
         }
 
-        myHeatDevice.MyHeatCustomFunctions::save();
+        myHeatDevice.customFunctions.save();
         myHeatDevice.validateCustomFunctions();
 
         setSuccessMessage(status, "Функції збережено");
@@ -70,14 +70,14 @@ namespace MyHeatWeb
         JsonDocument functionsData;
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
-        functionsData[F("temperatureCount")] = myHeatDevice.getTemperatureCount();
-        functionsData[F("relayCount")] = myHeatDevice.getRelayCount();
+        functionsData[F("temperatureCount")] = myHeatDevice.temperatures.getTemperatureCount();
+        functionsData[F("relayCount")] = myHeatDevice.relays.getRelayCount();
 
-        for (int i = 0; i < myHeatDevice.getCustomFunctionCount(); i++)
+        for (int i = 0; i < myHeatDevice.customFunctions.getCustomFunctionCount(); i++)
         {
-            MyHeatCustomFunction function = myHeatDevice.getCustomFunction(i);
+            MyHeatCustomFunction function = myHeatDevice.customFunctions.getCustomFunction(i);
 
-            functionsData[F("functions")][i][F("sign")] = function.getSign();
+            functionsData[F("functions")][i][F("sign")] = static_cast<byte>(function.getSign());
             functionsData[F("functions")][i][F("temperatureIndex")][0] = function.getTemperatureIndex(0);
             functionsData[F("functions")][i][F("temperatureIndex")][1] = function.getTemperatureIndex(1);
             functionsData[F("functions")][i][F("deltaValue")][0] = function.getDeltaValue(0);

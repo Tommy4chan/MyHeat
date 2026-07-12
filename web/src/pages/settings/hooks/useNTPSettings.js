@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { DateTime } from "luxon";
 import useSettingStore from "@/store/settingStore";
+import { getPosixTZ } from "@/utils/tzMap";
 
 export const useNTPSettings = () => {
   const [ntpServer, setNtpServer] = useState('');
@@ -49,7 +50,8 @@ export const useNTPSettings = () => {
   };
 
   const handleSaveNTPSettings = () => {
-    setNtpSettings(ntpServer, timeZone, ntpData.offset, ntpData.dst);
+    const posixTZ = getPosixTZ(timeZone, ntpData.offset, ntpData.dst);
+    setNtpSettings(ntpServer, timeZone, posixTZ);
   }
 
   return {

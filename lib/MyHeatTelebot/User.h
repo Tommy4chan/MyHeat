@@ -34,16 +34,16 @@ namespace MyHeatTelebot
     inline std::map<String, User> users;
 
     void loadUsers();
-    bool isUserRegistered(String chatId);
-    bool isUserInputMode(String chatId);
-    void registerUser(String chatId);
+    bool isUserRegistered(const String& chatId);
+    bool isUserInputMode(const String& chatId);
+    void registerUser(const String& chatId);
     void deleteUsers();
-    void setUserScreen(String chatId, ScreenType type);
-    void setUserInputMode(String chatId, bool inputMode);
-    void setUserTempValue1(String chatId, byte tempValue1);
-    void setUserTempValue2(String chatId, byte tempValue2);
-    User getUser(String chatId);
-    void saveUser(String chatId);
+    void setUserScreen(const String& chatId, ScreenType type);
+    void setUserInputMode(const String& chatId, bool inputMode);
+    void setUserTempValue1(const String& chatId, byte tempValue1);
+    void setUserTempValue2(const String& chatId, byte tempValue2);
+    User getUser(const String& chatId);
+    void saveUser(const String& chatId);
     byte getUsersCount();
     String getChatIdByIndex(byte index);
 }

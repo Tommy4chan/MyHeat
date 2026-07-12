@@ -80,12 +80,11 @@ const useSettingStore = create((set, get) => ({
     set({ telegramBotSettings: payload });
   },
 
-  setNtpSettings: (ntpServer, ntpIANA, ntpOffset, ntpDaylightOffset) => {
+  setNtpSettings: (ntpServer, ntpIANA, ntpTZ) => {
     const payload = {
       ntpServer,
       ntpIANA,
-      ntpOffset,
-      ntpDaylightOffset,
+      ntpTZ,
     };
 
     useWebSocketStore.getState().sendMessage("setNTPSettings", payload);

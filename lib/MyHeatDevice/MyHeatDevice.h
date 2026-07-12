@@ -12,13 +12,23 @@
 #define XSTR(x) #x
 #define STR(x) XSTR(x)
 
-class MyHeatDevice : public MyHeatRelays, public MyHeatCustomFunctions, public MyHeatTemperatures, public MyHeatSmokeSensor
+class MyHeatDevice
 {
 private:
     uint32_t tickTimerMain;
     uint32_t tickTimerSecondary;
     bool *isSetRelayActive;
-    MyHeatDevice() {};
+    MyHeatDevice() {
+        tickTimerMain = 0;
+        tickTimerSecondary = 0;
+        isSetRelayActive = nullptr;
+    };
+
+public:
+    MyHeatRelays relays;
+    MyHeatCustomFunctions customFunctions;
+    MyHeatTemperatures temperatures;
+    MyHeatSmokeSensor smokeSensor;
 
 public:
     static MyHeatDevice &getInstance()

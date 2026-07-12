@@ -36,7 +36,7 @@ namespace MyHeatWeb
     void sendDataToClients(JsonDocument data, String messageType);
 
     bool canSendData();
-    void sendAlertNotification(String message);
+    void sendAlertNotification(const String& message);
     void sendRepeatableDataToClients();
     void tick();
 }

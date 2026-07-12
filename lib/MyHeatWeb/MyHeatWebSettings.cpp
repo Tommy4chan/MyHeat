@@ -8,17 +8,17 @@ namespace MyHeatWeb
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
         MyHeatHardwareIO &myHeatHardwareIO = MyHeatHardwareIO::getInstance();
 
-        response[F("usedPins")][0] = myHeatDevice.getTemperaturePin();
+        response[F("usedPins")][0] = myHeatDevice.temperatures.getTemperaturePin();
         response[F("usedPins")][1] = myHeatHardwareIO.getEncA();
         response[F("usedPins")][2] = myHeatHardwareIO.getEncB();
         response[F("usedPins")][3] = myHeatHardwareIO.getEncBtn();
         response[F("usedPins")][4] = myHeatHardwareIO.getOledSCL();
         response[F("usedPins")][5] = myHeatHardwareIO.getOledSDA();
-        response[F("usedPins")][6] = myHeatDevice.MyHeatSmokeSensor::getPin();
+        response[F("usedPins")][6] = myHeatDevice.smokeSensor.getPin();
 
-        for (int i = 0; i < myHeatDevice.getRelayCount(); i++)
+        for (int i = 0; i < myHeatDevice.relays.getRelayCount(); i++)
         {
-            response[F("usedPins")][i + 7] = myHeatDevice.getRelay(i).getPin();
+            response[F("usedPins")][i + 7] = myHeatDevice.relays.getRelay(i).getPin();
         }
     }
 
@@ -47,7 +47,7 @@ namespace MyHeatWeb
     {
         MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
 
-        myHeatWifi.setNTPSettings(payload[F("ntpServer")], payload[F("ntpIANA")], payload[F("ntpOffset")], payload[F("ntpDaylightOffset")] ? 3600 : 0);
+        myHeatWifi.setNTPSettings(payload[F("ntpServer")], payload[F("ntpIANA")], payload[F("ntpTZ")]);
 
         setSuccessMessage(status, "Налаштування збереженні");
     }
@@ -58,8 +58,7 @@ namespace MyHeatWeb
 
         response[F("ntpServer")] = myHeatWifi.getNTPServer();
         response[F("ntpIANA")] = myHeatWifi.getNTPIANA();
-        response[F("ntpOffset")] = myHeatWifi.getNTPOffset();
-        response[F("ntpDaylightOffset")] = myHeatWifi.getNTPDaylightOffset() == 3600;
+        response[F("ntpTZ")] = myHeatWifi.getNTPTZ();
     }
 
     void setTelegramBotSettings(JsonObject payload, JsonObject status)
@@ -141,14 +140,14 @@ namespace MyHeatWeb
         MyHeatHardwareIO &myHeatHardwareIO = MyHeatHardwareIO::getInstance();
         MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
 
-        myHeatDevice.MyHeatTemperatures::manualDeserialize(payload[F("MyHeatTemperatures")]);
-        myHeatDevice.MyHeatCustomFunctions::manualDeserialize(payload[F("MyHeatCustomFunctions")]);
-        myHeatDevice.MyHeatRelays::manualDeserialize(payload[F("MyHeatRelays")]);
-        myHeatDevice.MyHeatSmokeSensor::manualDeserialize(payload[F("MyHeatSmokeSensor")]);
+        myHeatDevice.temperatures.manualDeserialize(payload[F("MyHeatTemperatures")]);
+        myHeatDevice.customFunctions.manualDeserialize(payload[F("MyHeatCustomFunctions")]);
+        myHeatDevice.relays.manualDeserialize(payload[F("MyHeatRelays")]);
+        myHeatDevice.smokeSensor.manualDeserialize(payload[F("MyHeatSmokeSensor")]);
         myHeatHardwareIO.manualDeserialize(payload[F("MyHeatHardwareIO")]);
         myHeatWifi.manualDeserialize(payload[F("MyHeatWifi")]);
         MyHeatTelebot::manualDeserialize(payload[F("MyHeatTelebot")]);
-        if (payload.containsKey("MyHeatMqtt")) {
+        if (!payload["MyHeatMqtt"].isNull()) {
             MyHeatMqtt::settings.manualDeserialize(payload[F("MyHeatMqtt")]);
             MyHeatMqtt::save();
         }
@@ -160,16 +159,16 @@ namespace MyHeatWeb
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
-        response[F("threshold")] = myHeatDevice.MyHeatSmokeSensor::getThreshold();
-        response[F("pin")] = myHeatDevice.MyHeatSmokeSensor::getPin();
-        response[F("isEnabled")] = myHeatDevice.MyHeatSmokeSensor::getIsEnabled();
+        response[F("threshold")] = myHeatDevice.smokeSensor.getThreshold();
+        response[F("pin")] = myHeatDevice.smokeSensor.getPin();
+        response[F("isEnabled")] = myHeatDevice.smokeSensor.getIsEnabled();
     }
 
     void setSmokeSensorSettings(JsonObject payload, JsonObject status)
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
-        myHeatDevice.MyHeatSmokeSensor::setSmokeSensorSettings(payload[F("threshold")], payload[F("pin")], payload[F("isEnabled")]);
+        myHeatDevice.smokeSensor.setSmokeSensorSettings(payload[F("threshold")], payload[F("pin")], payload[F("isEnabled")]);
 
         setSuccessMessage(status, "Налаштування збережені");
     }
@@ -178,8 +177,8 @@ namespace MyHeatWeb
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
-        response[F("value")] = myHeatDevice.MyHeatSmokeSensor::getValue();
-        response[F("isOverThreshold")] = myHeatDevice.MyHeatSmokeSensor::getIsOverThreshold();
+        response[F("value")] = myHeatDevice.smokeSensor.getValue();
+        response[F("isOverThreshold")] = myHeatDevice.smokeSensor.getIsOverThreshold();
     }
 
     void startWifiScan()
