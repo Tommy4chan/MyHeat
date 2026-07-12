@@ -178,8 +178,6 @@ namespace MyHeatMqtt
 
         publishSmokeDiscovery();
         delay(20);
-        publishSmokeValueDiscovery();
-        delay(20);
     }
 
     void addDeviceBlock(JsonDocument &doc)
@@ -302,38 +300,23 @@ namespace MyHeatMqtt
 
     void publishSmokeDiscovery()
     {
+        clearDiscoveryConfig("binary_sensor", "smoke");
+        clearDiscoveryConfig("sensor", "smoke_value");
+
         JsonDocument doc;
         doc["~"] = baseTopic;
         doc["name"] = "Smoke Detector";
         doc["unique_id"] = clientId + "_smoke";
         doc["object_id"] = clientId + "_smoke";
-        doc["device_class"] = "smoke";
-        doc["state_topic"] = "~/smoke/state";
-        doc["payload_on"] = "ON";
-        doc["payload_off"] = "OFF";
-        addAvailability(doc);
-        addDeviceBlock(doc);
-
-        String topic = "homeassistant/binary_sensor/" + clientId + "/smoke/config";
-        String payload;
-        serializeJson(doc, payload);
-        mqtt.publish(topic.c_str(), payload.c_str(), true);
-    }
-
-    void publishSmokeValueDiscovery()
-    {
-        JsonDocument doc;
-        doc["~"] = baseTopic;
-        doc["name"] = "Smoke Sensor Value";
-        doc["unique_id"] = clientId + "_smoke_value";
-        doc["object_id"] = clientId + "_smoke_value";
         doc["icon"] = "mdi:smoke-detector-variant";
-        doc["state_topic"] = "~/smoke/value";
-        doc["unit_of_measurement"] = "";
-        addAvailability(doc);
+        doc["state_topic"] = "~/smoke/state";
+        doc["value_template"] = "{{ value_json.value }}";
+        doc["json_attributes_topic"] = "~/smoke/state";
+        doc["state_class"] = "measurement";
+        addAvailability(doc, "~/smoke/status");
         addDeviceBlock(doc);
 
-        String topic = "homeassistant/sensor/" + clientId + "/smoke_value/config";
+        String topic = "homeassistant/sensor/" + clientId + "/smoke/config";
         String payload;
         serializeJson(doc, payload);
         mqtt.publish(topic.c_str(), payload.c_str(), true);
@@ -364,7 +347,6 @@ namespace MyHeatMqtt
         }
 
         publishSmokeState();
-        publishSmokeValueState();
     }
 
     void publishTemperatureState(byte index)
@@ -412,25 +394,29 @@ namespace MyHeatMqtt
     {
         bool enabled = myHeatDevice.smokeSensor.getIsEnabled();
         String topic = baseTopic + "/smoke/state";
+        String availTopicLocal = baseTopic + "/smoke/status";
         
         if (!enabled) {
-            // Unpublish state or let it be. Discovery will mark it offline if we were to change its availability topic, 
-            // but since it shares the device availability topic, it's better to just not publish when disabled, 
-            // or publish a specific payload. Actually, HA binary sensor needs ON/OFF.
-            // Let's just publish OFF if disabled.
-            mqtt.publish(topic.c_str(), "OFF", true);
+            mqtt.publish(availTopicLocal.c_str(), "offline", true);
             return;
         }
 
-        bool active = myHeatDevice.smokeSensor.getSmokeSensorAlert() == SSA_OVER_THRESHOLD;
-        mqtt.publish(topic.c_str(), active ? "ON" : "OFF", true);
-    }
-
-    void publishSmokeValueState()
-    {
         int val = myHeatDevice.smokeSensor.getValue();
-        String topic = baseTopic + "/smoke/value";
-        mqtt.publish(topic.c_str(), String(val).c_str(), true);
+        if (val == -1) {
+            mqtt.publish(availTopicLocal.c_str(), "offline", true);
+            return;
+        }
+
+        mqtt.publish(availTopicLocal.c_str(), "online", true);
+        bool active = myHeatDevice.smokeSensor.getSmokeSensorAlert() == SSA_OVER_THRESHOLD;
+        
+        JsonDocument doc;
+        doc["value"] = val;
+        doc["alarm"] = active ? "ON" : "OFF";
+        
+        String payload;
+        serializeJson(doc, payload);
+        mqtt.publish(topic.c_str(), payload.c_str(), true);
     }
 
     int extractIndex(const String &topicStr, const String &prefix, const String &suffix)

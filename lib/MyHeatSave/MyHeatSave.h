@@ -48,7 +48,7 @@ public:
         File file = LittleFS.open(path, FILE_WRITE);
         if (!file)
         {
-            Serial.println("Failed to open file for writing");
+            Serial.println(String("Failed to open file for writing: ") + path);
             return false;
         }
 
@@ -57,7 +57,7 @@ public:
 
         if (serializeJson(doc, file) == 0)
         {
-            Serial.println("Failed to write to file");
+            Serial.println(String("Failed to write to file: ") + path);
             file.close();
             return false;
         }
@@ -77,7 +77,7 @@ public:
         File file = LittleFS.open(path, FILE_READ);
         if (!file)
         {
-            Serial.println("Failed to open file for reading");
+            Serial.println(String("Failed to open file for reading: ") + path);
             return false;
         }
 
@@ -85,7 +85,7 @@ public:
         DeserializationError error = deserializeJson(doc, file);
         if (error)
         {
-            Serial.println("Failed to read file, using default configuration");
+            Serial.println(String("Failed to read file, using default configuration: ") + path);
             file.close();
             return false;
         }
