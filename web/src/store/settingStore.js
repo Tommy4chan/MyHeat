@@ -14,6 +14,7 @@ const useSettingStore = create((set, get) => ({
   allDeviceSettings: {},
   smokeSensorSettings: {},
   smokeSensor: {},
+  mqttSettings: {},
 
   setWifiSettings: (wifiSSID, wifiPassword, apSSID, apPassword, isFallbackAPEnabled, mDNS) => {
     isFallbackAPEnabled = convertToBoolean(isFallbackAPEnabled);
@@ -191,6 +192,30 @@ const useSettingStore = create((set, get) => ({
     set({ smokeSensor: payload });
   },
 
+  setMqttSettings: (broker, port, user, password, isEnabled, publishInterval) => {
+    isEnabled = convertToBoolean(isEnabled);
+
+    const payload = {
+      broker,
+      port,
+      user,
+      password,
+      isEnabled,
+      publishInterval: Number(publishInterval),
+    };
+
+    useWebSocketStore.getState().sendMessage("setMqttSettings", payload);
+    get().getMqttSettings();
+  },
+
+  getMqttSettings: () => {
+    useWebSocketStore.getState().sendMessage("getMqttSettings");
+  },
+
+  processGetMqttSettings: (payload) => {
+    set({ mqttSettings: payload });
+  },
+
 }));
 
 const convertToBoolean = (value) => value === 'true' || value === 'false' ? value === 'true' : value;
@@ -233,6 +258,11 @@ useWebSocketStore.subscribe(
 useWebSocketStore.subscribe(
   (state) => state.messages["getSmokeSensorResponse"],
   (payload) => useSettingStore.getState().processGetSmokeSensor(payload)
+);
+
+useWebSocketStore.subscribe(
+  (state) => state.messages["getMqttSettingsResponse"],
+  (payload) => useSettingStore.getState().processGetMqttSettings(payload)
 );
 
 export default useSettingStore;

@@ -21,7 +21,7 @@
 class MyHeatHardwareIO : public MyHeatSaveInterface
 {
 private:
-    //U8G2_SSD1306_128X64_NONAME_F_HW_I2C *u8g2 (for oled 0.96);
+    // U8G2_SSD1306_128X64_NONAME_F_HW_I2C *u8g2; // (for oled 0.96);
     U8G2_SH1106_128X64_NONAME_F_HW_I2C *u8g2;
     EncButton *eb;
     byte menuIndex;
@@ -254,7 +254,7 @@ private:
         oledSDA = sda;
         oledAddress = address;
 
-        //u8g2 = new U8G2_SSD1306_128X64_NONAME_F_HW_I2C(U8G2_R0, /* reset=*/U8X8_PIN_NONE, scl, sda)  (for oled 0.96);
+        // u8g2 = new U8G2_SSD1306_128X64_NONAME_F_HW_I2C(U8G2_R0, /* reset=*/U8X8_PIN_NONE, scl, sda);  // (for oled 0.96);
         u8g2 = new U8G2_SH1106_128X64_NONAME_F_HW_I2C(U8G2_R0, /* reset=*/U8X8_PIN_NONE, scl, sda);
         
         u8g2->setI2CAddress(address);

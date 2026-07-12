@@ -162,6 +162,14 @@ namespace MyHeatWeb
                 setAllDeviceSettings(payload, responseStatus);
                 break;
 
+            case su::SH("getMqttSettings"):
+                getMqttSettings(responsePayload);
+                break;
+
+            case su::SH("setMqttSettings"):
+                setMqttSettings(payload, responseStatus);
+                break;
+
             case su::SH("restartDevice"):
                 setWarningMessage(responseStatus, "Перезавантаження пристрою");
                 restartRequired = true;

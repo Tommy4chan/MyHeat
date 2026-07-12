@@ -19,6 +19,8 @@ namespace MyHeatWeb
     void getTelegramBotSettings(JsonObject response);
     void setHardwareIOSettings(JsonObject payload, JsonObject status);
     void getHardwareIOSettings(JsonObject response);
+    void setMqttSettings(JsonObject payload, JsonObject status);
+    void getMqttSettings(JsonObject response);
     void getAllDeviceSettings(JsonObject response);
     void setAllDeviceSettings(JsonObject payload, JsonObject status);
     void getSmokeSensorSettings(JsonObject response);

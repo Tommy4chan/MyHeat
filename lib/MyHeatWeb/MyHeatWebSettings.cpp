@@ -1,4 +1,5 @@
 #include "MyHeatWebSettings.h"
+#include "MyHeatMqtt.h"
 
 namespace MyHeatWeb
 {
@@ -104,6 +105,24 @@ namespace MyHeatWeb
         response[F("isEnabled")] = myHeatHardwareIO.getIsEnabled();
     }
 
+    void setMqttSettings(JsonObject payload, JsonObject status)
+    {
+        MyHeatMqtt::setSettings(payload[F("broker")], payload[F("port")], payload[F("user")], payload[F("password")], payload[F("isEnabled")], payload[F("publishInterval")]);
+        MyHeatMqtt::save();
+        setSuccessMessage(status, "Налаштування збережені");
+    }
+
+    void getMqttSettings(JsonObject response)
+    {
+        response[F("broker")] = MyHeatMqtt::getBroker();
+        response[F("port")] = MyHeatMqtt::getPort();
+        response[F("user")] = MyHeatMqtt::getUser();
+        response[F("password")] = MyHeatMqtt::getPassword();
+        response[F("isEnabled")] = MyHeatMqtt::getIsEnabled();
+        response[F("publishInterval")] = MyHeatMqtt::getPublishInterval();
+        response[F("isConnected")] = MyHeatMqtt::isConnected();
+    }
+
     void getAllDeviceSettings(JsonObject response)
     {
         response[F("MyHeatTemperatures")] = MyHeatUtils::getFileContent("/temperatureSensors.json");
@@ -113,6 +132,7 @@ namespace MyHeatWeb
         response[F("MyHeatHardwareIO")] = MyHeatUtils::getFileContent("/hardwareIO.json");
         response[F("MyHeatWifi")] = MyHeatUtils::getFileContent("/wifi.json");
         response[F("MyHeatTelebot")] = MyHeatUtils::getFileContent("/telebot.json");
+        response[F("MyHeatMqtt")] = MyHeatUtils::getFileContent("/mqtt.json");
     }
 
     void setAllDeviceSettings(JsonObject payload, JsonObject status)
@@ -128,6 +148,10 @@ namespace MyHeatWeb
         myHeatHardwareIO.manualDeserialize(payload[F("MyHeatHardwareIO")]);
         myHeatWifi.manualDeserialize(payload[F("MyHeatWifi")]);
         MyHeatTelebot::manualDeserialize(payload[F("MyHeatTelebot")]);
+        if (payload.containsKey("MyHeatMqtt")) {
+            MyHeatMqtt::settings.manualDeserialize(payload[F("MyHeatMqtt")]);
+            MyHeatMqtt::save();
+        }
 
         setSuccessMessage(status, "Налаштування імпортовані");
     }
