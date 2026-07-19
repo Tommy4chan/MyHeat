@@ -8,7 +8,7 @@
 #include "MyHeatSave.h"
 #include "MyHeatUtils.h"
 
-#define XSTR(x) #x
+#define XSTR(...) #__VA_ARGS__
 #define STR(x) XSTR(x)
 
 class MyHeatWifi : public MyHeatSaveInterface
@@ -18,7 +18,7 @@ private:
     String wifiPassword;
     String apSSID;
     String apPassword;
-    bool isFallbackAPEnabled;
+    bool isFallbackAPEnabled = IS_FALLBACK_AP_ENABLED;
     String mDNS;
     String ntpServer;
     String ntpIANA;
@@ -30,8 +30,8 @@ private:
     bool isFallbackAPActive = false;
     bool isWebsocketClientsConnected = false;
 
-    void serialize(JsonDocument &doc);
-    void deserialize(JsonDocument &doc);
+    void serialize(JsonDocument &doc) override;
+    void deserialize(JsonDocument &doc) override;
 
     void setAPMode();
     void setManualAPMode();
@@ -57,12 +57,10 @@ public:
     void tick();
 
     bool isConnected();
-    void setNTPSettings(String ntpServer, String ntpIANA, String ntpTZ);
+    void setNTPSettings(const String &ntpServer, const String &ntpIANA, const String &ntpTZ);
     void beginNTP();
 
-    void setWifiSettings(String wifiSSID, String wifiPassword, String apSSID, String apPassword, bool isFallbackAPEnabled, String mDNS);
-    void setSSID(String ssid);
-    void setPassword(String password);
+    void setWifiSettings(const String &wifiSSID, const String &wifiPassword, const String &apSSID, const String &apPassword, bool isFallbackAPEnabled, const String &mDNS);
 
     String getWifiSSID();
     String getWifiPassword();
@@ -75,7 +73,7 @@ public:
     int isScanCompleted();
     JsonDocument getNetworks();
 
-    void setMDNS(String mDNS);
+    void setMDNS(const String &mDNS);
     void restartMDNS();
     String getMDNS();
 
@@ -86,8 +84,9 @@ public:
     String getNTPTZ();
 
     bool isAPMode();
+    bool hasAPClients();
     String getIpAddress();
     void setIsWebsocketClientsConnected(bool isConnected);
-    void manualDeserialize(JsonDocument data);
+    void manualDeserialize(JsonDocument data) override;
 };
 #endif

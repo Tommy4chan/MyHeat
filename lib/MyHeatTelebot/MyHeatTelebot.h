@@ -10,7 +10,7 @@
 #include "MyHeatSave.h"
 #include "MyHeatWifi.h"
 
-#define XSTR(x) #x
+#define XSTR(...) #__VA_ARGS__
 #define STR(x) XSTR(x)
 
 namespace MyHeatTelebot

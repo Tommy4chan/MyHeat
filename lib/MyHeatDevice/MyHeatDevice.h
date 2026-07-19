@@ -9,7 +9,7 @@
 #include "MyHeatUtils.h"
 #include "MyHeatSmokeSensor.h"
 
-#define XSTR(x) #x
+#define XSTR(...) #__VA_ARGS__
 #define STR(x) XSTR(x)
 
 class MyHeatDevice

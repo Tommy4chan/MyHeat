@@ -268,7 +268,8 @@ namespace MyHeatWeb
 
     bool canSendData()
     {
-        return websocket.count() > 0 && (WiFi.isConnected() || WiFi.softAPgetStationNum() > 0);
+        MyHeatWifi &wifi = MyHeatWifi::getInstance();
+        return websocket.count() > 0 && (wifi.isConnected() || wifi.hasAPClients());
     }
 
     void sendAlertNotification(const String& message)
@@ -287,8 +288,6 @@ namespace MyHeatWeb
 
     void sendRepeatableDataToClients()
     {
-        MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
-
         if (canSendData())
         {
             sendTemperaturesData();
@@ -297,7 +296,8 @@ namespace MyHeatWeb
             sendNetworksData();
             MyHeatWifi::getInstance().setIsWebsocketClientsConnected(true);
         }
-        else {
+        else
+        {
             MyHeatWifi::getInstance().setIsWebsocketClientsConnected(false);
         }
 

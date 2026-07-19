@@ -1,5 +1,8 @@
 #include "MyHeatWifi.h"
 
+static constexpr uint32_t WIFI_STABILITY_DELAY_MS   = WIFI_STABILITY_DELAY;
+static constexpr uint32_t WIFI_MODE_SWITCH_DELAY_MS  = WIFI_MODE_SWITCH_DELAY;
+
 MyHeatWifi::MyHeatWifi()
 {
     wifiSSID = STR(WIFI_SSID);
@@ -9,7 +12,7 @@ MyHeatWifi::MyHeatWifi()
     mDNS = STR(MDNS_ADDRESS);
     ntpServer = STR(NTP_SERVER);
     ntpIANA = STR(NTP_IANA);
-    ntpTZ = "EET-2EEST,M3.5.0/3,M10.5.0/4"; // Default POSIX TZ for Kyiv
+    ntpTZ = STR(NTP_TZ); // Default POSIX TZ string — set via NTP_TZ build flag
     wifiReconnectTick = millis();
 }
 
@@ -36,12 +39,12 @@ void MyHeatWifi::deserialize(JsonDocument &doc)
     mDNS = doc["mDNS"] | STR(MDNS_ADDRESS);
     ntpServer = doc["ntp_server"] | STR(NTP_SERVER);
     ntpIANA = doc["ntp_iana"] | STR(NTP_IANA);
-    ntpTZ = doc["ntp_tz"] | "EET-2EEST,M3.5.0/3,M10.5.0/4";
+    ntpTZ = doc["ntp_tz"] | STR(NTP_TZ);
 }
 
 void MyHeatWifi::setAPMode()
 {
-    delay(100);
+    delay(WIFI_MODE_SWITCH_DELAY_MS);
     WiFi.setAutoReconnect(false);
     WiFi.softAP(apSSID.c_str(), apPassword.c_str());
     isAPActive = true;
@@ -57,10 +60,10 @@ void MyHeatWifi::setFallbackAPMode()
 {
     WiFi.mode(WIFI_MODE_APSTA);
     isFallbackAPActive = true;
-    
+
     // In Fallback mode, we start AP but keep auto-reconnect ON so STA tries to connect in background
-    delay(100);
-    WiFi.setAutoReconnect(true); 
+    delay(WIFI_MODE_SWITCH_DELAY_MS);
+    WiFi.setAutoReconnect(true);
     WiFi.softAP(apSSID.c_str(), apPassword.c_str());
     isAPActive = true;
 }
@@ -80,7 +83,7 @@ void MyHeatWifi::setSTAMode()
     }
     else
     {
-        setAPMode();
+        setManualAPMode();
     }
 }
 
@@ -137,13 +140,15 @@ void MyHeatWifi::tick()
         {
             if (isWebsocketClientsConnected)
             {
-                if (WiFi.getAutoReconnect()) {
+                if (WiFi.getAutoReconnect())
+                {
                     WiFi.setAutoReconnect(false);
                 }
             }
             else
             {
-                if (!WiFi.getAutoReconnect()) {
+                if (!WiFi.getAutoReconnect())
+                {
                     WiFi.setAutoReconnect(true);
                     WiFi.reconnect(); // Kickoff reconnection
                 }
@@ -154,10 +159,10 @@ void MyHeatWifi::tick()
 
 bool MyHeatWifi::isConnected()
 {
-    return WiFi.isConnected() && (millis() - wifiGotIpTick > 2000) && wifiGotIpTick != 0;
+    return WiFi.isConnected() && wifiGotIpTick != 0 && (millis() - wifiGotIpTick > WIFI_STABILITY_DELAY_MS);
 }
 
-void MyHeatWifi::setNTPSettings(String ntpServer, String ntpIANA, String ntpTZ)
+void MyHeatWifi::setNTPSettings(const String &ntpServer, const String &ntpIANA, const String &ntpTZ)
 {
     this->ntpServer = ntpServer;
     this->ntpIANA = ntpIANA;
@@ -172,7 +177,7 @@ void MyHeatWifi::beginNTP()
     configTzTime(ntpTZ.c_str(), ntpServer.c_str());
 }
 
-void MyHeatWifi::setWifiSettings(String wifiSSID, String wifiPassword, String apSSID, String apPassword, bool isFallbackAPEnabled, String mDNS)
+void MyHeatWifi::setWifiSettings(const String &wifiSSID, const String &wifiPassword, const String &apSSID, const String &apPassword, bool isFallbackAPEnabled, const String &mDNS)
 {
     this->apSSID = apSSID;
     this->apPassword = apPassword;
@@ -188,16 +193,6 @@ void MyHeatWifi::setWifiSettings(String wifiSSID, String wifiPassword, String ap
 
     restartMDNS();
     save();
-}
-
-void MyHeatWifi::setSSID(String ssid)
-{
-    wifiSSID = ssid;
-}
-
-void MyHeatWifi::setPassword(String password)
-{
-    wifiPassword = password;
 }
 
 String MyHeatWifi::getWifiSSID()
@@ -262,7 +257,7 @@ JsonDocument MyHeatWifi::getNetworks()
     return networks;
 }
 
-void MyHeatWifi::setMDNS(String mDNS)
+void MyHeatWifi::setMDNS(const String &mDNS)
 {
     this->mDNS = mDNS;
     restartMDNS();
@@ -303,6 +298,11 @@ String MyHeatWifi::getNTPTZ()
 bool MyHeatWifi::isAPMode()
 {
     return WiFi.getMode() == WIFI_MODE_AP || WiFi.getMode() == WIFI_MODE_APSTA;
+}
+
+bool MyHeatWifi::hasAPClients()
+{
+    return WiFi.softAPgetStationNum() > 0;
 }
 
 String MyHeatWifi::getIpAddress()
