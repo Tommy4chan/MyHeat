@@ -6,6 +6,10 @@
 #include <LittleFS.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include <vector>
+#include <array>
+
+using DeviceAddressArray = std::array<uint8_t, 8>;
 
 enum TemperatureAlert
 {
@@ -18,23 +22,22 @@ enum TemperatureAlert
 class MyHeatTemperatures : public MyHeatSaveInterface
 {
 private:
-    uint8_t **temperatureSensorsAddresses;
-    uint8_t **discoveredTemperatureSensorsAddresses;
+    std::vector<DeviceAddressArray> temperatureSensorsAddresses;
+    std::vector<DeviceAddressArray> discoveredTemperatureSensorsAddresses;
     MyHeatSave *temperatureSensorData;
 
-    float *temperatures;
-    bool *temperaturesFail;
-    byte temperatureCount;
+    std::vector<float> temperatures;
+    std::vector<bool> temperaturesFail;
+    std::vector<TemperatureAlert> temperatureAlerts;
     byte temperaturePin;
     float minTemperature;
     float maxTemperature;
-    TemperatureAlert *temperatureAlerts;
 
     OneWire oneWire;
     DallasTemperature temperatureSensors;
 
     void serialize(JsonDocument &doc);
-    void deserialize(JsonDocument &doc);
+    void deserialize(const JsonDocument &doc);
     void realocateMemory(byte newCount);
 
 public:
@@ -43,10 +46,10 @@ public:
     byte discoverTemperatureSensor();
     void setTemperatureSensorAddress(byte tempIndex, byte sensorAddressIndex);
     void deleteTemperatureSensorAddress(byte tempIndex);
-    uint8_t **getDiscoveredTemperatureSensorAddresses();
-    uint8_t **getTemperatureSensorAddresses();
+    std::vector<DeviceAddressArray>& getDiscoveredTemperatureSensorAddresses();
+    std::vector<DeviceAddressArray>& getTemperatureSensorAddresses();
     void updateTemperatures();
-    float *getTemperatures();
+    std::vector<float>& getTemperatures();
     float getTemperature(byte index);
     void setTemperaturePin(byte newPin, bool isSave = true);
     void setTemperatureCount(byte newCount, bool isSave = true);
@@ -55,7 +58,7 @@ public:
     byte getTemperaturePin();
     float getMinTemperature();
     float getMaxTemperature();
-    void manualDeserialize(JsonDocument payload);
+    void manualDeserialize(const JsonDocument& payload);
     bool isTemperatureSensorAddressEmpty(byte index);
     void checkForAlerts();
     bool checkIsMinTemperature(byte index);

@@ -32,7 +32,7 @@ namespace MyHeatMqtt
         json["publishInterval"] = publishInterval;
     }
 
-    void MqttSettings::deserialize(JsonDocument &json)
+    void MqttSettings::deserialize(const JsonDocument &json)
     {
         broker = json["broker"] | MQTT_BROKER;
         port = json["port"] | MQTT_PORT;
@@ -42,7 +42,7 @@ namespace MyHeatMqtt
         publishInterval = json["publishInterval"] | MQTT_PUBLISH_INTERVAL;
     }
 
-    void MqttSettings::manualDeserialize(JsonDocument json)
+    void MqttSettings::manualDeserialize(const JsonDocument& json)
     {
         deserialize(json);
     }

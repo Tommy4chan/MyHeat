@@ -20,8 +20,8 @@ namespace MyHeatMqtt
         uint32_t publishInterval = MQTT_PUBLISH_INTERVAL;
 
         void serialize(JsonDocument &json) override;
-        void deserialize(JsonDocument &json) override;
-        void manualDeserialize(JsonDocument json) override;
+        void deserialize(const JsonDocument &json) override;
+        void manualDeserialize(const JsonDocument& json) override;
     };
 
     // ----- State -----

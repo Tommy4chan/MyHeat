@@ -23,14 +23,14 @@ private:
     uint32_t preheatTimer = 0;
 
     void serialize(JsonDocument &doc);
-    void deserialize(JsonDocument &doc);
+    void deserialize(const JsonDocument &doc);
 
 public:
     MyHeatSmokeSensor();
     void begin();
     void resetPreheatTimer();
     void updateSmokeSensor();
-    void manualDeserialize(JsonDocument payload);
+    void manualDeserialize(const JsonDocument& payload);
     int getThreshold();
     bool getIsEnabled();
     bool getIsOverThreshold();

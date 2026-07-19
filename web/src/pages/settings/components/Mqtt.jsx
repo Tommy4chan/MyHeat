@@ -39,15 +39,7 @@ const Mqtt = () => {
         <FormField label="Інтервал оновлення (мс)">
           <Input type="number" className='w-full' value={settings.publishInterval || 60000} onChange={handleSettingsChange} name='publishInterval' />
         </FormField>
-        <FormField label="Статус">
-          <div className="flex items-center">
-            {settings.isConnected ? (
-                <span className="text-green-500 font-bold">Підключено</span>
-            ) : (
-                <span className="text-red-500 font-bold">Відключено</span>
-            )}
-          </div>
-        </FormField>
+
       </DarkWrapperBlock>
       <SaveButton onClick={handleMqttSettingsSave} />
     </SettingsForm>

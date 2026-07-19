@@ -48,7 +48,6 @@ namespace MyHeatWeb
 
         myHeatDevice.relays.setRelayCount(payload["relayCount"]);
 
-        myHeatDevice.initIsSetRelayActive();
         MyHeatHardwareIO::getInstance().reevaluateScreensCount();
         myHeatDevice.validateCustomFunctions();
 

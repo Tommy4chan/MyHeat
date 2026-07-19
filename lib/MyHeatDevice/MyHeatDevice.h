@@ -17,11 +17,9 @@ class MyHeatDevice
 private:
     uint32_t tickTimerMain;
     uint32_t tickTimerSecondary;
-    bool *isSetRelayActive;
     MyHeatDevice() {
         tickTimerMain = 0;
         tickTimerSecondary = 0;
-        isSetRelayActive = nullptr;
     };
 
 public:
@@ -42,7 +40,6 @@ public:
 
     void begin();
     void validateCustomFunctions();
-    void initIsSetRelayActive();
     void checkCustomFunctions();
     void updateRelays();
     void manualTick();

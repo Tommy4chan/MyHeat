@@ -3,9 +3,9 @@
 
 void MyHeatCustomFunctions::serialize(JsonDocument &doc)
 {
-    doc[F("functionCount")] = functionCount;
+    doc[F("functionCount")] = customFunctions.size();
 
-    for (int i = 0; i < functionCount; i++)
+    for (size_t i = 0; i < customFunctions.size(); i++)
     {
         doc[F("functions")][i][F("sign")] = static_cast<byte>(customFunctions[i].getSign());
         doc[F("functions")][i][F("isEnabled")] = customFunctions[i].getIsEnabled();
@@ -17,11 +17,11 @@ void MyHeatCustomFunctions::serialize(JsonDocument &doc)
     }
 }
 
-void MyHeatCustomFunctions::deserialize(JsonDocument &doc)
+void MyHeatCustomFunctions::deserialize(const JsonDocument &doc)
 {
     realocateMemory(doc[F("functionCount")] | FUNCTION_COUNT);
 
-    for (int i = 0; i < functionCount; i++)
+    for (size_t i = 0; i < customFunctions.size(); i++)
     {
         customFunctions[i].setSign(static_cast<CustomFunctionSign>(doc[F("functions")][i][F("sign")] | 0));
         customFunctions[i].setIsEnabled(doc[F("functions")][i][F("isEnabled")] | false);
@@ -35,42 +35,12 @@ void MyHeatCustomFunctions::deserialize(JsonDocument &doc)
 
 void MyHeatCustomFunctions::realocateMemory(byte newFunctionCount)
 {
-    MyHeatCustomFunction *oldFunctions = nullptr;
-    if (customFunctions != nullptr)
-    {
-        oldFunctions = new MyHeatCustomFunction[functionCount];
-        for (byte i = 0; i < functionCount; i++)
-        {
-            oldFunctions[i] = customFunctions[i];
-        }
-    }
-
-    delete[] customFunctions;
-    delete[] functionAlerts;
-
-    customFunctions = new MyHeatCustomFunction[newFunctionCount];
-    functionAlerts = new FunctionAlert[newFunctionCount];
-
-    if (oldFunctions != nullptr)
-    {
-        byte copyCount = min(functionCount, newFunctionCount);
-        for (byte i = 0; i < copyCount; i++)
-        {
-            customFunctions[i] = oldFunctions[i];
-            functionAlerts[i] = FunctionAlert::FA_NONE;
-        }
-
-        delete[] oldFunctions;
-    }
-
-    functionCount = newFunctionCount;
+    customFunctions.resize(newFunctionCount);
+    functionAlerts.resize(newFunctionCount, FunctionAlert::FA_NONE);
 }
 
 MyHeatCustomFunctions::MyHeatCustomFunctions()
 {
-    functionCount = 0;
-    customFunctions = nullptr;
-    functionAlerts = nullptr;
     realocateMemory(FUNCTION_COUNT);
 }
 
@@ -85,7 +55,7 @@ MyHeatCustomFunction MyHeatCustomFunctions::getCustomFunction(byte index)
     return customFunctions[index];
 }
 
-MyHeatCustomFunction *MyHeatCustomFunctions::getCustomFunctions()
+std::vector<MyHeatCustomFunction>& MyHeatCustomFunctions::getCustomFunctions()
 {
     return customFunctions;
 }
@@ -142,10 +112,10 @@ void MyHeatCustomFunctions::setCustomFunctionCount(byte newCustomFunctionCount)
 
 byte MyHeatCustomFunctions::getCustomFunctionCount()
 {
-    return functionCount;
+    return customFunctions.size();
 }
 
-void MyHeatCustomFunctions::manualDeserialize(JsonDocument payload)
+void MyHeatCustomFunctions::manualDeserialize(const JsonDocument& payload)
 {
     deserialize(payload);
     save();

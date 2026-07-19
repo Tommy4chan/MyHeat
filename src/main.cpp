@@ -13,6 +13,8 @@ MyHeatDevice& myHeatDevice = MyHeatDevice::getInstance();
 MyHeatWifi& myHeatWifi = MyHeatWifi::getInstance();
 MyHeatHardwareIO &hardwareIO = MyHeatHardwareIO::getInstance();
 
+bool isSystemLoaded = false;
+
 void setup()
 {
 	Serial.begin(115200);
@@ -21,6 +23,7 @@ void setup()
 	myHeatWifi.begin();
 	myHeatDevice.begin();
 	hardwareIO.begin();
+	hardwareIO.startLoadingScreen();
 	MyHeatTelebot::begin();
 	MyHeatWeb::begin();
 	MyHeatMqtt::begin();
@@ -28,14 +31,28 @@ void setup()
 
 void loop()
 {
-	if (myHeatWifi.isConnected())
-	{
-		MyHeatTelebot::tick();
-	}
+    if (myHeatWifi.isConnected())
+    {
+        if (!isSystemLoaded && !MyHeatUtils::isTimeDefault()) {
+            MyHeatTelebot::tick();
+            isSystemLoaded = true;
+            hardwareIO.stopLoadingScreen();
+        } else if (isSystemLoaded) {
+            MyHeatTelebot::tick();
+        }
+    }
+    
+    if (!isSystemLoaded && (myHeatWifi.isAPMode() || millis() > SYSTEM_LOAD_TIMEOUT)) {
+        isSystemLoaded = true;
+        hardwareIO.stopLoadingScreen();
+    }
 
 	myHeatWifi.tick();
 	myHeatDevice.tick();
-	hardwareIO.tick();
+    
+    if (isSystemLoaded) {
+	    hardwareIO.tick();
+    }
 	MyHeatWeb::tick();
 	MyHeatMqtt::tick();
 }

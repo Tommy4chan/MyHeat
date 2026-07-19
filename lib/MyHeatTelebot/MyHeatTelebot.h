@@ -31,7 +31,7 @@ namespace MyHeatTelebot
             doc[F("isAlertNotificationsEnabled")] = isAlertNotificationsEnabled;
         }
 
-        void deserialize(JsonDocument &doc)
+        void deserialize(const JsonDocument &doc)
         {
             isEnabled = doc[F("isEnabled")] | TELEGRAM_BOT_ENABLED;
             registerPhrase = doc[F("registerPhrase")] | STR(REGISTER_PHRASE);
@@ -39,7 +39,7 @@ namespace MyHeatTelebot
             isAlertNotificationsEnabled = doc[F("isAlertNotificationsEnabled")] | TELEGRAM_BOT_ALERT_NOTIFICATIONS;
         }
 
-        void manualDeserialize(JsonDocument doc)
+        void manualDeserialize(const JsonDocument& doc)
         {
             deserialize(doc);
         }
@@ -69,7 +69,7 @@ namespace MyHeatTelebot
     bool getIsAlertNotificationsEnabled();
     void setSettings(const String& token, const String& registerPhrase, bool isActive, bool alertNotifications);
     void sendAlertNotification(const String& message);
-    void manualDeserialize(JsonDocument data);
+    void manualDeserialize(const JsonDocument& data);
     
     void save();
 }

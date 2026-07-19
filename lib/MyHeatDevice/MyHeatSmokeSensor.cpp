@@ -7,7 +7,7 @@ void MyHeatSmokeSensor::serialize(JsonDocument &doc)
     doc[F("pin")] = pin;
 }
 
-void MyHeatSmokeSensor::deserialize(JsonDocument &doc)
+void MyHeatSmokeSensor::deserialize(const JsonDocument &doc)
 {
     threshold = doc[F("threshold")] | SMOKE_SENSOR_THRESHOLD;
     MyHeatAnalogSensor::begin(doc[F("pin")] | SMOKE_SENSOR_PIN);
@@ -80,7 +80,7 @@ void MyHeatSmokeSensor::updateSmokeSensor()
     }
 }
 
-void MyHeatSmokeSensor::manualDeserialize(JsonDocument payload)
+void MyHeatSmokeSensor::manualDeserialize(const JsonDocument& payload)
 {
     deserialize(payload);
     smokeSensorData->save();

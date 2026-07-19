@@ -9,28 +9,16 @@ void MyHeatDevice::begin()
     relays.begin();
     smokeSensor.begin();
 
-    initIsSetRelayActive(); 
-
     validateCustomFunctions();
     checkCustomFunctions();
     updateRelays();
 }
 
-void MyHeatDevice::initIsSetRelayActive() 
-{
-    byte size = relays.getRelayCount();
-    delete[] isSetRelayActive;
 
-    isSetRelayActive = new bool[size];
-    for (int i = 0; i < size; i++)
-    {
-        isSetRelayActive[i] = false;
-    }
-}
 
 void MyHeatDevice::validateCustomFunctions()
 {
-    MyHeatCustomFunction *cfArray = customFunctions.getCustomFunctions();
+    std::vector<MyHeatCustomFunction>& cfArray = customFunctions.getCustomFunctions();
 
     for (int i = 0; i < customFunctions.getCustomFunctionCount(); i++)
     {
@@ -70,7 +58,7 @@ void MyHeatDevice::validateCustomFunctions()
 
 void MyHeatDevice::checkCustomFunctions()
 {
-    MyHeatCustomFunction *cfArray = customFunctions.getCustomFunctions();
+    std::vector<MyHeatCustomFunction>& cfArray = customFunctions.getCustomFunctions();
 
     for (int i = 0; i < customFunctions.getCustomFunctionCount(); i++)
     {
@@ -116,14 +104,19 @@ void MyHeatDevice::checkCustomFunctions()
 
 void MyHeatDevice::updateRelays()
 {
-    MyHeatCustomFunction *cfArray = customFunctions.getCustomFunctions();
-    MyHeatRelay *relaysArray = relays.getRelays();
+    std::vector<MyHeatCustomFunction>& cfArray = customFunctions.getCustomFunctions();
+    std::vector<MyHeatRelay>& relaysArray = relays.getRelays();
+
+    std::vector<bool> activeRelays(relays.getRelayCount(), false);
 
     for (int i = 0; i < customFunctions.getCustomFunctionCount(); i++)
     {
         if (cfArray[i].getIsEnabled())
         {
-            isSetRelayActive[cfArray[i].getRelayIndex()] = isSetRelayActive[cfArray[i].getRelayIndex()] || cfArray[i].getIsActive();
+            byte relayIdx = cfArray[i].getRelayIndex();
+            if (relayIdx < activeRelays.size()) {
+                activeRelays[relayIdx] = activeRelays[relayIdx] || cfArray[i].getIsActive();
+            }
         }
     }
 
@@ -139,10 +132,8 @@ void MyHeatDevice::updateRelays()
         }
         else
         {
-            relaysArray[i].setIsActive(isSetRelayActive[i]);
+            relaysArray[i].setIsActive(activeRelays[i]);
         }
-
-        isSetRelayActive[i] = false;
     }
 }
 

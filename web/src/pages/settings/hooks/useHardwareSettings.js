@@ -10,6 +10,7 @@ export const useHardwareSettings = () => {
 
   const [isEnabled, setIsEnabled] = useState(true);
 
+  const [oledType, setOledType] = useState(0);
   const [oledAddress, setOledAddress] = useState("");
   const [screenPowerSaveInterval, setScreenPowerSaveInterval] = useState(0);
   const [oledPins, setOledPins] = useState([0, 0]);
@@ -37,6 +38,7 @@ export const useHardwareSettings = () => {
 
   useEffect(() => {
     setIsEnabled(hardwareIOSettings.isEnabled);
+    setOledType(hardwareIOSettings.oledType || 0);
     setOledAddress(hardwareIOSettings.oledAddress);
     setScreenPowerSaveInterval(hardwareIOSettings.screenPowerSaveInterval);
     setOledPins([hardwareIOSettings.oledSDA, hardwareIOSettings.oledSCL]);
@@ -51,6 +53,7 @@ export const useHardwareSettings = () => {
   const handleSaveHardwareIOSettings = () => {
     setHardwareIOSettings(
       isEnabled,
+      oledType,
       oledAddress,
       screenPowerSaveInterval,
       oledPins,
@@ -62,6 +65,8 @@ export const useHardwareSettings = () => {
   return {
     isEnabled,
     setIsEnabled,
+    oledType,
+    setOledType,
     oledAddress,
     setOledAddress,
     screenPowerSaveInterval,

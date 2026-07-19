@@ -25,13 +25,14 @@ private:
     String ntpTZ; // POSIX Timezone String
     unsigned long wifiReconnectTick = 0;
     uint32_t wifiGotIpTick = 0;
+    uint32_t lastNtpSyncAttempt = 0;
     MyHeatSave *wifiData;
     bool isAPActive = false;
     bool isFallbackAPActive = false;
     bool isWebsocketClientsConnected = false;
 
     void serialize(JsonDocument &doc) override;
-    void deserialize(JsonDocument &doc) override;
+    void deserialize(const JsonDocument &doc) override;
 
     void setAPMode();
     void setManualAPMode();
@@ -87,6 +88,6 @@ public:
     bool hasAPClients();
     String getIpAddress();
     void setIsWebsocketClientsConnected(bool isConnected);
-    void manualDeserialize(JsonDocument data) override;
+    void manualDeserialize(const JsonDocument& data) override;
 };
 #endif

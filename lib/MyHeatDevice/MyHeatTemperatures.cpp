@@ -6,9 +6,9 @@ void MyHeatTemperatures::serialize(JsonDocument &doc)
     doc[F("temperaturePin")] = temperaturePin;
     doc[F("minTemperature")] = minTemperature;
     doc[F("maxTemperature")] = maxTemperature;
-    doc[F("temperatureCount")] = temperatureCount;
+    doc[F("temperatureCount")] = temperatureSensorsAddresses.size();
 
-    for (int i = 0; i < temperatureCount; i++)
+    for (size_t i = 0; i < temperatureSensorsAddresses.size(); i++)
     {
         for (int j = 0; j < 8; j++)
         {
@@ -17,14 +17,14 @@ void MyHeatTemperatures::serialize(JsonDocument &doc)
     }
 }
 
-void MyHeatTemperatures::deserialize(JsonDocument &doc)
+void MyHeatTemperatures::deserialize(const JsonDocument &doc)
 {
     temperaturePin = doc[F("temperaturePin")] | TEMPERATURE_PIN;
     minTemperature = doc[F("minTemperature")] | TEMPERATURE_MIN;
     maxTemperature = doc[F("maxTemperature")] | TEMPERATURE_MAX;
     realocateMemory(doc[F("temperatureCount")] | TEMPERATURE_COUNT);
 
-    for (int i = 0; i < temperatureCount; i++)
+    for (size_t i = 0; i < temperatureSensorsAddresses.size(); i++)
     {
         for (int j = 0; j < 8; j++)
         {
@@ -35,88 +35,25 @@ void MyHeatTemperatures::deserialize(JsonDocument &doc)
 
 void MyHeatTemperatures::realocateMemory(byte newCount)
 {
-    if (newCount == temperatureCount)
-    {
-        return;
+    size_t oldCount = temperatures.size();
+    temperatureSensorsAddresses.resize(newCount);
+    discoveredTemperatureSensorsAddresses.resize(newCount);
+    temperatures.resize(newCount, TEMPERATURE_ERROR);
+    temperaturesFail.resize(newCount, false);
+    temperatureAlerts.resize(newCount, TA_NONE);
+    
+    // For newly allocated elements, make sure to zero their arrays
+    for (size_t i = oldCount; i < newCount; i++) {
+        temperatureSensorsAddresses[i].fill(0);
+        discoveredTemperatureSensorsAddresses[i].fill(0);
     }
-
-    uint8_t **oldAddresses = nullptr;
-    float *oldTemperatures = nullptr;
-
-    if (temperatureCount > 0 && temperatureSensorsAddresses != nullptr && temperatures != nullptr)
-    {
-        oldAddresses = new uint8_t *[temperatureCount];
-        oldTemperatures = new float[temperatureCount];
-        for (byte i = 0; i < temperatureCount; i++)
-        {
-            oldAddresses[i] = new uint8_t[8];
-            memcpy(oldAddresses[i], temperatureSensorsAddresses[i], 8);
-            oldTemperatures[i] = temperatures[i];
-        }
-    }
-        
-    if (temperatureSensorsAddresses != nullptr)
-    {
-        for (byte i = 0; i < temperatureCount; i++)
-        {
-            delete[] temperatureSensorsAddresses[i];
-            delete[] discoveredTemperatureSensorsAddresses[i];
-        }
-        delete[] temperatureSensorsAddresses;
-        delete[] discoveredTemperatureSensorsAddresses;
-    }
-    delete[] temperatures;
-    delete[] temperaturesFail;
-    delete[] temperatureAlerts;
-
-    temperatureSensorsAddresses = new uint8_t *[newCount];
-    discoveredTemperatureSensorsAddresses = new uint8_t *[newCount];
-    temperatures = new float[newCount];
-    temperaturesFail = new bool[newCount];
-    temperatureAlerts = new TemperatureAlert[newCount];
-
-    for (byte i = 0; i < newCount; i++)
-    {
-        temperatureSensorsAddresses[i] = new uint8_t[8]{};
-        discoveredTemperatureSensorsAddresses[i] = new uint8_t[8]{};
-        temperatureAlerts[i] = TA_NONE;
-        temperaturesFail[i] = false;
-
-        if (oldAddresses != nullptr && i < temperatureCount)
-        {
-            memcpy(temperatureSensorsAddresses[i], oldAddresses[i], 8);
-            temperatures[i] = oldTemperatures[i];
-        }
-        else
-        {
-            temperatures[i] = TEMPERATURE_ERROR;
-        }
-    }
-
-    if (oldAddresses != nullptr)
-    {
-        for (byte i = 0; i < temperatureCount; i++)
-        {
-            delete[] oldAddresses[i];
-        }
-        delete[] oldAddresses;
-        delete[] oldTemperatures;
-    }
-
-    temperatureCount = newCount;
 }
 
 MyHeatTemperatures::MyHeatTemperatures() : oneWire(), temperatureSensors()
 {
-    temperatureCount = 0;
     temperaturePin = TEMPERATURE_PIN;
     minTemperature = TEMPERATURE_MIN;
     maxTemperature = TEMPERATURE_MAX;
-    temperatureSensorsAddresses = nullptr;
-    discoveredTemperatureSensorsAddresses = nullptr;
-    temperatures = nullptr;
-    temperaturesFail = nullptr;
-    temperatureAlerts = nullptr;
     realocateMemory(TEMPERATURE_COUNT);
 }
 
@@ -143,9 +80,9 @@ byte MyHeatTemperatures::discoverTemperatureSensor()
     while (oneWire.search(address))
     {
         bool flag = false;
-        for (int i = 0; i < temperatureCount; i++)
+        for (size_t i = 0; i < temperatureSensorsAddresses.size(); i++)
         {
-            if (memcmp(temperatureSensorsAddresses[i], address, 8) == 0)
+            if (memcmp(temperatureSensorsAddresses[i].data(), address, 8) == 0)
             {
                 flag = true;
                 break;
@@ -155,10 +92,10 @@ byte MyHeatTemperatures::discoverTemperatureSensor()
         if (flag)
             continue;
             
-        if (count >= temperatureCount)
+        if (count >= discoveredTemperatureSensorsAddresses.size())
             break;
             
-        memcpy(discoveredTemperatureSensorsAddresses[count], address, 8);
+        memcpy(discoveredTemperatureSensorsAddresses[count].data(), address, 8);
         count++;
     }
 
@@ -167,32 +104,32 @@ byte MyHeatTemperatures::discoverTemperatureSensor()
 
 void MyHeatTemperatures::setTemperatureSensorAddress(byte tempIndex, byte sensorAddressIndex)
 {
-    memcpy(temperatureSensorsAddresses[tempIndex], discoveredTemperatureSensorsAddresses[sensorAddressIndex], 8);
+    memcpy(temperatureSensorsAddresses[tempIndex].data(), discoveredTemperatureSensorsAddresses[sensorAddressIndex].data(), 8);
     save();
 }
 
 void MyHeatTemperatures::deleteTemperatureSensorAddress(byte tempIndex)
 {
-    if (tempIndex >= temperatureCount)
+    if (tempIndex >= temperatureSensorsAddresses.size())
         return;
         
-    memset(temperatureSensorsAddresses[tempIndex], 0, 8);
+    memset(temperatureSensorsAddresses[tempIndex].data(), 0, 8);
     save();
 }
 
-uint8_t **MyHeatTemperatures::getDiscoveredTemperatureSensorAddresses()
+std::vector<DeviceAddressArray>& MyHeatTemperatures::getDiscoveredTemperatureSensorAddresses()
 {
     return discoveredTemperatureSensorsAddresses;
 }
 
-uint8_t **MyHeatTemperatures::getTemperatureSensorAddresses()
+std::vector<DeviceAddressArray>& MyHeatTemperatures::getTemperatureSensorAddresses()
 {
     return temperatureSensorsAddresses;
 }
 
 void MyHeatTemperatures::updateTemperatures()
 {
-    for (byte i = 0; i < temperatureCount; i++)
+    for (size_t i = 0; i < temperatures.size(); i++)
     {
         if (isTemperatureSensorAddressEmpty(i))
         {
@@ -200,7 +137,7 @@ void MyHeatTemperatures::updateTemperatures()
             continue;
         }
 
-        float newTemperature = temperatureSensors.getTempC(temperatureSensorsAddresses[i]);
+        float newTemperature = temperatureSensors.getTempC(temperatureSensorsAddresses[i].data());
 
         if (temperaturesFail[i]) {
             temperatures[i] = newTemperature;
@@ -224,7 +161,7 @@ void MyHeatTemperatures::updateTemperatures()
     checkForAlerts();
 }
 
-float *MyHeatTemperatures::getTemperatures()
+std::vector<float>& MyHeatTemperatures::getTemperatures()
 {
     return temperatures;
 }
@@ -273,7 +210,7 @@ void MyHeatTemperatures::setTemperatureSettings(byte newPin, byte newCount, floa
 
 byte MyHeatTemperatures::getTemperatureCount()
 {
-    return temperatureCount;
+    return temperatures.size();
 }
 
 byte MyHeatTemperatures::getTemperaturePin()
@@ -291,7 +228,7 @@ float MyHeatTemperatures::getMaxTemperature()
     return maxTemperature;
 }
 
-void MyHeatTemperatures::manualDeserialize(JsonDocument payload)
+void MyHeatTemperatures::manualDeserialize(const JsonDocument& payload)
 {
     deserialize(payload);
     save();
@@ -303,7 +240,7 @@ bool MyHeatTemperatures::isTemperatureSensorAddressEmpty(byte index)
 }
 
 void MyHeatTemperatures::checkForAlerts() {
-    for (byte i = 0; i < temperatureCount; i++)
+    for (size_t i = 0; i < temperatures.size(); i++)
     {
         if (isTemperatureSensorAddressEmpty(i))
         {

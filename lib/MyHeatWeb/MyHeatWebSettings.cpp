@@ -82,7 +82,7 @@ namespace MyHeatWeb
     {
         MyHeatHardwareIO &myHeatHardwareIO = MyHeatHardwareIO::getInstance();
 
-        myHeatHardwareIO.setSettings(payload[F("oledAddress")], payload[F("oledSCL")], payload[F("oledSDA")],
+        myHeatHardwareIO.setSettings(payload[F("oledType")], payload[F("oledAddress")], payload[F("oledSCL")], payload[F("oledSDA")],
                                      payload[F("screenPowerSaveInterval")], payload[F("encA")], payload[F("encB")], payload[F("encBtn")],
                                      payload[F("encInvert")], payload[F("isEnabled")]);
 
@@ -93,6 +93,7 @@ namespace MyHeatWeb
     {
         MyHeatHardwareIO &myHeatHardwareIO = MyHeatHardwareIO::getInstance();
 
+        response[F("oledType")] = myHeatHardwareIO.getOledType();
         response[F("oledAddress")] = myHeatHardwareIO.getOledAddress();
         response[F("oledSCL")] = myHeatHardwareIO.getOledSCL();
         response[F("oledSDA")] = myHeatHardwareIO.getOledSDA();
@@ -119,7 +120,6 @@ namespace MyHeatWeb
         response[F("password")] = MyHeatMqtt::getPassword();
         response[F("isEnabled")] = MyHeatMqtt::getIsEnabled();
         response[F("publishInterval")] = MyHeatMqtt::getPublishInterval();
-        response[F("isConnected")] = MyHeatMqtt::isConnected();
     }
 
     void getAllDeviceSettings(JsonObject response)

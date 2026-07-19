@@ -2,6 +2,7 @@
 
 static constexpr uint32_t WIFI_STABILITY_DELAY_MS   = WIFI_STABILITY_DELAY;
 static constexpr uint32_t WIFI_MODE_SWITCH_DELAY_MS  = WIFI_MODE_SWITCH_DELAY;
+static constexpr uint32_t NTP_SYNC_RETRY_DELAY_MS    = NTP_SYNC_RETRY_DELAY;
 
 MyHeatWifi::MyHeatWifi()
 {
@@ -29,7 +30,7 @@ void MyHeatWifi::serialize(JsonDocument &doc)
     doc["ntp_tz"] = ntpTZ;
 }
 
-void MyHeatWifi::deserialize(JsonDocument &doc)
+void MyHeatWifi::deserialize(const JsonDocument &doc)
 {
     wifiSSID = doc["wifi_ssid"] | STR(WIFI_SSID);
     wifiPassword = doc["wifi_password"] | STR(WIFI_PASSWORD);
@@ -155,6 +156,13 @@ void MyHeatWifi::tick()
             }
         }
     }
+    if (isConnected() && MyHeatUtils::isTimeDefault())
+    {
+        if (millis() - lastNtpSyncAttempt > NTP_SYNC_RETRY_DELAY_MS)
+        {
+            beginNTP();
+        }
+    }
 }
 
 bool MyHeatWifi::isConnected()
@@ -173,6 +181,7 @@ void MyHeatWifi::setNTPSettings(const String &ntpServer, const String &ntpIANA, 
 
 void MyHeatWifi::beginNTP()
 {
+    lastNtpSyncAttempt = millis();
     Serial.println("NTP sync started with TZ: " + ntpTZ);
     configTzTime(ntpTZ.c_str(), ntpServer.c_str());
 }
@@ -327,7 +336,7 @@ void MyHeatWifi::setIsWebsocketClientsConnected(bool isConnected)
     }
 }
 
-void MyHeatWifi::manualDeserialize(JsonDocument data)
+void MyHeatWifi::manualDeserialize(const JsonDocument& data)
 {
     deserialize(data);
     restartMDNS();

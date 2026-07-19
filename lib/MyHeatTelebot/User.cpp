@@ -15,7 +15,7 @@ namespace MyHeatTelebot
             doc[F("tempValue2")] = user.tempValue2;
         }
 
-        void deserialize(JsonDocument &doc)
+        void deserialize(const JsonDocument &doc)
         {
             user.screenType = doc[F("screenType")];
             user.isInputMode = doc[F("isInputMode")];
@@ -23,7 +23,7 @@ namespace MyHeatTelebot
             user.tempValue2 = doc[F("tempValue2")];
         }
 
-        void manualDeserialize(JsonDocument doc)
+        void manualDeserialize(const JsonDocument& doc)
         {
             deserialize(doc);
         }

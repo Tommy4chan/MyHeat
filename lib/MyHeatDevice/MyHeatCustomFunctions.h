@@ -4,6 +4,7 @@
 #include "MyHeatCustomFunction.h"
 #include "MyHeatSave.h"
 #include <LittleFS.h>
+#include <vector>
 
 enum FunctionAlert
 {
@@ -16,21 +17,19 @@ enum FunctionAlert
 class MyHeatCustomFunctions : public MyHeatSaveInterface
 {
 private:
-    MyHeatCustomFunction *customFunctions;
+    std::vector<MyHeatCustomFunction> customFunctions;
     MyHeatSave *customFunctionsData;
-    FunctionAlert *functionAlerts;
-
-    byte functionCount;
+    std::vector<FunctionAlert> functionAlerts;
 
     void serialize(JsonDocument &doc);
-    void deserialize(JsonDocument &doc);
+    void deserialize(const JsonDocument &doc);
     void realocateMemory(byte newFunctionCount);
 
 public:
     MyHeatCustomFunctions();
     void begin();
     MyHeatCustomFunction getCustomFunction(byte index);
-    MyHeatCustomFunction *getCustomFunctions();
+    std::vector<MyHeatCustomFunction>& getCustomFunctions();
     void toggleCustomFunctionIsEnabled(byte functionIndex);
     bool setCustomFunctionIsEnabled(byte functionIndex, bool isEnabled);
     void setCustomFunctionSign(byte functionIndex, CustomFunctionSign sign);
@@ -39,7 +38,7 @@ public:
     void setCustomFunctionRelayIndex(byte functionIndex, byte relayIndex);
     void setCustomFunctionCount(byte newCustomFunctionCount);
     byte getCustomFunctionCount();
-    void manualDeserialize(JsonDocument payload);
+    void manualDeserialize(const JsonDocument& payload);
     void setFunctionAlert(byte functionIndex, FunctionAlert alert);
     void resetFunctionAlert(byte functionIndex);
     FunctionAlert getFunctionAlert(byte functionIndex);

@@ -482,7 +482,7 @@ namespace MyHeatTelebot
         save();
     }
 
-    void manualDeserialize(JsonDocument data)
+    void manualDeserialize(const JsonDocument& data)
     {
         botSave.manualDeserialize(data);
         save();

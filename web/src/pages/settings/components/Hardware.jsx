@@ -18,6 +18,8 @@ const Hardware = () => {
   const {
     isEnabled,
     setIsEnabled,
+    oledType,
+    setOledType,
     oledAddress,
     setOledAddress,
     screenPowerSaveInterval,
@@ -45,6 +47,19 @@ const Hardware = () => {
       <WrapperBlock>
         <h3 className='text-xl'>Екран:</h3>
         <DarkWrapperBlock className='md:!flex-col'>
+          <div className="flex w-full gap-2 mb-2">
+            <FormField label='Тип дисплея'>
+              <Select
+                value={oledType}
+                options={[
+                  { value: 0, text: "SH1106" },
+                  { value: 1, text: "SSD1306" },
+                ]}
+                onChange={(e) => setOledType(e.target.value)}
+                className='w-full'
+              />
+            </FormField>
+          </div>
           <div className="flex w-full gap-2">
             <FormField label='Адреса екрану'>
               <Input className='w-full' value={oledAddress} onChange={(e) => setOledAddress(e.target.value)} />

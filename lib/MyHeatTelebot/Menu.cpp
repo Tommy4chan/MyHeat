@@ -39,13 +39,13 @@ namespace MyHeatTelebot
         return inlineMenu;
     }
 
-    fb::InlineMenu &getDiscoveredTemperatureSensorsInlineMenu(byte count, uint8_t **addresses) 
+    fb::InlineMenu &getDiscoveredTemperatureSensorsInlineMenu(byte count, std::vector<DeviceAddressArray>& addresses) 
     {
         inlineMenu = fb::InlineMenu();
 
         for (byte i = 0; i < count; i++)
         {
-            inlineMenu.addButton(MyHeatUtils::getAddressToString(addresses[i]), "setTemperatureSensor_" + String(i));
+            inlineMenu.addButton(MyHeatUtils::getAddressToString(addresses[i].data()), "setTemperatureSensor_" + String(i));
             if (i % 2 != 0 && i != count - 1)
             {
                 inlineMenu.newRow();

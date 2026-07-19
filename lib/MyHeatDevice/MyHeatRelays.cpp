@@ -2,9 +2,9 @@
 
 void MyHeatRelays::serialize(JsonDocument &doc)
 {
-    doc[F("relayCount")] = relayCount;
+    doc[F("relayCount")] = relays.size();
 
-    for (int i = 0; i < relayCount; i++)
+    for (size_t i = 0; i < relays.size(); i++)
     {
         doc[F("relays")][i][F("mode")] = static_cast<byte>(relays[i].getMode());
         doc[F("relays")][i][F("pin")] = relays[i].getPin();
@@ -12,11 +12,11 @@ void MyHeatRelays::serialize(JsonDocument &doc)
     }
 }
 
-void MyHeatRelays::deserialize(JsonDocument &doc)
+void MyHeatRelays::deserialize(const JsonDocument &doc)
 {
     realocateMemory(doc[F("relayCount")] | RELAY_COUNT);
 
-    for (int i = 0; i < relayCount; i++)
+    for (size_t i = 0; i < relays.size(); i++)
     {
         relays[i].setMode(static_cast<RelayMode>(doc[F("relays")][i][F("mode")] | 0));
         relays[i].begin(doc[F("relays")][i][F("pin")] | 2, doc[F("relays")][i][F("isActiveOnHigh")] | false);
@@ -25,37 +25,11 @@ void MyHeatRelays::deserialize(JsonDocument &doc)
 
 void MyHeatRelays::realocateMemory(byte newCount)
 {
-    MyHeatRelay *oldRelays = nullptr;
-    if (relays != nullptr)
-    {
-        oldRelays = new MyHeatRelay[relayCount];
-        for (byte i = 0; i < relayCount; i++)
-        {
-            oldRelays[i] = relays[i];
-        }
-    }
-
-    delete[] relays;
-
-    relays = new MyHeatRelay[newCount];
-    if (oldRelays != nullptr)
-    {
-        byte copyCount = min(relayCount, newCount);
-        for (byte i = 0; i < copyCount; i++)
-        {
-            relays[i] = oldRelays[i];
-        }
-
-        delete[] oldRelays;
-    }
-
-    relayCount = newCount;
+    relays.resize(newCount);
 }
 
 MyHeatRelays::MyHeatRelays()
 {
-    relayCount = 0;
-    relays = nullptr;
     realocateMemory(RELAY_COUNT);
 
     byte relayPinsArray[] = RELAY_PINS;
@@ -78,7 +52,7 @@ MyHeatRelay MyHeatRelays::getRelay(byte relayIndex)
     return relays[relayIndex];
 }
 
-MyHeatRelay *MyHeatRelays::getRelays()
+std::vector<MyHeatRelay>& MyHeatRelays::getRelays()
 {
     return relays;
 }
@@ -97,7 +71,7 @@ void MyHeatRelays::changeRelayMode(byte relayIndex)
 
 void MyHeatRelays::setRelaySettings(byte relayIndex, byte newPin, bool isActiveOnHigh, bool isSave)
 {
-    if (relayIndex >= relayCount)
+    if (relayIndex >= relays.size())
     {
         return;
     }
@@ -118,10 +92,10 @@ void MyHeatRelays::setRelayCount(byte newCount)
 
 byte MyHeatRelays::getRelayCount()
 {
-    return relayCount;
+    return relays.size();
 }
 
-void MyHeatRelays::manualDeserialize(JsonDocument payload)
+void MyHeatRelays::manualDeserialize(const JsonDocument& payload)
 {
     deserialize(payload);
     save();

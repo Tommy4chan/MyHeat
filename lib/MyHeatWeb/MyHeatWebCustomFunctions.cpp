@@ -28,7 +28,7 @@ namespace MyHeatWeb
         byte oldFunctionCount = myHeatDevice.customFunctions.getCustomFunctionCount();
         byte functionCount = payload["functionCount"];
         myHeatDevice.customFunctions.setCustomFunctionCount(functionCount);
-        MyHeatCustomFunction *customFunctions = myHeatDevice.customFunctions.getCustomFunctions();
+        std::vector<MyHeatCustomFunction>& customFunctions = myHeatDevice.customFunctions.getCustomFunctions();
 
         byte temperatureCount = myHeatDevice.temperatures.getTemperatureCount();
         byte relayCount = myHeatDevice.relays.getRelayCount();

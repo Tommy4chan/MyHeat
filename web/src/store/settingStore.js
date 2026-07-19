@@ -117,6 +117,7 @@ const useSettingStore = create((set, get) => ({
 
   setHardwareIOSettings: (
     isEnabled,
+    oledType,
     oledAddress,
     screenPowerSaveInterval,
     oledPins,
@@ -128,6 +129,7 @@ const useSettingStore = create((set, get) => ({
 
     const payload = {
       isEnabled,
+      oledType: parseInt(oledType),
       oledAddress: parseInt(oledAddress, 16),
       screenPowerSaveInterval,
       oledSDA: oledPins[0],

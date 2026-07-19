@@ -7,10 +7,10 @@ namespace MyHeatWeb
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
         byte count = myHeatDevice.temperatures.discoverTemperatureSensor();
-        uint8_t **addresses = myHeatDevice.temperatures.getDiscoveredTemperatureSensorAddresses();
+        std::vector<std::array<uint8_t, 8>>& addresses = myHeatDevice.temperatures.getDiscoveredTemperatureSensorAddresses();
         for (int i = 0; i < count; i++)
         {
-            response["discoveredTemperatureSensors"][i] = MyHeatUtils::getAddressToString(addresses[i]);
+            response["discoveredTemperatureSensors"][i] = MyHeatUtils::getAddressToString(addresses[i].data());
         }
 
         if (count == 0)
@@ -71,7 +71,7 @@ namespace MyHeatWeb
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
         JsonDocument temperaturesData;
-        copyArray(myHeatDevice.temperatures.getTemperatures(), myHeatDevice.temperatures.getTemperatureCount(), temperaturesData[F("temperatures")]);
+        copyArray(myHeatDevice.temperatures.getTemperatures().data(), myHeatDevice.temperatures.getTemperatureCount(), temperaturesData[F("temperatures")]);
         return temperaturesData;
     }
 }
