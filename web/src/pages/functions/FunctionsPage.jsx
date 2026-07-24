@@ -3,10 +3,8 @@ import { FunctionSettings } from './components/FunctionSettings';
 
 const FunctionsPage = () => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 items-start gap-6">
-      <div className="lg:col-span-2">
-        <Functions isTwoCols={true} />
-      </div>
+    <div className="grid grid-cols-1 lg:grid-cols-2 items-start gap-6">
+      <Functions isTwoCols={false} />
       <FunctionSettings />
     </div>
   );

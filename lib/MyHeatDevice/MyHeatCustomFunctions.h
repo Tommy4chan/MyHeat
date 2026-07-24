@@ -1,10 +1,21 @@
 #ifndef MYHEATCUSTOMFUNCTIONS_H
 #define MYHEATCUSTOMFUNCTIONS_H
+
 #include <Arduino.h>
+#include <vector>
+#include <LittleFS.h>
 #include "MyHeatCustomFunction.h"
 #include "MyHeatSave.h"
-#include <LittleFS.h>
-#include <vector>
+
+// Forward declarations to avoid heavy includes if possible
+class MyHeatRelay;
+class MyHeatSmokeSensor;
+
+struct EvalContext {
+    std::vector<float>& temperatures;
+    std::vector<MyHeatRelay>& relays;
+    MyHeatSmokeSensor& smokeSensor;
+};
 
 enum FunctionAlert
 {
@@ -21,28 +32,36 @@ private:
     MyHeatSave *customFunctionsData;
     std::vector<FunctionAlert> functionAlerts;
 
-    void serialize(JsonDocument &doc);
-    void deserialize(const JsonDocument &doc);
+    void serialize(JsonDocument &doc) override;
+    void deserialize(const JsonDocument &doc) override;
     void realocateMemory(byte newFunctionCount);
 
 public:
     MyHeatCustomFunctions();
     void begin();
-    MyHeatCustomFunction getCustomFunction(byte index);
+    
+    MyHeatCustomFunction& getCustomFunction(byte index);
     std::vector<MyHeatCustomFunction>& getCustomFunctions();
+    
     void toggleCustomFunctionIsEnabled(byte functionIndex);
     bool setCustomFunctionIsEnabled(byte functionIndex, bool isEnabled);
-    void setCustomFunctionSign(byte functionIndex, CustomFunctionSign sign);
-    void setCustomFunctionTemperatureIndex(byte functionIndex, byte tempIndex, byte tempSensorIndex);
-    void setCustomFunctionDeltaValue(byte functionIndex, byte deltaValueIndex, float deltaValue);
-    void setCustomFunctionRelayIndex(byte functionIndex, byte relayIndex);
+    
     void setCustomFunctionCount(byte newCustomFunctionCount);
     byte getCustomFunctionCount();
+    
     void manualDeserialize(const JsonDocument& payload);
+    
     void setFunctionAlert(byte functionIndex, FunctionAlert alert);
     void resetFunctionAlert(byte functionIndex);
     FunctionAlert getFunctionAlert(byte functionIndex);
+    
     void save();
+    
+    // Evaluation engine
+    float getSensorValue(SourceType source, uint8_t index, EvalContext& ctx);
+    bool evaluateCompare(ConditionNode& node, EvalContext& ctx);
+    bool evaluateNode(int nodeIndex, std::vector<ConditionNode>& conditions, EvalContext& ctx);
+    bool evaluateFunction(MyHeatCustomFunction& func, EvalContext& ctx);
 };
 
 #endif

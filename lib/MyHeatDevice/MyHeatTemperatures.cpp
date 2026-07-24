@@ -168,8 +168,8 @@ std::vector<float>& MyHeatTemperatures::getTemperatures()
 
 float MyHeatTemperatures::getTemperature(byte index)
 {
-    if (index == TN_INDEX)
-        return 0;
+    if (index >= temperatures.size())
+        return TEMPERATURE_ERROR;
 
     return temperatures[index];
 }

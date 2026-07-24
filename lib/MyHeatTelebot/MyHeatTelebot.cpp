@@ -247,89 +247,7 @@ namespace MyHeatTelebot
             setFunctionScreen(msg, myHeatDevice.customFunctions.getCustomFunction(user.tempValue1), user.tempValue1);
             break;
         }
-        case su::SH("functionChangeSign"):
-        {
-            setUserScreen(chat_id, ScreenType::FUNCTION_CHANGE_SIGN_SCREEN);
-            msg.text = F("Виберіть знак");
-            msg.setInlineMenu(getFunctionChangeSignInlineMenu());
-            break;
-        }
-        case su::SH("functionSetSign"):
-        {
-            User user = getUser(chat_id);
 
-            if (user.screenType == ScreenType::FUNCTION_CHANGE_SIGN_SCREEN)
-            {
-                myHeatDevice.customFunctions.setCustomFunctionSign(user.tempValue1, (CustomFunctionSign)value);
-                myHeatDevice.manualTick();
-
-                setFunctionScreen(msg, myHeatDevice.customFunctions.getCustomFunction(user.tempValue1), user.tempValue1);
-            }
-
-            break;
-        }
-        case su::SH("functionChangeTemp"):
-        {
-            setUserScreen(chat_id, ScreenType::FUNCTION_CHANGE_TEMPERATURE_SCREEN);
-            setUserTempValue2(chat_id, value);
-            msg.text = F("Виберіть датчик температури");
-            msg.setInlineMenu(getFunctionChangeTemperatureInlineMenu());
-            break;
-        }
-        case su::SH("functionSetTemp"):
-        {
-            User user = getUser(chat_id);
-
-            if (user.screenType == ScreenType::FUNCTION_CHANGE_TEMPERATURE_SCREEN)
-            {
-                myHeatDevice.customFunctions.setCustomFunctionTemperatureIndex(user.tempValue1, user.tempValue2, value);
-                myHeatDevice.validateCustomFunctions();
-                myHeatDevice.manualTick();
-
-                setFunctionScreen(msg, myHeatDevice.customFunctions.getCustomFunction(user.tempValue1), user.tempValue1);
-            }
-
-            break;
-        }
-        case su::SH("functionChangeRelay"):
-        {
-            setUserScreen(chat_id, ScreenType::FUNCTION_CHANGE_RELAY_SCREEN);
-            msg.text = F("Виберіть реле");
-            msg.setInlineMenu(getFunctionChangeRelayInlineMenu());
-            break;
-        }
-        case su::SH("functionSetRelay"):
-        {
-            User user = getUser(chat_id);
-
-            if (user.screenType == ScreenType::FUNCTION_CHANGE_RELAY_SCREEN)
-            {
-                myHeatDevice.customFunctions.setCustomFunctionRelayIndex(user.tempValue1, value);
-                myHeatDevice.validateCustomFunctions();
-                myHeatDevice.manualTick();
-
-                setFunctionScreen(msg, myHeatDevice.customFunctions.getCustomFunction(user.tempValue1), user.tempValue1);
-            }
-
-            break;
-        }
-        case su::SH("functionChangeDeltaTemp"):
-        {
-            setUserScreen(chat_id, ScreenType::FUNCTION_CHANGE_DELTA_TEMPERATURE_SCREEN);
-            setUserTempValue2(chat_id, value);
-            setUserInputMode(chat_id, true);
-            msg.text = F("Введіть Δ значення: ");
-            msg.setInlineMenu(getCancelFunctionInlineMenu());
-            break;
-        }
-        case su::SH("cancelFunction"):
-        {
-            User user = getUser(chat_id);
-
-            setFunctionScreen(msg, myHeatDevice.customFunctions.getCustomFunction(user.tempValue1), user.tempValue1);
-            setUserInputMode(chat_id, false);
-            break;
-        }
         case su::SH("closeFunction"):
         {
             setUserScreen(chat_id, ScreenType::FUNCTIONS_LIST_SCREEN);
@@ -409,27 +327,7 @@ namespace MyHeatTelebot
 
         User user = getUser(u.message().chat().id());
 
-        if (user.screenType == ScreenType::FUNCTION_CHANGE_DELTA_TEMPERATURE_SCREEN)
-        {
-            if (!MyHeatUtils::isFloat(u.message().text()))
-            {
-                msg.text = F("Введіть коректне значення");
-            }
-            else
-            {
-                myHeatDevice.customFunctions.setCustomFunctionDeltaValue(user.tempValue1, user.tempValue2, u.message().text().toFloat());
-                setUserScreen(chat_id, ScreenType::FUNCTION_SCREEN);
-                myHeatDevice.manualTick();
-
-                msg.text = getFunctionScreenText(myHeatDevice.customFunctions.getCustomFunction(user.tempValue1), user.tempValue1);
-                msg.setInlineMenu(getFunctionInlineMenu());
-                setUserInputMode(chat_id, false);
-            }
-        }
-        else
-        {
-            setUserInputMode(chat_id, false);
-        }
+        setUserInputMode(chat_id, false);
 
         bot.sendMessage(msg);
     }

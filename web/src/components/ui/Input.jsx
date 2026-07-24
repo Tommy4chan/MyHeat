@@ -5,7 +5,7 @@ const Input = ({ placeholder = '', value = '', onChange, className='', maxLength
       placeholder={placeholder} 
       onChange={onChange}
       maxLength={maxLength}
-      value={value || ''}
+      value={value ?? ''}
       type={isNumber ? 'number' : 'text'}
       name={name}
     />

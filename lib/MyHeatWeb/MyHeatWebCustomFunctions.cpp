@@ -11,7 +11,9 @@ namespace MyHeatWeb
         if (payload["functionIndex"] >= myHeatDevice.customFunctions.getCustomFunctionCount())
         {
             setErrorMessage(status, F("Неіснуюча функція"));
+            return;
         }
+        
         if (myHeatDevice.customFunctions.setCustomFunctionIsEnabled(payload["functionIndex"], payload["isEnabled"])) {
             setSuccessMessage(status, "Стан функції " + payload["functionIndex"].as<String>() + " змінено");
             myHeatDevice.checkCustomFunctions();
@@ -25,41 +27,11 @@ namespace MyHeatWeb
     {
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
-        byte oldFunctionCount = myHeatDevice.customFunctions.getCustomFunctionCount();
-        byte functionCount = payload["functionCount"];
-        myHeatDevice.customFunctions.setCustomFunctionCount(functionCount);
-        std::vector<MyHeatCustomFunction>& customFunctions = myHeatDevice.customFunctions.getCustomFunctions();
-
-        byte temperatureCount = myHeatDevice.temperatures.getTemperatureCount();
-        byte relayCount = myHeatDevice.relays.getRelayCount();
-
-        for (int i = 0; i < functionCount; i++)
-        {
-            if (payload["functions"][i]["temperatureIndex"][0] >= temperatureCount && payload["functions"][i]["temperatureIndex"][0] < TEMP_UNKNOWN) 
-            {
-                setErrorMessage(status, "Неправильний індекс температурного датчика в Параметрі 1 в функції " + String(i));
-                continue;
-            }
-            else if (payload["functions"][i]["temperatureIndex"][1] >= temperatureCount && payload["functions"][i]["temperatureIndex"][1] < TEMP_UNKNOWN)
-            {
-                setErrorMessage(status, "Неправильний індекс температурного датчика в Параметрі 2 в функції " + String(i));
-                continue;
-            }
-            else if (payload["functions"][i]["relayIndex"] >= relayCount && payload["functions"][i]["relayIndex"] != RELAY_UNKNOWN)
-            {
-                setErrorMessage(status, "Неправильний індекс реле в функції " + String(i));
-                continue;
-            }
-
-            customFunctions[i].setSign(static_cast<CustomFunctionSign>(payload["functions"][i]["sign"].as<byte>()));
-            customFunctions[i].setTemperatureIndex(0, payload["functions"][i]["temperatureIndex"][0]);
-            customFunctions[i].setTemperatureIndex(1, payload["functions"][i]["temperatureIndex"][1]);
-            customFunctions[i].setDeltaValue(0, payload["functions"][i]["deltaValue"][0]);
-            customFunctions[i].setDeltaValue(1, payload["functions"][i]["deltaValue"][1]);
-            customFunctions[i].setRelayIndex(payload["functions"][i]["relayIndex"]);
-        }
-
-        myHeatDevice.customFunctions.save();
+        // payload is a JsonObject but we can create a JsonDocument to pass
+        JsonDocument doc;
+        doc.set(payload);
+        
+        myHeatDevice.customFunctions.manualDeserialize(doc);
         myHeatDevice.validateCustomFunctions();
 
         setSuccessMessage(status, "Функції збережено");
@@ -72,19 +44,55 @@ namespace MyHeatWeb
 
         functionsData[F("temperatureCount")] = myHeatDevice.temperatures.getTemperatureCount();
         functionsData[F("relayCount")] = myHeatDevice.relays.getRelayCount();
+        functionsData[F("functionCount")] = myHeatDevice.customFunctions.getCustomFunctionCount();
 
+        JsonArray functionsArray = functionsData[F("functions")].to<JsonArray>();
+        
         for (int i = 0; i < myHeatDevice.customFunctions.getCustomFunctionCount(); i++)
         {
-            MyHeatCustomFunction function = myHeatDevice.customFunctions.getCustomFunction(i);
+            MyHeatCustomFunction& function = myHeatDevice.customFunctions.getCustomFunction(i);
+            JsonObject funcObj = functionsArray.add<JsonObject>();
+            
+            funcObj[F("name")] = function.getName();
+            funcObj[F("isEnabled")] = function.getIsEnabled();
+            funcObj[F("isActive")] = function.getIsActive();
+            funcObj[F("priority")] = function.getPriority();
 
-            functionsData[F("functions")][i][F("sign")] = static_cast<byte>(function.getSign());
-            functionsData[F("functions")][i][F("temperatureIndex")][0] = function.getTemperatureIndex(0);
-            functionsData[F("functions")][i][F("temperatureIndex")][1] = function.getTemperatureIndex(1);
-            functionsData[F("functions")][i][F("deltaValue")][0] = function.getDeltaValue(0);
-            functionsData[F("functions")][i][F("deltaValue")][1] = function.getDeltaValue(1);
-            functionsData[F("functions")][i][F("relayIndex")] = function.getRelayIndex();
-            functionsData[F("functions")][i][F("isEnabled")] = function.getIsEnabled();
-            functionsData[F("functions")][i][F("isActive")] = function.getIsActive();
+            JsonArray conditionsArr = funcObj[F("conditions")].to<JsonArray>();
+            for (const auto& cond : function.getConditions()) {
+                JsonObject condObj = conditionsArr.add<JsonObject>();
+                condObj[F("t")] = cond.type;
+                if (cond.type == COND_CMP) {
+                    condObj[F("src")] = cond.source1;
+                    condObj[F("si")] = cond.index1;
+                    condObj[F("d1")] = cond.delta1;
+                    condObj[F("op")] = cond.op;
+                    condObj[F("ivs")] = cond.isValueSource;
+                    if (cond.isValueSource) {
+                        condObj[F("src2")] = cond.source2;
+                        condObj[F("si2")] = cond.index2;
+                        condObj[F("d2")] = cond.delta2_or_value;
+                    } else {
+                        condObj[F("v")] = cond.delta2_or_value;
+                    }
+                    condObj[F("hyst")] = cond.hysteresis;
+                } else {
+                    condObj[F("cs")] = cond.childStart;
+                    condObj[F("cc")] = cond.childCount;
+                }
+            }
+
+            JsonArray actionsArr = funcObj[F("actions")].to<JsonArray>();
+            for (const auto& act : function.getActions()) {
+                JsonObject actObj = actionsArr.add<JsonObject>();
+                actObj[F("t")] = act.type;
+                actObj[F("ti")] = act.targetIndex;
+                actObj[F("v")] = act.value;
+                if (act.type == ACT_SET_RELAY_TIMER) {
+                    actObj[F("d")] = act.duration;
+                    actObj[F("tt")] = act.timerType;
+                }
+            }
         }
 
         return functionsData;

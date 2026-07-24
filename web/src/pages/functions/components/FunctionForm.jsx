@@ -1,90 +1,94 @@
-import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
+import FormField from '@/components/ui/FormField';
+import SelectToggle from '@/components/ui/SelectToggle';
 import DarkWrapperBlock from '@/components/layout/DarkWrapperBlock';
+import { ConditionNode } from './ConditionTree';
+import { ActionList } from './ActionList';
+import { ACT_SET_RELAY, COND_CMP, SRC_TEMP, OP_LT } from '@/utils/functionEnums';
 
-const ParameterRow = ({ label, tempValue, tempOptions, onTempChange, signValue, signOptions, onSignChange, deltaValue, onDeltaChange }) => (
-  <div className='flex flex-col'>
-    <p className='text-lg text-gray-300'>{label}:</p>
-    <div className='flex gap-2'>
-      <Select
-        value={tempValue}
-        options={tempOptions}
-        onChange={onTempChange}
-      />
-      <Select
-        value={signValue}
-        options={signOptions}
-        onChange={onSignChange}
-      />
-      <Input
-        placeholder='ΔT'
-        className='w-12'
-        maxLength={3}
-        value={deltaValue}
-        isNumber={true}
-        onChange={onDeltaChange}
-      />
-    </div>
-  </div>
-);
+const EMPTY_CMP = {
+  t: COND_CMP, src: SRC_TEMP, si: 0,
+  d1: 0, d1sign: 1,
+  op: OP_LT,
+  ivs: false, v: 25,
+  src2: SRC_TEMP, si2: 0,
+  d2: 0, d2sign: 1,
+  hyst: 0.5,
+  children: [],
+};
 
-export const FunctionForm = ({
-  selectedFunction,
-  tempSensorsOptions,
-  deltaValueSignOptions,
-  signOptions,
-  relayOptions,
-  onTemperatureChange,
-  onDeltaValueChange,
-  onDeltaSignChange,
-  onSignChange,
-  onRelayChange,
-}) => {
+export const FunctionForm = ({ selectedFunction, options, onUpdateFunction }) => {
+  if (!selectedFunction) return null;
+
+  const handleActionChange = (index, field, value) => {
+    const newActions = [...selectedFunction.actions];
+    newActions[index] = { ...newActions[index], [field]: value };
+    onUpdateFunction({ actions: newActions });
+  };
+
+  const handleAddAction = () => {
+    onUpdateFunction({
+      actions: [...selectedFunction.actions, { t: ACT_SET_RELAY, ti: 0, v: 1, d: 60, tt: 0 }],
+    });
+  };
+
+  const handleRemoveAction = (index) => {
+    const newActions = selectedFunction.actions.filter((_, i) => i !== index);
+    onUpdateFunction({ actions: newActions.length ? newActions : [{ t: ACT_SET_RELAY, ti: 0, v: 1, d: 60, tt: 0 }] });
+  };
+
   return (
-    <DarkWrapperBlock className='gap-4 md:!flex-col !items-start'>
-      <div className='flex gap-2 flex-col self-center'>
-        <ParameterRow
-          label="Параметр 1"
-          tempValue={selectedFunction?.temperatureIndex[0]}
-          tempOptions={tempSensorsOptions}
-          onTempChange={onTemperatureChange(0)}
-          signValue={selectedFunction?.deltaValueSign[0]}
-          signOptions={deltaValueSignOptions}
-          onSignChange={onDeltaSignChange(0)}
-          deltaValue={selectedFunction?.deltaValue[0]}
-          onDeltaChange={onDeltaValueChange(0)}
-        />
-
-        <div className='flex flex-col'>
-          <p className='text-lg text-gray-300'>Знак:</p>
-          <Select
-            value={selectedFunction?.sign}
-            options={signOptions}
-            onChange={onSignChange}
+    <div className="flex flex-col gap-4">
+      {/* Function metadata */}
+      <DarkWrapperBlock className="!flex-col !items-stretch gap-3">
+        <FormField label="Назва">
+          <Input
+            value={selectedFunction.name}
+            onChange={(e) => onUpdateFunction({ name: e.target.value })}
+            placeholder="Введіть назву"
+            className="w-full"
           />
+        </FormField>
+        <div className="flex gap-4">
+          <FormField label="Увімкнено">
+            <SelectToggle
+              value={selectedFunction.isEnabled}
+              onChange={(e) => onUpdateFunction({ isEnabled: e.target.value === 'true' })}
+            />
+          </FormField>
+          <FormField label="Пріоритет">
+            <Input
+              value={selectedFunction.priority ?? 0}
+              isNumber
+              onChange={(e) => onUpdateFunction({ priority: parseInt(e.target.value) || 0 })}
+              className="w-20"
+            />
+          </FormField>
         </div>
+      </DarkWrapperBlock>
 
-        <ParameterRow
-          label="Параметр 2"
-          tempValue={selectedFunction?.temperatureIndex[1]}
-          tempOptions={tempSensorsOptions}
-          onTempChange={onTemperatureChange(1)}
-          signValue={selectedFunction?.deltaValueSign[1]}
-          signOptions={deltaValueSignOptions}
-          onSignChange={onDeltaSignChange(1)}
-          deltaValue={selectedFunction?.deltaValue[1]}
-          onDeltaChange={onDeltaValueChange(1)}
+      {/* Conditions */}
+      <div className="flex flex-col gap-2">
+        <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Умови</h3>
+        <ConditionNode
+          node={selectedFunction.conditionTree}
+          options={options}
+          onChange={(newNode) => onUpdateFunction({ conditionTree: newNode ?? { ...EMPTY_CMP } })}
+          isRoot={true}
         />
-
-        <div className='flex flex-col'>
-          <p className='text-lg text-gray-300'>Реле:</p>
-          <Select
-            value={selectedFunction?.relayIndex}
-            options={relayOptions}
-            onChange={onRelayChange}
-          />
-        </div>
       </div>
-    </DarkWrapperBlock>
+
+      {/* Actions */}
+      <div className="flex flex-col gap-2">
+        <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Дії</h3>
+        <ActionList
+          actions={selectedFunction.actions || []}
+          options={options}
+          onActionChange={handleActionChange}
+          onAddAction={handleAddAction}
+          onRemoveAction={handleRemoveAction}
+        />
+      </div>
+    </div>
   );
 };

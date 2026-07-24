@@ -5,25 +5,14 @@ const useFunctionStore = create((set) => ({
   functions: [],
   temperatureCount: 0,
   relayCount: 0,
-  tnIndex: 255,
-  tUnknownIndex: 254,
-  relayUnknownIndex: 255,
 
   processFunctions: (payload) => {
-    if(!payload.temperatureCount || !payload.relayCount) return;
-
-    set({ temperatureCount: payload.temperatureCount });
-    set({ relayCount: payload.relayCount });
+    if(payload.temperatureCount !== undefined) set({ temperatureCount: payload.temperatureCount });
+    if(payload.relayCount !== undefined) set({ relayCount: payload.relayCount });
 
     if (!payload?.functions) return;
 
-    const updatedFunctions = payload.functions.map((func) => ({
-      ...func,
-      deltaValueSign: func.deltaValue.map((val) => (val < 0 ? 0 : 1)),
-      deltaValue: func.deltaValue.map((val) => Math.abs(val)),
-    }));
-
-    set({ functions: updatedFunctions });
+    set({ functions: payload.functions });
   },
 
   setFunctionIsEnabled: (functionIndex, isEnabled) => {
@@ -36,14 +25,9 @@ const useFunctionStore = create((set) => ({
   },
 
   setFunctionsSettings: (functions) => {
-    const formattedFunctions = functions.map((func) => ({
-      ...func,
-      deltaValue: func.deltaValue.map((val, index) => (func.deltaValueSign[index] ? val : -val)),
-    }));
-
     const payload = {
-      functionCount: formattedFunctions.length,
-      functions: formattedFunctions,
+      functionCount: functions.length,
+      functions: functions,
     };
 
     useWebSocketStore.getState().sendMessage("setFunctionsSettings", payload);
