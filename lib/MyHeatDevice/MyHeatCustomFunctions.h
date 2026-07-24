@@ -11,18 +11,20 @@
 class MyHeatRelay;
 class MyHeatSmokeSensor;
 
-struct EvalContext {
-    std::vector<float>& temperatures;
-    std::vector<MyHeatRelay>& relays;
-    MyHeatSmokeSensor& smokeSensor;
-};
-
 enum FunctionAlert
 {
     FA_NONE = 0,
     FA_BAD_TEMPERATURE = 1,
     FA_BAD_TEMPERATURE_NUMBER = 2,
     FA_BAD_RELAY_NUMBER = 3,
+};
+
+struct EvalContext {
+    std::vector<float>& temperatures;
+    std::vector<MyHeatRelay>& relays;
+    MyHeatSmokeSensor& smokeSensor;
+    byte currentFunctionIndex = 0;
+    FunctionAlert discoveredAlert = FA_NONE;
 };
 
 class MyHeatCustomFunctions : public MyHeatSaveInterface

@@ -225,13 +225,21 @@ void MyHeatCustomFunctions::save()
 float MyHeatCustomFunctions::getSensorValue(SourceType source, uint8_t index, EvalContext& ctx) {
     switch (source) {
         case SRC_TEMP:
-            if (index >= ctx.temperatures.size() || 
-                ctx.temperatures[index] <= TEMPERATURE_ERROR + 0.1) 
+            if (index >= ctx.temperatures.size()) {
+                ctx.discoveredAlert = FunctionAlert::FA_BAD_TEMPERATURE_NUMBER;
                 return NAN;
+            }
+            if (ctx.temperatures[index] <= TEMPERATURE_ERROR + 0.1) {
+                ctx.discoveredAlert = FunctionAlert::FA_BAD_TEMPERATURE;
+                return NAN;
+            }
             return ctx.temperatures[index];
             
         case SRC_RELAY:
-            if (index >= ctx.relays.size()) return NAN;
+            if (index >= ctx.relays.size()) {
+                ctx.discoveredAlert = FunctionAlert::FA_BAD_RELAY_NUMBER;
+                return NAN;
+            }
             return ctx.relays[index].getIsActive() ? 1.0f : 0.0f;
             
         case SRC_SMOKE:

@@ -36,12 +36,19 @@ void MyHeatDevice::checkCustomFunctions()
     EvalContext ctx {
         temperatures.getTemperatures(),
         relays.getRelays(),
-        smokeSensor
+        smokeSensor,
+        0 // currentFunctionIndex
     };
 
     for (int i = 0; i < customFunctions.getCustomFunctionCount(); i++)
     {
+        ctx.currentFunctionIndex = i;
+        ctx.discoveredAlert = FunctionAlert::FA_NONE;
+        
         customFunctions.evaluateFunction(cfArray[i], ctx);
+        
+        // Update the alert state based on what was discovered during evaluation
+        customFunctions.setFunctionAlert(i, ctx.discoveredAlert);
     }
 }
 
