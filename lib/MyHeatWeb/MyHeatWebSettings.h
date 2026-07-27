@@ -17,6 +17,7 @@ namespace MyHeatWeb
     void getNTPSettings(JsonObject response);
     void setTelegramBotSettings(JsonObject payload, JsonObject status);
     void getTelegramBotSettings(JsonObject response);
+    void deleteTelegramUser(JsonObject payload, JsonObject status);
     void setHardwareIOSettings(JsonObject payload, JsonObject status);
     void getHardwareIOSettings(JsonObject response);
     void setMqttSettings(JsonObject payload, JsonObject status);

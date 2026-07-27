@@ -76,6 +76,19 @@ namespace MyHeatWeb
         response[F("registerPhrase")] = MyHeatTelebot::getRegisterPhrase();
         response[F("isEnabled")] = MyHeatTelebot::getIsEnabled();
         response[F("isAlertNotificationsEnabled")] = MyHeatTelebot::getIsAlertNotificationsEnabled();
+
+        JsonArray usersArray = response[F("users")].to<JsonArray>();
+        byte count = MyHeatTelebot::getUsersCount();
+        for (byte i = 0; i < count; i++) {
+            usersArray.add(MyHeatTelebot::getChatIdByIndex(i));
+        }
+    }
+
+    void deleteTelegramUser(JsonObject payload, JsonObject status)
+    {
+        String chatId = payload[F("chatId")].as<String>();
+        MyHeatTelebot::deleteUser(chatId);
+        setSuccessMessage(status, "Користувача видалено");
     }
 
     void setHardwareIOSettings(JsonObject payload, JsonObject status)
@@ -132,6 +145,12 @@ namespace MyHeatWeb
         response[F("MyHeatWifi")] = MyHeatUtils::getFileContent("/wifi.json");
         response[F("MyHeatTelebot")] = MyHeatUtils::getFileContent("/telebot.json");
         response[F("MyHeatMqtt")] = MyHeatUtils::getFileContent("/mqtt.json");
+
+        JsonArray usersArray = response[F("MyHeatTelebotUsers")].to<JsonArray>();
+        byte count = MyHeatTelebot::getUsersCount();
+        for (byte i = 0; i < count; i++) {
+            usersArray.add(MyHeatTelebot::getChatIdByIndex(i));
+        }
     }
 
     void setAllDeviceSettings(JsonObject payload, JsonObject status)
@@ -150,6 +169,22 @@ namespace MyHeatWeb
         if (!payload["MyHeatMqtt"].isNull()) {
             MyHeatMqtt::settings.manualDeserialize(payload[F("MyHeatMqtt")]);
             MyHeatMqtt::save();
+            MyHeatMqtt::setSettings(
+                MyHeatMqtt::settings.broker,
+                MyHeatMqtt::settings.port,
+                MyHeatMqtt::settings.user,
+                MyHeatMqtt::settings.password,
+                MyHeatMqtt::settings.isEnabled,
+                MyHeatMqtt::settings.publishInterval
+            );
+        }
+
+        if (!payload["MyHeatTelebotUsers"].isNull()) {
+            MyHeatTelebot::deleteUsers();
+            JsonArray usersArray = payload["MyHeatTelebotUsers"].as<JsonArray>();
+            for (JsonVariant v : usersArray) {
+                MyHeatTelebot::registerUser(v.as<String>());
+            }
         }
 
         setSuccessMessage(status, "Налаштування імпортовані");

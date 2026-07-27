@@ -136,6 +136,16 @@ namespace MyHeatTelebot
         myHeatSave.save();
     }
 
+    void deleteUser(const String& chatId)
+    {
+        if (isUserRegistered(chatId))
+        {
+            String path = "/users/" + chatId + ".json";
+            LittleFS.remove(path);
+            users.erase(chatId);
+        }
+    }
+
     void deleteUsers()
     {
         for (auto it = users.begin(); it != users.end(); ++it)

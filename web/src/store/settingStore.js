@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import useWebSocketStore from "./websocketStore";
+import { ReadyState } from "react-use-websocket";
 
 const useSettingStore = create((set, get) => ({
   wifiSettings: {},
@@ -78,6 +79,11 @@ const useSettingStore = create((set, get) => ({
 
   processGetTelegramBotSettings: (payload) => {
     set({ telegramBotSettings: payload });
+  },
+
+  deleteTelegramUser: (chatId) => {
+    useWebSocketStore.getState().sendMessage("deleteTelegramUser", { chatId });
+    get().getTelegramBotSettings();
   },
 
   setNtpSettings: (ntpServer, ntpIANA, ntpTZ) => {
@@ -264,6 +270,15 @@ useWebSocketStore.subscribe(
 useWebSocketStore.subscribe(
   (state) => state.messages["getMqttSettingsResponse"],
   (payload) => useSettingStore.getState().processGetMqttSettings(payload)
+);
+
+useWebSocketStore.subscribe(
+  (state) => state.webSocketState,
+  (webSocketState) => {
+    if (webSocketState !== ReadyState.OPEN) {
+      useSettingStore.setState({ isScanningForWifiNetworks: false });
+    }
+  }
 );
 
 export default useSettingStore;

@@ -1,15 +1,63 @@
 #include "MyHeatWeb.h"
 #include <MyHeatAlerts.h>
+#include <Update.h>
 
 namespace MyHeatWeb
 {
     void begin()
     {
+        DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+        DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+        DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type");
+
         server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html").setCacheControl("max-age=6000000");
+        setupOTA();
         websocket.enable(true);
         setupWebsocket();
         server.begin();
         MyHeatAlerts::registerHandler(sendAlertNotification);
+    }
+
+    void setupOTA()
+    {
+        server.on("/update", HTTP_OPTIONS, [](AsyncWebServerRequest *request) {
+            request->send(200);
+        });
+
+        server.on("/update", HTTP_POST, [](AsyncWebServerRequest *request) {
+            bool shouldReboot = !Update.hasError();
+            AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", shouldReboot ? "OK" : "FAIL");
+            response->addHeader("Connection", "close");
+            request->send(response);
+            
+            if (shouldReboot) {
+                MyHeatWeb::restartRequired = true;
+            }
+        }, [](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+            if (!index) {
+                Serial.printf("Update Start: %s\n", filename.c_str());
+                int cmd = U_FLASH;
+                if (request->hasParam("type") && request->getParam("type")->value() == "fs") {
+                    cmd = U_SPIFFS;
+                }
+                
+                if (!Update.begin(request->contentLength(), cmd)) {
+                    Update.printError(Serial);
+                }
+            }
+            if (!Update.hasError()) {
+                if (Update.write(data, len) != len) {
+                    Update.printError(Serial);
+                }
+            }
+            if (final) {
+                if (Update.end(true)) {
+                    Serial.printf("Update Success: %uB\n", index + len);
+                } else {
+                    Update.printError(Serial);
+                }
+            }
+        });
     }
 
     void setupWebsocket()
@@ -146,6 +194,10 @@ namespace MyHeatWeb
 
             case su::SH("setTelegramBotSettings"):
                 setTelegramBotSettings(payload, responseStatus);
+                break;
+
+            case su::SH("deleteTelegramUser"):
+                deleteTelegramUser(payload, responseStatus);
                 break;
 
             case su::SH("getHardwareIOSettings"):

@@ -1,3 +1,4 @@
+import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import DarkWrapperBlock from "@/components/layout/DarkWrapperBlock";
 import SaveButton from "@/components/ui/SaveButton";
@@ -8,7 +9,7 @@ import WrapperBlock from "@/components/layout/WrapperBlock";
 import { useBotSettings } from "../hooks/useBotSettings";
 
 const Bot = () => {
-  const { botToken, setBotToken, botPassword, setBotPassword, isBotEnabled, setIsBotEnabled, setTelegramBotSettings, setIsAlertNotificationsEnabled, isAlertNotificationsEnabled } = useBotSettings();
+  const { botToken, setBotToken, botPassword, setBotPassword, isBotEnabled, setIsBotEnabled, setTelegramBotSettings, setIsAlertNotificationsEnabled, isAlertNotificationsEnabled, users, deleteTelegramUser } = useBotSettings();
 
   return (
     <SettingsForm title='Телеграм бот'>
@@ -35,6 +36,21 @@ const Bot = () => {
             />
           </FormField>
         </DarkWrapperBlock>
+      </WrapperBlock>
+      <WrapperBlock>
+        <h3 className='text-xl'>Користувачі:</h3>
+        {users?.length > 0 ? (
+          users.map((chatId) => (
+            <DarkWrapperBlock key={chatId}>
+              <div className='flex justify-between w-full items-center'>
+                <p>{chatId}</p>
+                <Button buttonText='Видалити' color='red' onClick={() => deleteTelegramUser(chatId)} />
+              </div>
+            </DarkWrapperBlock>
+          ))
+        ) : (
+          <DarkWrapperBlock><p>Немає зареєстрованих користувачів</p></DarkWrapperBlock>
+        )}
       </WrapperBlock>
       <SaveButton onClick={() => setTelegramBotSettings(botToken, botPassword, isBotEnabled, isAlertNotificationsEnabled)} />
     </SettingsForm>
