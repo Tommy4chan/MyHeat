@@ -3,6 +3,9 @@
 
 namespace MyHeatTelebot
 {
+    static std::vector<String> pendingAlerts;
+    static const byte MAX_PENDING_ALERTS = 10;
+
     void begin()
     {
         botData = new MyHeatSave("/telebot.json", &botSave);
@@ -22,6 +25,19 @@ namespace MyHeatTelebot
         {
             if (!MyHeatUtils::isTimeDefault())
             {
+                if (!pendingAlerts.empty() && MyHeatWifi::getInstance().isConnected())
+                {
+                    for (const auto& message : pendingAlerts)
+                    {
+                        for (byte i = 0; i < getUsersCount(); i++)
+                        {
+                            fb::Message msg(message, getChatIdByIndex(i));
+                            bot.sendMessage(msg);
+                        }
+                    }
+                    pendingAlerts.clear();
+                }
+
                 // TODO: Add a preloader/connecting screen on OLED here because bot.tick() blocks loop for ~7s during the initial DNS/SSL handshake
                 bot.tick();
             }
@@ -70,8 +86,6 @@ namespace MyHeatTelebot
 
             msg.text = F("Привіт! \nЯ бот, для контролю системи опалення.");
 
-            setUserScreen(chat_id, ScreenType::MAIN_SCREEN);
-
             break;
         }
         case su::SH("/menu"):
@@ -79,13 +93,6 @@ namespace MyHeatTelebot
             msg.text = F("Головне меню");
             msg.setMenu(getMainReplyMenu());
 
-            setUserScreen(chat_id, ScreenType::MAIN_SCREEN);
-
-            break;
-        }
-        case su::SH("/delete"):
-        {
-            deleteUsers();
             break;
         }
         }
@@ -104,28 +111,24 @@ namespace MyHeatTelebot
         {
         case su::SH("Температура"):
         {
-            setUserScreen(chat_id, ScreenType::TEMP_SCREEN);
             msg.text = getTemperatureScreenText();
             msg.setInlineMenu(getTemperatureInlineMenu());
             break;
         }
         case su::SH("Реле"):
         {
-            setUserScreen(chat_id, ScreenType::RELAYS_SCREEN);
             msg.text = getRelayScreenText();
             msg.setInlineMenu(getRelayInlineMenu());
             break;
         }
         case su::SH("Функції"):
         {
-            setUserScreen(chat_id, ScreenType::FUNCTIONS_LIST_SCREEN);
             msg.text = getFunctionsListScreenText();
             msg.setInlineMenu(getFunctionListInlineMenu());
             break;
         }
         case su::SH("Інформація"):
         {
-
             MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
 
             msg.text = "Датчик диму: \n"
@@ -159,60 +162,14 @@ namespace MyHeatTelebot
 
         switch (callback.hash())
         {
-        case su::SH("discoverTemperatureSensor"):
-        {
-            setUserScreen(chat_id, ScreenType::TEMP_DISCOVER_SCREEN);
-            byte addressesCount = myHeatDevice.temperatures.discoverTemperatureSensor();
-
-            if (addressesCount)
-            {
-                msg.text = F("\nДатчики виявлено");
-                msg.setInlineMenu(getDiscoveredTemperatureSensorsInlineMenu(addressesCount, myHeatDevice.temperatures.getDiscoveredTemperatureSensorAddresses()));
-            }
-            else
-            {
-                msg.text = F("Датчик не виявлено");
-            }
-
-            break;
-        }
-        case su::SH("deleteTemperatureSensor"):
-        {
-            setUserScreen(chat_id, ScreenType::TEMP_DELETE_SCREEN);
-
-            setUserTempValue1(chat_id, value);
-            msg.text = F("Виберіть датчик для видалення");
-            msg.setInlineMenu(getTemperatureIndexesInlineMenu());
-            break;
-        }
-        case su::SH("setTemperatureSensor"):
-        {
-            setUserTempValue1(chat_id, value);
-            msg.text = F("Датчик вибрано");
-            msg.setInlineMenu(getTemperatureIndexesInlineMenu());
-            break;
-        }
-        case su::SH("setTemperatureIndex"):
-        {
-            User user = getUser(chat_id);
-            if (user.screenType == ScreenType::TEMP_DISCOVER_SCREEN)
-            {
-                myHeatDevice.temperatures.setTemperatureSensorAddress(value, user.tempValue1);
-                msg.text = F("Датчик встановлено \n\n");
-            }
-            else if (user.screenType == ScreenType::TEMP_DELETE_SCREEN)
-            {
-                myHeatDevice.temperatures.deleteTemperatureSensorAddress(value);
-                msg.text = F("Датчик видалено \n\n");
-            }
-
-            setUserScreen(chat_id, ScreenType::TEMP_SCREEN);
-            msg.text += getTemperatureScreenText();
-            msg.setInlineMenu(getTemperatureInlineMenu());
-            break;
-        }
         case su::SH("relay"):
         {
+            if (value >= myHeatDevice.relays.getRelayCount())
+            {
+                msg.text = getRelayScreenText();
+                msg.setInlineMenu(getRelayInlineMenu());
+                break;
+            }
             myHeatDevice.relays.changeRelayMode(value);
             myHeatDevice.manualTick();
 
@@ -222,25 +179,32 @@ namespace MyHeatTelebot
         }
         case su::SH("function"):
         {
-            setUserTempValue1(chat_id, value);
+            if (value >= myHeatDevice.customFunctions.getCustomFunctionCount())
+            {
+                msg.text = F("Функцію не знайдено. Оновіть список.");
+                msg.setInlineMenu(getFunctionListInlineMenu());
+                break;
+            }
             setFunctionScreen(msg, myHeatDevice.customFunctions.getCustomFunction(value), value);
             break;
         }
         case su::SH("functionChangeState"):
         {
-            User user = getUser(chat_id);
-
-            bool currentState = myHeatDevice.customFunctions.getCustomFunction(user.tempValue1).getIsEnabled();
-            myHeatDevice.customFunctions.setCustomFunctionIsEnabled(user.tempValue1, !currentState);
+            if (value >= myHeatDevice.customFunctions.getCustomFunctionCount())
+            {
+                msg.text = F("Функцію не знайдено. Оновіть список.");
+                msg.setInlineMenu(getFunctionListInlineMenu());
+                break;
+            }
+            bool currentState = myHeatDevice.customFunctions.getCustomFunction(value).getIsEnabled();
+            myHeatDevice.customFunctions.setCustomFunctionIsEnabled(value, !currentState);
             myHeatDevice.manualTick();
 
-            setFunctionScreen(msg, myHeatDevice.customFunctions.getCustomFunction(user.tempValue1), user.tempValue1);
+            setFunctionScreen(msg, myHeatDevice.customFunctions.getCustomFunction(value), value);
             break;
         }
-
         case su::SH("closeFunction"):
         {
-            setUserScreen(chat_id, ScreenType::FUNCTIONS_LIST_SCREEN);
             msg.text = getFunctionsListScreenText();
             msg.setInlineMenu(getFunctionListInlineMenu());
             break;
@@ -248,41 +212,39 @@ namespace MyHeatTelebot
         case su::SH("close"):
         {
             fb::Message closeMsg("", chat_id);
-            setUserScreen(chat_id, ScreenType::MAIN_SCREEN);
             closeMsg.text = F("Головне меню");
             closeMsg.setMenu(getMainReplyMenu());
 
             bot.deleteMessage(chat_id, q.message().id());
             bot.sendMessage(closeMsg);
             return;
-            break;
         }
         case su::SH("refreshFunction"):
         {
-            User user = getUser(chat_id);
-            if (user.screenType == ScreenType::FUNCTION_SCREEN)
+            if (value >= myHeatDevice.customFunctions.getCustomFunctionCount())
             {
-                setFunctionScreen(msg, myHeatDevice.customFunctions.getCustomFunction(user.tempValue1), user.tempValue1);
+                msg.text = F("Функцію не знайдено. Оновіть список.");
+                msg.setInlineMenu(getFunctionListInlineMenu());
+                break;
             }
+            setFunctionScreen(msg, myHeatDevice.customFunctions.getCustomFunction(value), value);
             break;
         }
         case su::SH("refreshFunctions"):
         {
-            setUserScreen(chat_id, ScreenType::FUNCTIONS_LIST_SCREEN);
             msg.text = getFunctionsListScreenText();
             msg.setInlineMenu(getFunctionListInlineMenu());
             break;
         }
         case su::SH("refreshRelays"):
         {
-            setUserScreen(chat_id, ScreenType::RELAYS_SCREEN);
             msg.text = getRelayScreenText();
             msg.setInlineMenu(getRelayInlineMenu());
             break;
         }
         case su::SH("refreshTemperatures"):
         {
-            msg.text += getTemperatureScreenText();
+            msg.text = getTemperatureScreenText();
             msg.setInlineMenu(getTemperatureInlineMenu());
             break;
         }
@@ -310,13 +272,14 @@ namespace MyHeatTelebot
         bot.sendMessage(msg);
     }
 
-    void setToken(String token)
+    void setToken(const String& token)
     {
+        botSave.token = token;
         bot.setToken(token);
         save();
     }
 
-    void setRegisterPhrase(String registerPhrase)
+    void setRegisterPhrase(const String& registerPhrase)
     {
         botSave.registerPhrase = registerPhrase;
         save();
@@ -367,15 +330,25 @@ namespace MyHeatTelebot
 
     void sendAlertNotification(const String& message)
     {
-        if (!botSave.isEnabled || !botSave.isAlertNotificationsEnabled || !MyHeatWifi::getInstance().isConnected())
+        if (!botSave.isEnabled || !botSave.isAlertNotificationsEnabled)
             return;
 
-        String chatId = "";
+        if (!MyHeatWifi::getInstance().isConnected())
+        {
+            for (const auto& pending : pendingAlerts)
+            {
+                if (pending == message) return;
+            }
+            if (pendingAlerts.size() < MAX_PENDING_ALERTS)
+            {
+                pendingAlerts.push_back(message);
+            }
+            return;
+        }
 
         for (byte i = 0; i < getUsersCount(); i++)
         {
-            chatId = getChatIdByIndex(i);
-            fb::Message msg(message, chatId);
+            fb::Message msg(message, getChatIdByIndex(i));
             bot.sendMessage(msg);
         }
     }

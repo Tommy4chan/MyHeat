@@ -35,40 +35,6 @@ namespace MyHeatTelebot
         return inlineMenu;
     }
 
-    fb::InlineMenu &getDiscoveredTemperatureSensorsInlineMenu(byte count, std::vector<DeviceAddressArray>& addresses) 
-    {
-        inlineMenu = fb::InlineMenu();
-
-        for (byte i = 0; i < count; i++)
-        {
-            inlineMenu.addButton(MyHeatUtils::getAddressToString(addresses[i].data()), "setTemperatureSensor_" + String(i));
-            if (i % 2 != 0 && i != count - 1)
-            {
-                inlineMenu.newRow();
-            }
-        }
-
-        return inlineMenu;
-    }
-
-    fb::InlineMenu &getTemperatureIndexesInlineMenu() 
-    {
-        inlineMenu = fb::InlineMenu();
-
-        byte temperatureCount = MyHeatDevice::getInstance().temperatures.getTemperatureCount();
-
-        for (byte i = 0; i < temperatureCount; i++)
-        {
-            inlineMenu.addButton("T" + String(i), "setTemperatureIndex_" + String(i));
-            if (i % 2 != 0 && i != temperatureCount - 1)
-            {
-                inlineMenu.newRow();
-            }
-        }
-
-        return inlineMenu;
-    }
-
     fb::InlineMenu &getFunctionListInlineMenu()
     {
         inlineMenu = fb::InlineMenu();
@@ -93,12 +59,15 @@ namespace MyHeatTelebot
         return inlineMenu;
     }
 
-    fb::InlineMenu &getFunctionInlineMenu()
+    fb::InlineMenu &getFunctionInlineMenu(byte functionIndex)
     {
-        inlineMenu = fb::InlineMenu(
-            F("Увімкнути/Вимкнути \n Оновити \n Назад"),
-            F("functionChangeState;refreshFunction;closeFunction"));
-
+        inlineMenu = fb::InlineMenu();
+        String idx = String(functionIndex);
+        inlineMenu.addButton(F("Увімкнути/Вимкнути"), "functionChangeState_" + idx);
+        inlineMenu.newRow();
+        inlineMenu.addButton(F("Оновити"), "refreshFunction_" + idx);
+        inlineMenu.newRow();
+        inlineMenu.addButton(F("Назад"), "closeFunction");
         return inlineMenu;
     }
 

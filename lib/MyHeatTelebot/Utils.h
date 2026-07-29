@@ -7,7 +7,6 @@
 #include "MyHeatUtils.h"
 #include "Menu.h"
 #include "Message.h"
-#include "User.h"
 #include "MyHeatCustomFunction.h"
 
 namespace MyHeatTelebot

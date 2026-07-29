@@ -45,8 +45,4 @@ namespace MyHeatTelebot
         return text;
     }
 
-    String getFunctionScreenText(const MyHeatCustomFunction& customFunction, byte functionIndex)
-    {
-        return getConvertedFunctionToText(customFunction, functionIndex);
-    }
-}
+}

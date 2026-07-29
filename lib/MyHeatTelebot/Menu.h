@@ -3,10 +3,6 @@
 
 #include <FastBot2.h>
 #include <MyHeatUtils.h>
-#include <vector>
-#include <array>
-
-using DeviceAddressArray = std::array<uint8_t, 8>;
 #include "MyHeatRelay.h"
 #include "MyHeatDevice.h"
 
@@ -19,10 +15,8 @@ namespace MyHeatTelebot
 
     fb::InlineMenu &getRelayInlineMenu();
     fb::InlineMenu &getTemperatureInlineMenu();
-    fb::InlineMenu &getDiscoveredTemperatureSensorsInlineMenu(byte count, std::vector<DeviceAddressArray>& addresses);
-    fb::InlineMenu &getTemperatureIndexesInlineMenu();
     fb::InlineMenu &getFunctionListInlineMenu();
-    fb::InlineMenu &getFunctionInlineMenu();
+    fb::InlineMenu &getFunctionInlineMenu(byte functionIndex);
 }
 
 #endif

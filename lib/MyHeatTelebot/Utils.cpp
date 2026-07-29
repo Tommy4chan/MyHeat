@@ -39,8 +39,7 @@ namespace MyHeatTelebot
 
     void setFunctionScreen(fb::TextEdit &msg, const MyHeatCustomFunction& customFunction, byte functionIndex)
     {
-        setUserScreen((Text)msg.chatID, ScreenType::FUNCTION_SCREEN);
         msg.text = getConvertedFunctionToText(customFunction, functionIndex);
-        msg.setInlineMenu(getFunctionInlineMenu());
+        msg.setInlineMenu(getFunctionInlineMenu(functionIndex));
     }
 }
