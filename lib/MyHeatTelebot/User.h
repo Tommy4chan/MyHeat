@@ -26,7 +26,6 @@ namespace MyHeatTelebot
     struct User
     {
         ScreenType screenType;
-        bool isInputMode;
         byte tempValue1;
         byte tempValue2;
     };
@@ -35,12 +34,10 @@ namespace MyHeatTelebot
 
     void loadUsers();
     bool isUserRegistered(const String& chatId);
-    bool isUserInputMode(const String& chatId);
     void registerUser(const String& chatId);
     void deleteUser(const String& chatId);
     void deleteUsers();
     void setUserScreen(const String& chatId, ScreenType type);
-    void setUserInputMode(const String& chatId, bool inputMode);
     void setUserTempValue1(const String& chatId, byte tempValue1);
     void setUserTempValue2(const String& chatId, byte tempValue2);
     User getUser(const String& chatId);

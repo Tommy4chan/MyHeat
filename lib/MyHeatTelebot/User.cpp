@@ -9,16 +9,14 @@ namespace MyHeatTelebot
 
         void serialize(JsonDocument &doc)
         {
-            doc[F("screenType")] = user.screenType;
-            doc[F("isInputMode")] = user.isInputMode;
+            doc[F("screenType")] = static_cast<size_t>(user.screenType);
             doc[F("tempValue1")] = user.tempValue1;
             doc[F("tempValue2")] = user.tempValue2;
         }
 
         void deserialize(const JsonDocument &doc)
         {
-            user.screenType = doc[F("screenType")];
-            user.isInputMode = doc[F("isInputMode")];
+            user.screenType = static_cast<ScreenType>(doc[F("screenType")].as<size_t>());
             user.tempValue1 = doc[F("tempValue1")];
             user.tempValue2 = doc[F("tempValue2")];
         }
@@ -67,20 +65,11 @@ namespace MyHeatTelebot
         return users.find(chatId) != users.end();
     }
 
-    bool isUserInputMode(const String& chatId)
-    {
-        if (isUserRegistered(chatId))
-        {
-            return users[chatId].isInputMode;
-        }
-        return false;
-    }
-
     void registerUser(const String& chatId)
     {
         if (!isUserRegistered(chatId))
         {
-            User user = {MAIN_SCREEN, false, 0, 0};
+            User user = {MAIN_SCREEN, 0, 0};
             users[chatId] = user;
             saveUser(chatId);
         }
@@ -91,14 +80,6 @@ namespace MyHeatTelebot
         if (isUserRegistered(chatId))
         {
             users[chatId].screenType = type;
-        }
-    }
-
-    void setUserInputMode(const String& chatId, bool inputMode)
-    {
-        if (isUserRegistered(chatId))
-        {
-            users[chatId].isInputMode = inputMode;
         }
     }
 
@@ -124,7 +105,7 @@ namespace MyHeatTelebot
         {
             return users[chatId];
         }
-        return {MAIN_SCREEN, false, 0, 0}; // Return default user if not found
+        return {MAIN_SCREEN, 0, 0}; // Return default user if not found
     }
 
     void saveUser(const String& chatId)

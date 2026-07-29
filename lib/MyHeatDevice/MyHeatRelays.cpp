@@ -47,7 +47,7 @@ void MyHeatRelays::begin()
     relaysData->read();
 }
 
-MyHeatRelay MyHeatRelays::getRelay(byte relayIndex)
+MyHeatRelay& MyHeatRelays::getRelay(byte relayIndex)
 {
     return relays[relayIndex];
 }

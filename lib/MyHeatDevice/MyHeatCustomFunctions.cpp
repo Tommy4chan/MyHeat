@@ -195,11 +195,11 @@ void MyHeatCustomFunctions::setFunctionAlert(byte functionIndex, FunctionAlert a
             }
             else if (alert == FunctionAlert::FA_BAD_TEMPERATURE_NUMBER)
             {
-                message = "Функція " + String(functionIndex) + " не може бути активною через використання неіснуйочуго датчика температури";
+                message = "Функція " + String(functionIndex) + " не може бути активною через використання неіснуючого датчика температури";
             }
             else if (alert == FunctionAlert::FA_BAD_RELAY_NUMBER)
             {
-                message = "Функція " + String(functionIndex) + " не може бути активною через використання неіснуйочуго реле";
+                message = "Функція " + String(functionIndex) + " не може бути активною через використання неіснуючого реле";
             }
 
             MyHeatAlerts::triggerAlert(message);

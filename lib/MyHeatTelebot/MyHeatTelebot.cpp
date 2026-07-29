@@ -46,14 +46,7 @@ namespace MyHeatTelebot
                 handleCommand(u);
             else
             {
-                if (!isUserInputMode(u.message().chat().id()))
-                {
-                    handleMessage(u);
-                }
-                else
-                {
-                    handleUserInput(u);
-                }
+                handleMessage(u);
             }
         }
     }
@@ -78,7 +71,7 @@ namespace MyHeatTelebot
             msg.text = F("Привіт! \nЯ бот, для контролю системи опалення.");
 
             setUserScreen(chat_id, ScreenType::MAIN_SCREEN);
-            setUserInputMode(chat_id, false);
+
             break;
         }
         case su::SH("/menu"):
@@ -87,7 +80,7 @@ namespace MyHeatTelebot
             msg.setMenu(getMainReplyMenu());
 
             setUserScreen(chat_id, ScreenType::MAIN_SCREEN);
-            setUserInputMode(chat_id, false);
+
             break;
         }
         case su::SH("/delete"):
@@ -112,7 +105,6 @@ namespace MyHeatTelebot
         case su::SH("Температура"):
         {
             setUserScreen(chat_id, ScreenType::TEMP_SCREEN);
-            setUserInputMode(chat_id, false);
             msg.text = getTemperatureScreenText();
             msg.setInlineMenu(getTemperatureInlineMenu());
             break;
@@ -120,7 +112,6 @@ namespace MyHeatTelebot
         case su::SH("Реле"):
         {
             setUserScreen(chat_id, ScreenType::RELAYS_SCREEN);
-            setUserInputMode(chat_id, false);
             msg.text = getRelayScreenText();
             msg.setInlineMenu(getRelayInlineMenu());
             break;
@@ -128,14 +119,13 @@ namespace MyHeatTelebot
         case su::SH("Функції"):
         {
             setUserScreen(chat_id, ScreenType::FUNCTIONS_LIST_SCREEN);
-            setUserInputMode(chat_id, false);
             msg.text = getFunctionsListScreenText();
             msg.setInlineMenu(getFunctionListInlineMenu());
             break;
         }
         case su::SH("Інформація"):
         {
-            setUserInputMode(chat_id, false);
+
             MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
 
             msg.text = "Датчик диму: \n"
@@ -316,18 +306,6 @@ namespace MyHeatTelebot
         {
             msg.text = F("Ви не зареєстровані, введіть фразу реєстрації");
         }
-
-        bot.sendMessage(msg);
-    }
-
-    void handleUserInput(fb::Update &u)
-    {
-        Text chat_id = u.message().chat().id();
-        fb::Message msg("", chat_id);
-
-        User user = getUser(u.message().chat().id());
-
-        setUserInputMode(chat_id, false);
 
         bot.sendMessage(msg);
     }

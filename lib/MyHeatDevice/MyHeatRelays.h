@@ -20,7 +20,7 @@ private:
 public:
     MyHeatRelays();
     void begin();
-    MyHeatRelay getRelay(byte relayIndex);
+    MyHeatRelay& getRelay(byte relayIndex);
     std::vector<MyHeatRelay>& getRelays();
     void setRelayMode(byte relayIndex, RelayMode mode);
     void changeRelayMode(byte relayIndex);

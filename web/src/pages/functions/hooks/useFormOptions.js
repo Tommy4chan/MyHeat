@@ -72,8 +72,8 @@ export const useFormOptions = () => {
 
   const timerTypeOptions = [
     { value: 0, text: "Перезапуск (Off-Delay)" },
-    { value: 1, text: "Імпульс (One-Shot)" },
-    { value: 2, text: "Циклічний (Extend)" },
+    { value: 1, text: "Імпульсний (One-Shot)" },
+    { value: 2, text: "Циклічний" },
   ];
 
   return {
