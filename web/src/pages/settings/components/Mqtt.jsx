@@ -14,7 +14,7 @@ const Mqtt = () => {
   } = useMqttSettings();
 
   return (
-    <SettingsForm title='MQTT'>
+    <SettingsForm title='HA MQTT'>
       <DarkWrapperBlock className='md:!flex-col'>
         <FormField label="Увімкнено">
           <SelectToggle
@@ -23,6 +23,9 @@ const Mqtt = () => {
             className='w-full'
             name='isEnabled'
           />
+        </FormField>
+        <FormField label="Назва пристрою">
+          <Input className='w-full' value={settings.deviceName || ''} onChange={handleSettingsChange} name='deviceName' placeholder="MyHeat Controller" />
         </FormField>
         <FormField label="Брокер">
           <Input className='w-full' value={settings.broker || ''} onChange={handleSettingsChange} name='broker' placeholder="192.168.1.100" />

@@ -5,6 +5,7 @@
 #include <WiFi.h>
 #include <LittleFS.h>
 #include <ESPmDNS.h>
+#include <esp_sntp.h>
 #include "MyHeatSave.h"
 #include "MyHeatUtils.h"
 
@@ -23,6 +24,7 @@ private:
     String ntpServer;
     String ntpIANA;
     String ntpTZ; // POSIX Timezone String
+    String ntpServerAddress; // Resolved NTP server, SNTP keeps a pointer to it so it must outlive beginNTP()
     unsigned long wifiReconnectTick = 0;
     uint32_t wifiGotIpTick = 0;
     uint32_t lastNtpSyncAttempt = 0;
@@ -38,6 +40,13 @@ private:
     void setManualAPMode();
     void setFallbackAPMode();
     void setSTAMode();
+
+    // Set from the SNTP callback, not derived from the clock: system time survives soft resets,
+    // so a valid clock does not mean SNTP has finished its DNS lookup (lwIP asserts if TLS clients race it)
+    static volatile bool isNtpSynced;
+    static volatile time_t lastNtpSyncTime;
+    volatile bool isNtpStartPending = false;
+    static void onNtpSync(struct timeval *tv);
 
     static void onWiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info);
     void handleWiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info);
@@ -58,6 +67,8 @@ public:
     void tick();
 
     bool isConnected();
+    bool isTimeSynced();
+    time_t getLastNtpSyncTime();
     void setNTPSettings(const String &ntpServer, const String &ntpIANA, const String &ntpTZ);
     void beginNTP();
 

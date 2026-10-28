@@ -24,6 +24,8 @@ const Hardware = () => {
     setOledAddress,
     screenPowerSaveInterval,
     setScreenPowerSaveInterval,
+    isReturnHomeOnSleep,
+    setIsReturnHomeOnSleep,
     encInvert,
     setEncInvert,
     encoderPins,
@@ -66,6 +68,15 @@ const Hardware = () => {
             </FormField>
             <FormField label='Сон (секунди)'>
               <Input className='w-full' value={screenPowerSaveInterval} onChange={(e) => setScreenPowerSaveInterval(e.target.value)} isNumber={true} />
+            </FormField>
+          </div>
+          <div className="flex w-full gap-2">
+            <FormField label='Повертатись на головний екран після сну'>
+              <SelectToggle
+                value={isReturnHomeOnSleep}
+                onChange={(e) => setIsReturnHomeOnSleep(e.target.value)}
+                className='w-full'
+              />
             </FormField>
           </div>
           <div className="flex w-full gap-2">

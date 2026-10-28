@@ -44,6 +44,13 @@ public:
     void updateRelays();
     void manualTick();
     void tick();
+
+    // Bumped every time device state is refreshed or recalculated. Consumers (web, MQTT) compare it
+    // to skip all work while nothing could have changed, then hash payloads to find what actually did
+    uint32_t getStateRevision() { return stateRevision; }
+
+private:
+    uint32_t stateRevision = 0;
 };
 
 #endif

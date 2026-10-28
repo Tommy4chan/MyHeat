@@ -80,10 +80,4 @@ namespace MyHeatUtils
 
         return *end == '\0';
     }
-
-    bool isTimeDefault()
-    {
-        struct tm timeinfo;
-        return !getLocalTime(&timeinfo, 100);
-    }
 }

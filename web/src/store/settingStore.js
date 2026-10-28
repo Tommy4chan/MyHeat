@@ -126,11 +126,13 @@ const useSettingStore = create((set, get) => ({
     oledType,
     oledAddress,
     screenPowerSaveInterval,
+    isReturnHomeOnSleep,
     oledPins,
     encInvert,
     encoderPins
   ) => {
     isEnabled = convertToBoolean(isEnabled);
+    isReturnHomeOnSleep = convertToBoolean(isReturnHomeOnSleep);
     encInvert = convertToBoolean(encInvert);
 
     const payload = {
@@ -138,6 +140,7 @@ const useSettingStore = create((set, get) => ({
       oledType: parseInt(oledType),
       oledAddress: parseInt(oledAddress, 16),
       screenPowerSaveInterval,
+      isReturnHomeOnSleep,
       oledSDA: oledPins[0],
       oledSCL: oledPins[1],
       encA: encoderPins[0],
@@ -199,7 +202,7 @@ const useSettingStore = create((set, get) => ({
     set({ smokeSensor: payload });
   },
 
-  setMqttSettings: (broker, port, user, password, isEnabled, publishInterval) => {
+  setMqttSettings: (broker, port, user, password, isEnabled, publishInterval, deviceName) => {
     isEnabled = convertToBoolean(isEnabled);
 
     const payload = {
@@ -209,6 +212,7 @@ const useSettingStore = create((set, get) => ({
       password,
       isEnabled,
       publishInterval: Number(publishInterval),
+      deviceName,
     };
 
     useWebSocketStore.getState().sendMessage("setMqttSettings", payload);

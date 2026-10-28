@@ -13,6 +13,7 @@ export const useHardwareSettings = () => {
   const [oledType, setOledType] = useState(0);
   const [oledAddress, setOledAddress] = useState("");
   const [screenPowerSaveInterval, setScreenPowerSaveInterval] = useState(0);
+  const [isReturnHomeOnSleep, setIsReturnHomeOnSleep] = useState(true);
   const [oledPins, setOledPins] = useState([0, 0]);
 
   const [encInvert, setEncInvert] = useState(false);
@@ -41,6 +42,7 @@ export const useHardwareSettings = () => {
     setOledType(hardwareIOSettings.oledType || 0);
     setOledAddress(hardwareIOSettings.oledAddress);
     setScreenPowerSaveInterval(hardwareIOSettings.screenPowerSaveInterval);
+    setIsReturnHomeOnSleep(hardwareIOSettings.isReturnHomeOnSleep);
     setOledPins([hardwareIOSettings.oledSDA, hardwareIOSettings.oledSCL]);
     setEncInvert(hardwareIOSettings.encInvert);
     setEncoderPins([
@@ -56,6 +58,7 @@ export const useHardwareSettings = () => {
       oledType,
       oledAddress,
       screenPowerSaveInterval,
+      isReturnHomeOnSleep,
       oledPins,
       encInvert,
       encoderPins
@@ -71,6 +74,8 @@ export const useHardwareSettings = () => {
     setOledAddress,
     screenPowerSaveInterval,
     setScreenPowerSaveInterval,
+    isReturnHomeOnSleep,
+    setIsReturnHomeOnSleep,
     encInvert,
     setEncInvert,
     encoderPins,

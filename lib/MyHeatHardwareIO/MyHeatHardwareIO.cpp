@@ -12,6 +12,7 @@ void MyHeatHardwareIO::serialize(JsonDocument &doc)
     doc["isEnabled"] = isEnabled;
     doc["oledAddress"] = oledAddress;
     doc["screenPowerSaveInterval"] = screenPowerSaveInterval;
+    doc["isReturnHomeOnSleep"] = isReturnHomeOnSleep;
 }
 
 void MyHeatHardwareIO::deserialize(const JsonDocument &doc)
@@ -26,12 +27,98 @@ void MyHeatHardwareIO::deserialize(const JsonDocument &doc)
     isEnabled = doc["isEnabled"] | HARDWARE_IO_IS_ENABLED;
     oledAddress = doc["oledAddress"] | OLED_ADDRESS;
     screenPowerSaveInterval = doc["screenPowerSaveInterval"] | SCREEN_POWER_SAVE_INTERVAL;
+    isReturnHomeOnSleep = doc["isReturnHomeOnSleep"] | RETURN_HOME_ON_SLEEP;
+}
+
+void MyHeatHardwareIO::showHome()
+{
+    struct tm timeinfo;
+    bool isTimeSynced = getLocalTime(&timeinfo, 0) && timeinfo.tm_year >= 100;
+
+    char timeBuffer[16];
+    if (isTimeSynced)
+    {
+        strftime(timeBuffer, sizeof(timeBuffer), "%H:%M:%S %d.%m", &timeinfo);
+    }
+    else
+    {
+        strcpy(timeBuffer, "--:--:--");
+    }
+    drawScrollingText(0, 24, timeBuffer, true);
+
+    MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
+    String ipAddress = myHeatWifi.getIpAddress();
+
+    if (myHeatWifi.isAPMode())
+    {
+        drawLabeledText(40, F("AP: "), myHeatWifi.getAPSSID());
+    }
+    else if (ipAddress != "")
+    {
+        drawLabeledText(40, F("WiFi: "), myHeatWifi.getWifiSSID());
+    }
+    else
+    {
+        drawLabeledText(40, F("WiFi: "), F("відключено"));
+    }
+
+    String mDNS = myHeatWifi.getMDNS();
+    if (ipAddress == "")
+    {
+        drawScrollingText(0, 56, F("Немає адреси"), true);
+    }
+    else if (mDNS != "" && !isHomeShowIp)
+    {
+        drawScrollingText(0, 56, mDNS + ".local", true);
+    }
+    else
+    {
+        drawScrollingText(0, 56, ipAddress, true);
+    }
+}
+
+void MyHeatHardwareIO::drawLabeledText(byte y, const String &label, const String &text)
+{
+    String fullText = label + text;
+    if (u8g2->getUTF8Width(fullText.c_str()) <= u8g2->getDisplayWidth())
+    {
+        drawScrollingText(0, y, fullText, true);
+        return;
+    }
+
+    u8g2->drawUTF8(0, y, label.c_str());
+    drawScrollingText(u8g2->getUTF8Width(label.c_str()), y, text);
+}
+
+void MyHeatHardwareIO::drawScrollingText(byte x, byte y, const String &text, bool isCentered)
+{
+    int16_t areaWidth = u8g2->getDisplayWidth() - x;
+    int16_t textWidth = u8g2->getUTF8Width(text.c_str());
+
+    if (textWidth <= areaWidth)
+    {
+        u8g2->drawUTF8(isCentered ? x + (areaWidth - textWidth) / 2 : x, y, text.c_str());
+        return;
+    }
+
+    // Marquee loop: pause at the start, then scroll until the second copy reaches x = 0
+    hasScrollingText = true;
+    int16_t period = textWidth + SCROLL_GAP;
+    uint32_t cycleDuration = SCROLL_PAUSE + (uint32_t)period * SCROLL_FRAME_INTERVAL / SCROLL_STEP;
+    uint32_t elapsed = (millis() - scrollStartTimer) % cycleDuration;
+    int16_t offset = elapsed < SCROLL_PAUSE ? 0 : (elapsed - SCROLL_PAUSE) / SCROLL_FRAME_INTERVAL * SCROLL_STEP;
+
+    // Clip to the text area so scrolled text does not overlap anything drawn to the left of it
+    u8g2->setClipWindow(x, 0, u8g2->getDisplayWidth(), u8g2->getDisplayHeight());
+    u8g2->drawUTF8(x - offset, y, text.c_str());
+    u8g2->drawUTF8(x + period - offset, y, text.c_str());
+    u8g2->setMaxClipWindow();
 }
 
 void MyHeatHardwareIO::showTemperature()
 {
     byte cursor = 24;
-    byte temperatureIndexStart = 3 * menuIndex;
+    byte temperatureIndexStart = 3 * (menuIndex - HOME_SCREENS);
 
     MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
     byte temperatureIndexEnd = min((byte)(temperatureIndexStart + 3), myHeatDevice.temperatures.getTemperatureCount());
@@ -60,12 +147,31 @@ void MyHeatHardwareIO::showTemperature()
 
 void MyHeatHardwareIO::showRelay()
 {
-    byte relayIndex = menuIndex - maxTemperatureScreens;
+    byte relayIndex = getCurrentRelayIndex();
     MyHeatRelay relay = MyHeatDevice::getInstance().relays.getRelay(relayIndex);
     u8g2->print(F("Реле "));
     u8g2->print(String(relayIndex) + ":");
+    if (isRelayEditActive)
+    {
+        u8g2->print(F(" зміна"));
+    }
     u8g2->setCursor(0, 40);
-    u8g2->print("Стан: " + MyHeatUtils::getConvertedStateToText(static_cast<byte>(relay.getMode())));
+    u8g2->print(F("Стан: "));
+    if (isRelayEditActive)
+    {
+        String modeText = MyHeatUtils::getConvertedStateToText(static_cast<byte>(pendingRelayMode));
+        u8g2_uint_t x = u8g2->getUTF8Width("Стан: ");
+        u8g2->drawBox(x - 1, 40 - u8g2->getAscent() - 1, u8g2->getUTF8Width(modeText.c_str()) + 2, u8g2->getMaxCharHeight());
+        u8g2->setFontMode(1);
+        u8g2->setDrawColor(0);
+        u8g2->print(modeText);
+        u8g2->setDrawColor(1);
+        u8g2->setFontMode(0);
+    }
+    else
+    {
+        u8g2->print(MyHeatUtils::getConvertedStateToText(static_cast<byte>(relay.getMode())));
+    }
     u8g2->setCursor(0, 56);
     u8g2->print("Активне: " + MyHeatUtils::getConvertedActiveToText(relay.getIsActive()));
 }
@@ -84,22 +190,100 @@ void MyHeatHardwareIO::handleEncoder()
 {
     if (eb->turn())
     {
-        menuIndex = (menuIndex + eb->dir() + maxScreens) % maxScreens;
+        // First turn on a sleeping screen only wakes it, so the user sees where they are before navigating
+        if (!isScreenOn)
+        {
+            // Sleep may have reset the screen to home, restart scrolling from the beginning
+            scrollStartTimer = millis();
+        }
+        else if (isRelayEditActive)
+        {
+            pendingRelayMode = static_cast<RelayMode>((static_cast<byte>(pendingRelayMode) + eb->dir() + 3) % 3);
+            relayEditTimer = millis();
+        }
+        else
+        {
+            menuIndex = (menuIndex + eb->dir() + maxScreens) % maxScreens;
+            scrollStartTimer = millis();
+        }
         updateScreenManual();
     }
     else if (eb->click())
     {
+        // Click on a sleeping screen or an open modal only wakes / closes it
+        if (isScreenOn && !isModalActive)
+        {
+            handleClick();
+        }
         updateScreenManual();
     }
     else if (eb->hold(1))
     {
+        cancelRelayEdit();
         MyHeatWifi::getInstance().switchWifiMode();
         showWifiSwitchModal();
     }
     else if (!isModalActive && eb->holdFor(5000))
     {
+        cancelRelayEdit();
         showQRCodeModal();
     }
+}
+
+void MyHeatHardwareIO::handleClick()
+{
+    if (menuIndex < HOME_SCREENS)
+    {
+        isHomeShowIp = !isHomeShowIp;
+    }
+    else if (isRelayScreen())
+    {
+        isRelayEditActive ? applyRelayEdit() : startRelayEdit();
+    }
+}
+
+bool MyHeatHardwareIO::isTemperatureScreen()
+{
+    return menuIndex >= HOME_SCREENS && menuIndex < HOME_SCREENS + maxTemperatureScreens;
+}
+
+bool MyHeatHardwareIO::isRelayScreen()
+{
+    byte relayScreensStart = HOME_SCREENS + maxTemperatureScreens;
+    return menuIndex >= relayScreensStart && menuIndex < relayScreensStart + maxRelayScreens;
+}
+
+byte MyHeatHardwareIO::getCurrentRelayIndex()
+{
+    return menuIndex - HOME_SCREENS - maxTemperatureScreens;
+}
+
+void MyHeatHardwareIO::startRelayEdit()
+{
+    isRelayEditActive = true;
+    pendingRelayMode = MyHeatDevice::getInstance().relays.getRelay(getCurrentRelayIndex()).getMode();
+    relayEditTimer = millis();
+}
+
+void MyHeatHardwareIO::applyRelayEdit()
+{
+    isRelayEditActive = false;
+
+    MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
+    byte relayIndex = getCurrentRelayIndex();
+
+    if (relayIndex >= myHeatDevice.relays.getRelayCount() || myHeatDevice.relays.getRelay(relayIndex).getMode() == pendingRelayMode)
+    {
+        return;
+    }
+
+    myHeatDevice.relays.setRelayMode(relayIndex, pendingRelayMode);
+    myHeatDevice.manualTick();
+}
+
+void MyHeatHardwareIO::cancelRelayEdit()
+{
+    isRelayEditActive = false;
 }
 
 void MyHeatHardwareIO::updateScreenManual()
@@ -181,18 +365,24 @@ void MyHeatHardwareIO::updateScreen()
     u8g2->clearBuffer();
     u8g2->setPowerSave(false);
     u8g2->setCursor(0, 24);
+    hasScrollingText = false;
 
-    if (menuIndex < maxTemperatureScreens)
+    if (menuIndex < HOME_SCREENS)
+    {
+        u8g2->setFont(u8g2_font_8x13_t_cyrillic);
+        showHome();
+    }
+    else if (isTemperatureScreen())
     {
         u8g2->setFont(u8g2_font_10x20_t_cyrillic);
         showTemperature();
     }
-    else if (menuIndex >= maxTemperatureScreens && menuIndex < maxTemperatureScreens + maxRelayScreens)
+    else if (isRelayScreen())
     {
         u8g2->setFont(u8g2_font_8x13_t_cyrillic);
         showRelay();
     }
-    else if (menuIndex >= maxTemperatureScreens + maxRelayScreens && menuIndex < maxScreens)
+    else if (menuIndex < maxScreens)
     {
         u8g2->setFont(u8g2_font_8x13_t_cyrillic);
         showSmokeSensor();
@@ -224,6 +414,12 @@ void MyHeatHardwareIO::initOLED(byte scl, byte sda, byte address)
     u8g2->clearBuffer();
     u8g2->enableUTF8Print();
     u8g2->sendBuffer();
+
+    // begin() powers the panel on, restore sleep if the screen was off
+    if (!isScreenOn || !isEnabled)
+    {
+        u8g2->setPowerSave(true);
+    }
 
     isModalActive = false;
 }
@@ -332,10 +528,24 @@ void MyHeatHardwareIO::tick()
     {
         isScreenOn = false;
         isModalActive = false;
+        cancelRelayEdit();
         u8g2->setPowerSave(true);
+
+        if (isReturnHomeOnSleep)
+        {
+            menuIndex = 0;
+            scrollStartTimer = millis();
+        }
     }
 
-    if (isScreenOn && !isModalActive && millis() - screenUpdateTimer >= 1000)
+    if (isRelayEditActive && millis() - relayEditTimer >= RELAY_EDIT_TIMEOUT)
+    {
+        cancelRelayEdit();
+        updateScreen();
+    }
+
+    uint16_t updateInterval = hasScrollingText ? SCROLL_FRAME_INTERVAL : SCREEN_UPDATE_INTERVAL;
+    if (isScreenOn && !isModalActive && millis() - screenUpdateTimer >= updateInterval)
     {
         screenUpdateTimer = millis();
         updateScreen();
@@ -354,10 +564,17 @@ void MyHeatHardwareIO::reevaluateScreensCount()
 
     maxTemperatureScreens = ceil((float)myHeatDevice.temperatures.getTemperatureCount() / 3);
     maxRelayScreens = myHeatDevice.relays.getRelayCount();
-    maxScreens = maxTemperatureScreens + maxRelayScreens + 1;
+    maxScreens = HOME_SCREENS + maxTemperatureScreens + maxRelayScreens + 1;
+
+    // Screen layout changed, the edited relay may no longer be under the cursor
+    cancelRelayEdit();
+    if (menuIndex >= maxScreens)
+    {
+        menuIndex = 0;
+    }
 }
 
-void MyHeatHardwareIO::setSettings(byte type, byte address, byte scl, byte sda, int powerSaveInterval, byte a, byte b, byte btn, bool invert, bool isEnabled)
+void MyHeatHardwareIO::setSettings(byte type, byte address, byte scl, byte sda, int powerSaveInterval, bool isReturnHomeOnSleep, byte a, byte b, byte btn, bool invert, bool isEnabled)
 {
     if (setIsEnabled(isEnabled))
     {
@@ -373,6 +590,7 @@ void MyHeatHardwareIO::setSettings(byte type, byte address, byte scl, byte sda, 
         }
 
         this->screenPowerSaveInterval = powerSaveInterval * 1000;
+        this->isReturnHomeOnSleep = isReturnHomeOnSleep;
     }
 
     hardwareIOData->save();
@@ -418,6 +636,11 @@ byte MyHeatHardwareIO::getEncBtn()
     return encBtn;
 }
 
+bool MyHeatHardwareIO::getIsReturnHomeOnSleep()
+{
+    return isReturnHomeOnSleep;
+}
+
 bool MyHeatHardwareIO::getEncInvert()
 {
     return encInvert;
@@ -430,12 +653,17 @@ bool MyHeatHardwareIO::getIsEnabled()
 
 bool MyHeatHardwareIO::setIsEnabled(bool isEnabled)
 {
+    bool wasEnabled = this->isEnabled;
     this->isEnabled = isEnabled;
 
     if (isEnabled)
     {
-        isScreenOn = true;
-        screenPowerSaveTimer = millis();
+        // Wake only when turning the display on, saving other settings keeps a sleeping screen asleep
+        if (!wasEnabled)
+        {
+            isScreenOn = true;
+            screenPowerSaveTimer = millis();
+        }
         return true;
     }
 

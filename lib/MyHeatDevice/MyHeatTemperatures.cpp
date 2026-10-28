@@ -39,7 +39,8 @@ void MyHeatTemperatures::realocateMemory(byte newCount)
     temperatureSensorsAddresses.resize(newCount);
     discoveredTemperatureSensorsAddresses.resize(newCount);
     temperatures.resize(newCount, TEMPERATURE_ERROR);
-    temperaturesFail.resize(newCount, false);
+    failedReads.resize(newCount, 0);
+    candidateTemperatures.resize(newCount, NAN);
     temperatureAlerts.resize(newCount, TA_NONE);
     
     // For newly allocated elements, make sure to zero their arrays
@@ -69,7 +70,7 @@ void MyHeatTemperatures::begin()
     temperatureSensors.setResolution(11);
     
     temperatureSensors.requestTemperatures();
-    delay(1000);
+    delay(temperatureSensors.millisToWaitForConversion(11));
 }
 
 byte MyHeatTemperatures::discoverTemperatureSensor()
@@ -137,28 +138,59 @@ void MyHeatTemperatures::updateTemperatures()
             continue;
         }
 
-        float newTemperature = temperatureSensors.getTempC(temperatureSensorsAddresses[i].data());
+        float reading = temperatureSensors.getTempC(temperatureSensorsAddresses[i].data());
 
-        if (temperaturesFail[i]) {
-            temperatures[i] = newTemperature;
-
-            if (newTemperature != TEMPERATURE_ERROR)
-            {
-                temperaturesFail[i] = false;
-            }
+        if (reading == DEVICE_DISCONNECTED_C)
+        {
+            registerFailedRead(i);
+            continue;
         }
-        else {
-            if (newTemperature == TEMPERATURE_ERROR)
-            {
-                temperaturesFail[i] = true;
-            }
-            else {
-                temperatures[i] = newTemperature;
-            }
+
+        // A DS18B20 cannot physically change by more than a few degrees between two reads. Bigger jumps come from
+        // corrupted reads on a bouncing connector (the 8-bit CRC passes ~1 in 256 garbage frames) or from the
+        // power-on scratchpad value, so they are only trusted once the next reading agrees
+        bool isCurrentValid = temperatures[i] != TEMPERATURE_ERROR;
+        bool isPlausible = isCurrentValid &&
+                           fabsf(reading - temperatures[i]) <= MAX_TEMPERATURE_JUMP &&
+                           reading != POWER_ON_TEMPERATURE;
+
+        if (isPlausible)
+        {
+            acceptTemperature(i, reading);
+        }
+        else if (!isnan(candidateTemperatures[i]) && fabsf(reading - candidateTemperatures[i]) <= CONFIRM_TOLERANCE)
+        {
+            acceptTemperature(i, reading);
+        }
+        else
+        {
+            candidateTemperatures[i] = reading;
+            registerFailedRead(i);
         }
     }
     temperatureSensors.requestTemperatures();
     checkForAlerts();
+}
+
+void MyHeatTemperatures::acceptTemperature(size_t index, float temperature)
+{
+    temperatures[index] = temperature;
+    failedReads[index] = 0;
+    candidateTemperatures[index] = NAN;
+}
+
+void MyHeatTemperatures::registerFailedRead(size_t index)
+{
+    // A single bad read keeps the last good value, repeated ones mark the sensor as failed
+    if (failedReads[index] < MAX_FAILED_READS)
+    {
+        failedReads[index]++;
+    }
+
+    if (failedReads[index] >= MAX_FAILED_READS)
+    {
+        temperatures[index] = TEMPERATURE_ERROR;
+    }
 }
 
 std::vector<float>& MyHeatTemperatures::getTemperatures()

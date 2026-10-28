@@ -9,6 +9,7 @@ export const useMqttSettings = () => {
     password: "",
     isEnabled: false,
     publishInterval: 60000,
+    deviceName: "MyHeat Controller",
   });
 
   const {
@@ -38,7 +39,8 @@ export const useMqttSettings = () => {
       settings.user,
       settings.password,
       settings.isEnabled,
-      settings.publishInterval
+      settings.publishInterval,
+      settings.deviceName
     );
   };
 

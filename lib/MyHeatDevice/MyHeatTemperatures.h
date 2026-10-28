@@ -11,6 +11,14 @@
 
 using DeviceAddressArray = std::array<uint8_t, 8>;
 
+static constexpr uint8_t MAX_FAILED_READS = 2;
+// Largest believable change between two reads (750 ms apart) in degrees C
+static constexpr float MAX_TEMPERATURE_JUMP = 10.0f;
+// How close a follow-up reading must be to confirm a suspicious one
+static constexpr float CONFIRM_TOLERANCE = 1.0f;
+// DS18B20 scratchpad value after power-on, before the first conversion finishes
+static constexpr float POWER_ON_TEMPERATURE = 85.0f;
+
 enum TemperatureAlert
 {
     TA_NONE = 0,
@@ -27,7 +35,10 @@ private:
     MyHeatSave *temperatureSensorData;
 
     std::vector<float> temperatures;
-    std::vector<bool> temperaturesFail;
+    // Consecutive unusable reads, the sensor is reported as failed once this reaches MAX_FAILED_READS
+    std::vector<uint8_t> failedReads;
+    // Suspicious reading (spike, power-on value, first value after a failure) waiting to be confirmed, NAN if none
+    std::vector<float> candidateTemperatures;
     std::vector<TemperatureAlert> temperatureAlerts;
     byte temperaturePin;
     float minTemperature;
@@ -39,6 +50,8 @@ private:
     void serialize(JsonDocument &doc);
     void deserialize(const JsonDocument &doc);
     void realocateMemory(byte newCount);
+    void acceptTemperature(size_t index, float temperature);
+    void registerFailedRead(size_t index);
 
 public:
     MyHeatTemperatures();

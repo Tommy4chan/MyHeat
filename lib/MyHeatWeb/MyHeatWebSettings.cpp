@@ -96,7 +96,7 @@ namespace MyHeatWeb
         MyHeatHardwareIO &myHeatHardwareIO = MyHeatHardwareIO::getInstance();
 
         myHeatHardwareIO.setSettings(payload[F("oledType")], payload[F("oledAddress")], payload[F("oledSCL")], payload[F("oledSDA")],
-                                     payload[F("screenPowerSaveInterval")], payload[F("encA")], payload[F("encB")], payload[F("encBtn")],
+                                     payload[F("screenPowerSaveInterval")], payload[F("isReturnHomeOnSleep")], payload[F("encA")], payload[F("encB")], payload[F("encBtn")],
                                      payload[F("encInvert")], payload[F("isEnabled")]);
 
         setSuccessMessage(status, "Налаштування збережені");
@@ -111,6 +111,7 @@ namespace MyHeatWeb
         response[F("oledSCL")] = myHeatHardwareIO.getOledSCL();
         response[F("oledSDA")] = myHeatHardwareIO.getOledSDA();
         response[F("screenPowerSaveInterval")] = myHeatHardwareIO.getScreenPowerSaveInterval() / 1000;
+        response[F("isReturnHomeOnSleep")] = myHeatHardwareIO.getIsReturnHomeOnSleep();
         response[F("encA")] = myHeatHardwareIO.getEncA();
         response[F("encB")] = myHeatHardwareIO.getEncB();
         response[F("encBtn")] = myHeatHardwareIO.getEncBtn();
@@ -120,7 +121,7 @@ namespace MyHeatWeb
 
     void setMqttSettings(JsonObject payload, JsonObject status)
     {
-        MyHeatMqtt::setSettings(payload[F("broker")], payload[F("port")], payload[F("user")], payload[F("password")], payload[F("isEnabled")], payload[F("publishInterval")]);
+        MyHeatMqtt::setSettings(payload[F("broker")], payload[F("port")], payload[F("user")], payload[F("password")], payload[F("isEnabled")], payload[F("publishInterval")], payload[F("deviceName")] | MQTT_DEVICE_NAME);
         MyHeatMqtt::save();
         setSuccessMessage(status, "Налаштування збережені");
     }
@@ -133,6 +134,7 @@ namespace MyHeatWeb
         response[F("password")] = MyHeatMqtt::getPassword();
         response[F("isEnabled")] = MyHeatMqtt::getIsEnabled();
         response[F("publishInterval")] = MyHeatMqtt::getPublishInterval();
+        response[F("deviceName")] = MyHeatMqtt::getDeviceName();
     }
 
     void getAllDeviceSettings(JsonObject response)
@@ -175,7 +177,8 @@ namespace MyHeatWeb
                 MyHeatMqtt::settings.user,
                 MyHeatMqtt::settings.password,
                 MyHeatMqtt::settings.isEnabled,
-                MyHeatMqtt::settings.publishInterval
+                MyHeatMqtt::settings.publishInterval,
+                MyHeatMqtt::settings.deviceName
             );
         }
 

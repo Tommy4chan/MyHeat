@@ -206,6 +206,7 @@ void MyHeatDevice::manualTick()
     tickTimerSecondary = millis();
     checkCustomFunctions();
     updateRelays();
+    stateRevision++;
 }
 
 void MyHeatDevice::tick()
@@ -214,6 +215,7 @@ void MyHeatDevice::tick()
     {
         tickTimerMain = millis();
         checkCustomFunctions();
+        stateRevision++;
     }
 
     if (millis() - tickTimerSecondary >= 750)
@@ -222,5 +224,6 @@ void MyHeatDevice::tick()
         temperatures.updateTemperatures();
         updateRelays();
         smokeSensor.updateSmokeSensor();
+        stateRevision++;
     }
 }

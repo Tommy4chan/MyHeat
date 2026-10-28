@@ -33,7 +33,7 @@ void loop()
 {
     if (myHeatWifi.isConnected())
     {
-        if (!isSystemLoaded && !MyHeatUtils::isTimeDefault()) {
+        if (!isSystemLoaded && myHeatWifi.isTimeSynced()) {
             MyHeatTelebot::tick();
             isSystemLoaded = true;
             hardwareIO.stopLoadingScreen();

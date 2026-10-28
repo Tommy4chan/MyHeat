@@ -72,7 +72,7 @@ namespace MyHeatWeb
         {
             Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
             sendUsedPinsData();
-            sendRepeatableDataToClients();
+            requestFullSend();
 
             // client->ping();
         }
@@ -254,33 +254,52 @@ namespace MyHeatWeb
             if (messageType.startsWith("set") || messageType.startsWith("del"))
             {
                 MyHeatDevice::getInstance().manualTick();
-                sendRepeatableDataToClients();
+                requestFullSend();
             }
         }
     }
 
-    void sendDataToClients(JsonDocument data, String messageType)
+    // The web UI marks the connection inactive after 8s without messages
+    static constexpr uint32_t HEARTBEAT_INTERVAL = 4000;
+    static constexpr uint32_t HOUSEKEEPING_INTERVAL = 2000;
+
+    static MyHeatUtils::ChangeTracker messageTracker;
+    static uint32_t lastHeartbeatTick = 0;
+    static uint32_t lastStateRevision = 0;
+    // Set from the async websocket task, the send itself happens in tick() on the main loop
+    static volatile bool isFullSendRequested = false;
+
+    void sendDataToClients(JsonDocument &data, const String &messageType)
     {
-        JsonDocument response = data;
-        response[F("messageType")] = messageType;
+        data[F("messageType")] = messageType;
         String jsonString;
-        serializeJson(response, jsonString);
+        serializeJson(data, jsonString);
 
         websocket.textAll(jsonString);
     }
 
-    void sendTemperaturesData()
+    void sendIfChanged(JsonDocument &data, RepeatableMessage slot, const String &messageType, bool force)
+    {
+        // The hash is streamed from the document, the String is only built when the message is really sent
+        bool isChanged = messageTracker.update(slot, MyHeatUtils::hashJson(data));
+        if (isChanged || force)
+        {
+            sendDataToClients(data, messageType);
+        }
+    }
+
+    void sendTemperaturesData(bool force)
     {
         JsonDocument response;
         response["payload"] = getTemperatureSensorsData();
-        sendDataToClients(response, F("temperaturesData"));
+        sendIfChanged(response, MSG_TEMPERATURES, F("temperaturesData"), force);
     }
 
-    void sendRelaysData()
+    void sendRelaysData(bool force)
     {
         JsonDocument response;
         response["payload"] = getRelaysData();
-        sendDataToClients(response, F("relaysData"));
+        sendIfChanged(response, MSG_RELAYS, F("relaysData"), force);
     }
 
     void sendUsedPinsData()
@@ -290,11 +309,11 @@ namespace MyHeatWeb
         sendDataToClients(response, F("getPinsDataResponse"));
     }
 
-    void sendFunctionsData()
+    void sendFunctionsData(bool force)
     {
         JsonDocument response;
         response["payload"] = getFunctionsData();
-        sendDataToClients(response, F("functionsData"));
+        sendIfChanged(response, MSG_FUNCTIONS, F("functionsData"), force);
     }
 
     void sendNetworksData()
@@ -338,14 +357,13 @@ namespace MyHeatWeb
         }
     }
 
-    void sendRepeatableDataToClients()
+    void sendRepeatableDataToClients(bool force)
     {
         if (canSendData())
         {
-            sendTemperaturesData();
-            sendRelaysData();
-            sendFunctionsData();
-            sendNetworksData();
+            sendTemperaturesData(force);
+            sendRelaysData(force);
+            sendFunctionsData(force);
             MyHeatWifi::getInstance().setIsWebsocketClientsConnected(true);
         }
         else
@@ -353,14 +371,38 @@ namespace MyHeatWeb
             MyHeatWifi::getInstance().setIsWebsocketClientsConnected(false);
         }
 
-        lastSendTick = millis();
+        if (force)
+        {
+            lastHeartbeatTick = millis();
+        }
+    }
+
+    void requestFullSend()
+    {
+        isFullSendRequested = true;
     }
 
     void tick()
     {
-        if (millis() - lastSendTick > 2000)
+        bool isFullSend = isFullSendRequested || millis() - lastHeartbeatTick > HEARTBEAT_INTERVAL;
+        uint32_t stateRevision = MyHeatDevice::getInstance().getStateRevision();
+
+        // Nothing is serialized until the device refreshed its state or a full send is due
+        if (isFullSend || stateRevision != lastStateRevision)
         {
-            sendRepeatableDataToClients();
+            isFullSendRequested = false;
+            lastStateRevision = stateRevision;
+            sendRepeatableDataToClients(isFullSend);
+        }
+
+        if (millis() - lastSendTick > HOUSEKEEPING_INTERVAL)
+        {
+            lastSendTick = millis();
+
+            if (canSendData())
+            {
+                sendNetworksData();
+            }
 
             websocket.cleanupClients();
 

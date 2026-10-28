@@ -7,6 +7,14 @@
 #include "MyHeatSave.h"
 #include "MyHeatUtils.h"
 
+#ifndef MQTT_DEVICE_NAME
+#define MQTT_DEVICE_NAME "MyHeat Controller"
+#endif
+
+#ifndef FIRMWARE_VERSION
+#define FIRMWARE_VERSION "dev"
+#endif
+
 namespace MyHeatMqtt
 {
     // ----- Persisted settings -----
@@ -18,6 +26,7 @@ namespace MyHeatMqtt
         String password = MQTT_PASSWORD;
         bool isEnabled = MQTT_ENABLED;
         uint32_t publishInterval = MQTT_PUBLISH_INTERVAL;
+        String deviceName = MQTT_DEVICE_NAME;
 
         void serialize(JsonDocument &json) override;
         void deserialize(const JsonDocument &json) override;
@@ -37,8 +46,11 @@ namespace MyHeatMqtt
     extern String availTopic;
 
     extern uint32_t lastPublishTick;
+    extern uint32_t lastStateRevision;
     extern uint32_t lastConnectAttempt;
     extern bool wasConnected;
+    extern bool isRediscoveryRequested;
+    extern bool isRestartRequested;
 
     extern byte lastTemperatureCount;
     extern byte lastRelayCount;
@@ -52,30 +64,42 @@ namespace MyHeatMqtt
     void connect();
     void disconnect();
     bool isConnected();
+    void restart();
 
     // ----- Discovery -----
     void publishAllDiscoveryConfigs();
     void publishTemperatureDiscovery(byte index);
+    void publishRelaySwitchDiscovery(byte index);
     void publishRelayModeDiscovery(byte index);
     void publishRelayActiveDiscovery(byte index);
     void publishFunctionDiscovery(byte index);
+    void publishFunctionNameChanges();
     void publishSmokeDiscovery();
-    void publishSmokeValueDiscovery();
+    void publishDiagnosticsDiscovery();
+    void publishRestartDiscovery();
     void clearDiscoveryConfig(const String &component, const String &objectId);
+    JsonDocument createDiscoveryDoc(const String &component, const String &objectId, const String &name);
+    JsonDocument createDiagnosticDoc(const String &objectId, const String &name, const String &valueKey);
+    void publishDiscovery(const String &component, const String &objectId, JsonDocument &doc);
+    String getFunctionName(byte index);
 
     // ----- State publishing -----
-    void publishAllStates();
-    void publishTemperatureState(byte index);
-    void publishRelayModeState(byte index);
-    void publishRelayActiveState(byte index);
-    void publishFunctionState(byte index);
-    void publishSmokeState();
-    void publishSmokeValueState();
+    void resetTrackers();
+    void publishState(MyHeatUtils::ChangeTracker &tracker, size_t slot, const char *topic, const char *payload, bool force);
+    void publishAllStates(bool force);
+    void publishTemperatureState(byte index, bool force);
+    void publishRelayModeState(byte index, bool force);
+    void publishRelayActiveState(byte index, bool force);
+    void publishFunctionState(byte index, bool force);
+    void publishSmokeState(bool force);
+    void publishDiagnostics();
 
     // ----- Command handling -----
     void onMessage(char *topic, byte *payload, unsigned int length);
     void subscribeToCommands();
     void handleRelayModeCommand(byte index, const String &value);
+    void handleRelaySwitchCommand(byte index, const String &value);
+    void applyRelayMode(byte index, RelayMode mode);
     void handleFunctionEnabledCommand(byte index, const String &value);
 
     // ----- Settings -----
@@ -85,9 +109,11 @@ namespace MyHeatMqtt
     String getPassword();
     bool getIsEnabled();
     uint32_t getPublishInterval();
+    String getDeviceName();
     void setSettings(const String &broker, uint16_t port, 
                      const String &user, const String &password,
-                     bool isEnabled, uint32_t publishInterval);
+                     bool isEnabled, uint32_t publishInterval,
+                     const String &deviceName);
     void save();
 
     // ----- Device JSON helper -----

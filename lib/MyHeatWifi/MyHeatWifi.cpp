@@ -105,6 +105,7 @@ void MyHeatWifi::handleWiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info)
             setSTAMode();
         }
         wifiGotIpTick = millis();
+        isNtpStartPending = true;
         break;
     case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
         Serial.println("WiFi Disconnected.");
@@ -121,10 +122,14 @@ void MyHeatWifi::begin()
     wifiData->read();
 
     WiFi.onEvent(onWiFiEvent);
+    sntp_set_time_sync_notification_cb(onNtpSync);
 
     setSTAMode();
     MDNS.begin(mDNS.c_str());
-    beginNTP();
+    // Timezone is applied right away so time kept across soft resets is shown as local before NTP starts
+    setenv("TZ", ntpTZ.c_str(), 1);
+    tzset();
+    // NTP is started on GOT_IP: starting it before there is an IP fails the DNS lookup and lwIP backs off for 15s+
 }
 
 void MyHeatWifi::tick()
@@ -156,13 +161,39 @@ void MyHeatWifi::tick()
             }
         }
     }
-    if (isConnected() && MyHeatUtils::isTimeDefault())
+    // Started here rather than in the WiFi event task to keep SNTP restarts on the main loop
+    if (isNtpStartPending && WiFi.isConnected())
+    {
+        isNtpStartPending = false;
+        beginNTP();
+    }
+
+    if (isConnected() && !isNtpSynced)
     {
         if (millis() - lastNtpSyncAttempt > NTP_SYNC_RETRY_DELAY_MS)
         {
             beginNTP();
         }
     }
+}
+
+volatile bool MyHeatWifi::isNtpSynced = false;
+volatile time_t MyHeatWifi::lastNtpSyncTime = 0;
+
+void MyHeatWifi::onNtpSync(struct timeval *tv)
+{
+    lastNtpSyncTime = tv ? tv->tv_sec : time(nullptr);
+    isNtpSynced = true;
+}
+
+bool MyHeatWifi::isTimeSynced()
+{
+    return isNtpSynced;
+}
+
+time_t MyHeatWifi::getLastNtpSyncTime()
+{
+    return lastNtpSyncTime;
 }
 
 bool MyHeatWifi::isConnected()
@@ -182,8 +213,20 @@ void MyHeatWifi::setNTPSettings(const String &ntpServer, const String &ntpIANA, 
 void MyHeatWifi::beginNTP()
 {
     lastNtpSyncAttempt = millis();
+    isNtpSynced = false;
+
+    // Resolve the NTP host here on the main loop and hand SNTP a literal IP, so SNTP never runs its own
+    // DNS lookup: that lookup is slow on boot and races TLS clients into the lwIP sys_untimeout assert
+    IPAddress serverIp;
+    if (!WiFi.isConnected() || !WiFi.hostByName(ntpServer.c_str(), serverIp))
+    {
+        // Not falling back to the host name, tick() retries after NTP_SYNC_RETRY_DELAY
+        return;
+    }
+    ntpServerAddress = serverIp.toString();
+
     Serial.println("NTP sync started with TZ: " + ntpTZ);
-    configTzTime(ntpTZ.c_str(), ntpServer.c_str());
+    configTzTime(ntpTZ.c_str(), ntpServerAddress.c_str());
 }
 
 void MyHeatWifi::setWifiSettings(const String &wifiSSID, const String &wifiPassword, const String &apSSID, const String &apPassword, bool isFallbackAPEnabled, const String &mDNS)

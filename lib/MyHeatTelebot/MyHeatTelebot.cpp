@@ -23,7 +23,7 @@ namespace MyHeatTelebot
     {
         if (botSave.isEnabled && botSave.token.length() > 0)
         {
-            if (!MyHeatUtils::isTimeDefault())
+            if (MyHeatWifi::getInstance().isTimeSynced())
             {
                 if (!pendingAlerts.empty() && MyHeatWifi::getInstance().isConnected())
                 {
