@@ -6,6 +6,7 @@
 #include "MyHeatDevice.h"
 #include "MyHeatSave.h"
 #include "MyHeatUtils.h"
+#include "MyHeatAlerts.h"
 
 #ifndef MQTT_DEVICE_NAME
 #define MQTT_DEVICE_NAME "MyHeat Controller"
@@ -77,6 +78,7 @@ namespace MyHeatMqtt
     void publishSmokeDiscovery();
     void publishDiagnosticsDiscovery();
     void publishRestartDiscovery();
+    void publishAlertsDiscovery();
     void clearDiscoveryConfig(const String &component, const String &objectId);
     JsonDocument createDiscoveryDoc(const String &component, const String &objectId, const String &name);
     JsonDocument createDiagnosticDoc(const String &objectId, const String &name, const String &valueKey);
@@ -93,6 +95,10 @@ namespace MyHeatMqtt
     void publishFunctionState(byte index, bool force);
     void publishSmokeState(bool force);
     void publishDiagnostics();
+
+    // ----- Alerts -----
+    void onAlertEvent(const AlertEvent &event);
+    void publishPendingAlertEvents();
 
     // ----- Command handling -----
     void onMessage(char *topic, byte *payload, unsigned int length);

@@ -39,6 +39,8 @@ private:
     std::vector<uint8_t> failedReads;
     // Suspicious reading (spike, power-on value, first value after a failure) waiting to be confirmed, NAN if none
     std::vector<float> candidateTemperatures;
+    // False until the sensor got its first reading or failed for good, alerts are not evaluated before that
+    std::vector<bool> isStateKnown;
     std::vector<TemperatureAlert> temperatureAlerts;
     byte temperaturePin;
     float minTemperature;

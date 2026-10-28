@@ -41,6 +41,7 @@ void MyHeatTemperatures::realocateMemory(byte newCount)
     temperatures.resize(newCount, TEMPERATURE_ERROR);
     failedReads.resize(newCount, 0);
     candidateTemperatures.resize(newCount, NAN);
+    isStateKnown.resize(newCount, false);
     temperatureAlerts.resize(newCount, TA_NONE);
     
     // For newly allocated elements, make sure to zero their arrays
@@ -149,10 +150,11 @@ void MyHeatTemperatures::updateTemperatures()
         // A DS18B20 cannot physically change by more than a few degrees between two reads. Bigger jumps come from
         // corrupted reads on a bouncing connector (the 8-bit CRC passes ~1 in 256 garbage frames) or from the
         // power-on scratchpad value, so they are only trusted once the next reading agrees
+        // The very first reading after boot has nothing to compare with, it is trusted unless it is the power-on value
+        bool isFirstReading = !isStateKnown[i];
         bool isCurrentValid = temperatures[i] != TEMPERATURE_ERROR;
-        bool isPlausible = isCurrentValid &&
-                           fabsf(reading - temperatures[i]) <= MAX_TEMPERATURE_JUMP &&
-                           reading != POWER_ON_TEMPERATURE;
+        bool isPlausible = reading != POWER_ON_TEMPERATURE &&
+                           (isFirstReading || (isCurrentValid && fabsf(reading - temperatures[i]) <= MAX_TEMPERATURE_JUMP));
 
         if (isPlausible)
         {
@@ -177,6 +179,7 @@ void MyHeatTemperatures::acceptTemperature(size_t index, float temperature)
     temperatures[index] = temperature;
     failedReads[index] = 0;
     candidateTemperatures[index] = NAN;
+    isStateKnown[index] = true;
 }
 
 void MyHeatTemperatures::registerFailedRead(size_t index)
@@ -190,6 +193,7 @@ void MyHeatTemperatures::registerFailedRead(size_t index)
     if (failedReads[index] >= MAX_FAILED_READS)
     {
         temperatures[index] = TEMPERATURE_ERROR;
+        isStateKnown[index] = true;
     }
 }
 
@@ -271,10 +275,38 @@ bool MyHeatTemperatures::isTemperatureSensorAddressEmpty(byte index)
     return temperatureSensorsAddresses[index][0] == 0;
 }
 
+static AlertType toAlertType(TemperatureAlert alert)
+{
+    switch (alert)
+    {
+    case TA_MIN:
+        return AlertType::TEMPERATURE_LOW;
+    case TA_MAX:
+        return AlertType::TEMPERATURE_HIGH;
+    default:
+        return AlertType::TEMPERATURE_DISCONNECTED;
+    }
+}
+
+static String getTemperatureAlertText(TemperatureAlert alert, size_t index, bool isResolved)
+{
+    String sensor = "Датчик температури Т" + String(index);
+    switch (alert)
+    {
+    case TA_MIN:
+        return sensor + (isResolved ? " повернувся вище мінімальної температури" : " має значення нижче мінімальної температури");
+    case TA_MAX:
+        return sensor + (isResolved ? " повернувся нижче максимальної температури" : " має значення вище максимальної температури");
+    default:
+        return sensor + (isResolved ? " знову підключений" : " відключився");
+    }
+}
+
 void MyHeatTemperatures::checkForAlerts() {
     for (size_t i = 0; i < temperatures.size(); i++)
     {
-        if (isTemperatureSensorAddressEmpty(i))
+        // Before the first reading the initial -127 would look like a disconnected sensor
+        if (isTemperatureSensorAddressEmpty(i) || !isStateKnown[i])
         {
             continue;
         }
@@ -295,24 +327,16 @@ void MyHeatTemperatures::checkForAlerts() {
 
         if (newAlert != temperatureAlerts[i])
         {
+            TemperatureAlert oldAlert = temperatureAlerts[i];
             temperatureAlerts[i] = newAlert;
+
+            if (oldAlert != TA_NONE)
+            {
+                MyHeatAlerts::resolveAlert(toAlertType(oldAlert), i, getTemperatureAlertText(oldAlert, i, true));
+            }
             if (newAlert != TA_NONE)
             {
-                String message = "";
-                if (newAlert == TA_MIN)
-                {
-                    message = "Датчик температури Т" + String(i) + " має значення нижче мінімальної температури";
-                }
-                else if (newAlert == TA_MAX)
-                {
-                    message = "Датчик температури Т" + String(i) + " має значення вище максимальної температури";
-                }
-                else if (newAlert == TA_BAD_CONNECTION)
-                {
-                    message = "Датчик температури Т" + String(i) + " відключився";
-                }
-
-                MyHeatAlerts::triggerAlert(message);
+                MyHeatAlerts::triggerAlert(toAlertType(newAlert), i, getTemperatureAlertText(newAlert, i, false));
             }
         }
     }

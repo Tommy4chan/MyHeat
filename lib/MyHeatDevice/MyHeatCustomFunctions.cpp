@@ -180,36 +180,68 @@ void MyHeatCustomFunctions::manualDeserialize(const JsonDocument& payload)
     save();
 }
 
+static AlertType toAlertType(FunctionAlert alert)
+{
+    switch (alert)
+    {
+    case FunctionAlert::FA_BAD_TEMPERATURE_NUMBER:
+        return AlertType::FUNCTION_MISSING_TEMPERATURE;
+    case FunctionAlert::FA_BAD_RELAY_NUMBER:
+        return AlertType::FUNCTION_MISSING_RELAY;
+    default:
+        return AlertType::FUNCTION_BAD_TEMPERATURE;
+    }
+}
+
+static String getFunctionAlertText(FunctionAlert alert, byte functionIndex, bool isResolved)
+{
+    String function = "Функція " + String(functionIndex);
+    switch (alert)
+    {
+    case FunctionAlert::FA_BAD_TEMPERATURE_NUMBER:
+        return function + (isResolved ? ": неіснуючий датчик температури більше не використовується" : " не може бути активною через використання неіснуючого датчика температури");
+    case FunctionAlert::FA_BAD_RELAY_NUMBER:
+        return function + (isResolved ? ": неіснуюче реле більше не використовується" : " не може бути активною через використання неіснуючого реле");
+    default:
+        return function + (isResolved ? ": проблему з датчиками температури усунено" : " не може бути активною через проблеми з датчиками температури");
+    }
+}
+
 void MyHeatCustomFunctions::setFunctionAlert(byte functionIndex, FunctionAlert alert)
 {
-    if (functionAlerts[functionIndex] != alert)
+    FunctionAlert oldAlert = functionAlerts[functionIndex];
+    if (oldAlert == alert)
     {
-        functionAlerts[functionIndex] = alert;
+        return;
+    }
 
-        if (alert != FunctionAlert::FA_NONE)
-        {
-            String message = "";
-            if (alert == FunctionAlert::FA_BAD_TEMPERATURE)
-            {
-                message = "Функція " + String(functionIndex) + " не може бути активною через проблеми з датчиками температури";
-            }
-            else if (alert == FunctionAlert::FA_BAD_TEMPERATURE_NUMBER)
-            {
-                message = "Функція " + String(functionIndex) + " не може бути активною через використання неіснуючого датчика температури";
-            }
-            else if (alert == FunctionAlert::FA_BAD_RELAY_NUMBER)
-            {
-                message = "Функція " + String(functionIndex) + " не може бути активною через використання неіснуючого реле";
-            }
+    functionAlerts[functionIndex] = alert;
 
-            MyHeatAlerts::triggerAlert(message);
-        }
+    if (oldAlert != FunctionAlert::FA_NONE)
+    {
+        MyHeatAlerts::resolveAlert(toAlertType(oldAlert), functionIndex, getFunctionAlertText(oldAlert, functionIndex, true));
+    }
+    if (alert != FunctionAlert::FA_NONE)
+    {
+        MyHeatAlerts::triggerAlert(toAlertType(alert), functionIndex, getFunctionAlertText(alert, functionIndex, false));
     }
 }
 
 void MyHeatCustomFunctions::resetFunctionAlert(byte functionIndex)
 {
+    if (functionIndex >= functionAlerts.size())
+    {
+        return;
+    }
+
+    // Reported as resolved so HA does not keep a stale problem, it is raised again if it still exists
+    FunctionAlert oldAlert = functionAlerts[functionIndex];
     functionAlerts[functionIndex] = FunctionAlert::FA_NONE;
+
+    if (oldAlert != FunctionAlert::FA_NONE)
+    {
+        MyHeatAlerts::resolveAlert(toAlertType(oldAlert), functionIndex, getFunctionAlertText(oldAlert, functionIndex, true));
+    }
 }
 
 FunctionAlert MyHeatCustomFunctions::getFunctionAlert(byte functionIndex)

@@ -1,11 +1,20 @@
 #include "MyHeatMqtt.h"
 #include <MyHeatWifi.h>
+#include <MyHeatAlerts.h>
+#include <mutex>
 
 namespace MyHeatMqtt
 {
     // Discovery payloads with the full device block do not fit PubSubClient's default buffer
     static constexpr uint16_t MIN_BUFFER_SIZE = 2048;
     static const char *HA_STATUS_TOPIC = "homeassistant/status";
+    // Alerts raised while MQTT is offline (e.g. during boot) are kept and sent after connecting
+    static constexpr size_t MAX_PENDING_ALERT_EVENTS = 10;
+
+    // Alerts can be raised from the async web task as well as the main loop, so the handler only queues
+    // and tick() publishes
+    static std::vector<String> pendingAlertEvents;
+    static std::mutex pendingAlertEventsMutex;
 
     // Hash of the last published state per entity. States are built in stack buffers and compared by hash,
     // so the change check allocates nothing on the heap
@@ -97,6 +106,8 @@ namespace MyHeatMqtt
         lastTemperatureCount = myHeatDevice.temperatures.getTemperatureCount();
         lastRelayCount = myHeatDevice.relays.getRelayCount();
         lastFunctionCount = myHeatDevice.customFunctions.getCustomFunctionCount();
+
+        MyHeatAlerts::registerEventHandler(onAlertEvent);
     }
 
     void connect()
@@ -181,6 +192,7 @@ namespace MyHeatMqtt
         }
 
         mqtt.loop();
+        publishPendingAlertEvents();
 
         if (isRestartRequested)
         {
@@ -250,6 +262,7 @@ namespace MyHeatMqtt
         delay(20);
         publishDiagnosticsDiscovery();
         publishRestartDiscovery();
+        publishAlertsDiscovery();
     }
 
     void addDeviceBlock(JsonDocument &doc)
@@ -500,6 +513,25 @@ namespace MyHeatMqtt
         publishDiscovery("button", "restart", doc);
     }
 
+    void publishAlertsDiscovery()
+    {
+        JsonDocument doc = createDiscoveryDoc("event", "alerts", "Alerts");
+        doc["icon"] = "mdi:alert-circle-outline";
+        doc["state_topic"] = "~/alert";
+
+        // Every alert has a raised and a "_resolved" event type
+        JsonArray eventTypes = doc["event_types"].to<JsonArray>();
+        for (byte i = 0; i < static_cast<byte>(AlertType::COUNT); i++)
+        {
+            String typeName = MyHeatAlerts::getAlertTypeName(static_cast<AlertType>(i));
+            eventTypes.add(typeName);
+            eventTypes.add(typeName + "_resolved");
+        }
+
+        addAvailability(doc);
+        publishDiscovery("event", "alerts", doc);
+    }
+
     void clearDiscoveryConfig(const String &component, const String &objectId)
     {
         String topic = "homeassistant/" + component + "/" + clientId + "/" + objectId + "/config";
@@ -659,6 +691,57 @@ namespace MyHeatMqtt
         char topic[96];
         snprintf(topic, sizeof(topic), "%s/diagnostics", baseTopic.c_str());
         mqtt.publish(topic, payload, true);
+    }
+
+    // ----- Alerts -----
+
+    void onAlertEvent(const AlertEvent &event)
+    {
+        if (!settings.isEnabled)
+        {
+            return;
+        }
+
+        JsonDocument doc;
+        String eventType = MyHeatAlerts::getAlertTypeName(event.type);
+        doc["event_type"] = event.isResolved ? eventType + "_resolved" : eventType;
+        if (event.index >= 0)
+        {
+            doc["index"] = event.index;
+        }
+        doc["message"] = event.message;
+
+        String payload;
+        serializeJson(doc, payload);
+
+        std::lock_guard<std::mutex> lock(pendingAlertEventsMutex);
+        if (pendingAlertEvents.size() >= MAX_PENDING_ALERT_EVENTS)
+        {
+            pendingAlertEvents.erase(pendingAlertEvents.begin()); // Keep the newest
+        }
+        pendingAlertEvents.push_back(payload);
+    }
+
+    void publishPendingAlertEvents()
+    {
+        std::vector<String> events;
+        {
+            std::lock_guard<std::mutex> lock(pendingAlertEventsMutex);
+            events.swap(pendingAlertEvents);
+        }
+
+        if (events.empty())
+        {
+            return;
+        }
+
+        char topic[96];
+        snprintf(topic, sizeof(topic), "%s/alert", baseTopic.c_str());
+        for (const String &payload : events)
+        {
+            // Not retained: HA would replay the last alert on every restart
+            mqtt.publish(topic, payload.c_str(), false);
+        }
     }
 
     // ----- Command handling -----

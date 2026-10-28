@@ -58,14 +58,25 @@ void MyHeatSmokeSensor::updateSmokeSensor()
 
     if (newAlert != smokeSensorAlert)
     {
+        SmokeSensorAlert oldAlert = smokeSensorAlert;
         smokeSensorAlert = newAlert;
+
+        if (oldAlert == SmokeSensorAlert::SSA_OVER_THRESHOLD)
+        {
+            MyHeatAlerts::resolveAlert(AlertType::SMOKE_DETECTED, -1, "Дим більше не виявлено");
+        }
+        else if (oldAlert == SmokeSensorAlert::SSA_BAD_CONNECTION)
+        {
+            MyHeatAlerts::resolveAlert(AlertType::SMOKE_SENSOR_DISCONNECTED, -1, "Димовий датчик знову підключений");
+        }
+
         if (smokeSensorAlert == SmokeSensorAlert::SSA_OVER_THRESHOLD)
         {
-            MyHeatAlerts::triggerAlert("Димовий датчик виявив дим");
+            MyHeatAlerts::triggerAlert(AlertType::SMOKE_DETECTED, -1, "Димовий датчик виявив дим");
         }
         else if (smokeSensorAlert == SmokeSensorAlert::SSA_BAD_CONNECTION)
         {
-            MyHeatAlerts::triggerAlert("Димовий датчик не підключений");
+            MyHeatAlerts::triggerAlert(AlertType::SMOKE_SENSOR_DISCONNECTED, -1, "Димовий датчик не підключений");
             resetPreheatTimer();
         }
     }
