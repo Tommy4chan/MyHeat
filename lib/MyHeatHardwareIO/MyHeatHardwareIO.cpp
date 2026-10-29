@@ -35,54 +35,58 @@ void MyHeatHardwareIO::showHome()
     struct tm timeinfo;
     bool isTimeSynced = getLocalTime(&timeinfo, 0) && timeinfo.tm_year >= 100;
 
-    char timeBuffer[16];
+    char timeBuffer[12];
+    char dateBuffer[12];
     if (isTimeSynced)
     {
-        strftime(timeBuffer, sizeof(timeBuffer), "%H:%M:%S %d.%m", &timeinfo);
+        strftime(timeBuffer, sizeof(timeBuffer), "%H:%M:%S", &timeinfo);
+        strftime(dateBuffer, sizeof(dateBuffer), "%d.%m.%Y", &timeinfo);
     }
     else
     {
         strcpy(timeBuffer, "--:--:--");
+        strcpy(dateBuffer, "--.--.----");
     }
-    drawScrollingText(0, 24, timeBuffer, true);
+    drawScrollingText(0, LINE_Y[0], timeBuffer, true);
+    drawScrollingText(0, LINE_Y[1], dateBuffer, true);
 
     MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
     String ipAddress = myHeatWifi.getIpAddress();
 
     if (myHeatWifi.isAPMode())
     {
-        drawLabeledText(40, F("AP: "), myHeatWifi.getAPSSID());
+        drawLabeledText(LINE_Y[2], F("AP: "), myHeatWifi.getAPSSID());
     }
     else if (ipAddress != "")
     {
-        drawLabeledText(40, F("WiFi: "), myHeatWifi.getWifiSSID());
+        drawLabeledText(LINE_Y[2], F("WiFi: "), myHeatWifi.getWifiSSID());
     }
     else
     {
-        drawLabeledText(40, F("WiFi: "), F("відключено"));
+        drawLabeledText(LINE_Y[2], F("WiFi: "), F("відключено"));
     }
 
     String mDNS = myHeatWifi.getMDNS();
     if (ipAddress == "")
     {
-        drawScrollingText(0, 56, F("Немає адреси"), true);
+        drawScrollingText(0, LINE_Y[3], F("Немає адреси"), true);
     }
     else if (mDNS != "" && !isHomeShowIp)
     {
-        drawScrollingText(0, 56, mDNS + ".local", true);
+        drawScrollingText(0, LINE_Y[3], mDNS + ".local", true);
     }
     else
     {
-        drawScrollingText(0, 56, ipAddress, true);
+        drawScrollingText(0, LINE_Y[3], ipAddress, true);
     }
 }
 
-void MyHeatHardwareIO::drawLabeledText(byte y, const String &label, const String &text)
+void MyHeatHardwareIO::drawLabeledText(byte y, const String &label, const String &text, bool isCentered)
 {
     String fullText = label + text;
     if (u8g2->getUTF8Width(fullText.c_str()) <= u8g2->getDisplayWidth())
     {
-        drawScrollingText(0, y, fullText, true);
+        drawScrollingText(0, y, fullText, isCentered);
         return;
     }
 
@@ -117,15 +121,15 @@ void MyHeatHardwareIO::drawScrollingText(byte x, byte y, const String &text, boo
 
 void MyHeatHardwareIO::showTemperature()
 {
-    byte cursor = 24;
-    byte temperatureIndexStart = 3 * (menuIndex - HOME_SCREENS);
+    byte temperatureIndexStart = TEMPERATURES_PER_SCREEN * (menuIndex - HOME_SCREENS);
 
     MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
-    byte temperatureIndexEnd = min((byte)(temperatureIndexStart + 3), myHeatDevice.temperatures.getTemperatureCount());
+    byte temperatureIndexEnd = min((byte)(temperatureIndexStart + TEMPERATURES_PER_SCREEN), myHeatDevice.temperatures.getTemperatureCount());
 
     for (byte i = temperatureIndexStart; i < temperatureIndexEnd; i++)
     {
         float temperature = myHeatDevice.temperatures.getTemperature(i);
+        u8g2->setCursor(0, LARGE_LINE_Y[i - temperatureIndexStart]);
 
         u8g2->print("T" + String(i) + ":");
         if (temperature == -127.00)
@@ -135,33 +139,33 @@ void MyHeatHardwareIO::showTemperature()
         else
         {
             u8g2->print(String(temperature));
-            u8g2->setFont(u8g2_font_10x20_tn);
+            u8g2->setFont(u8g2_font_10x20_tf); // The cyrillic and numeric 10x20 fonts have no degree sign
             u8g2->print(F("°"));
             u8g2->setFont(u8g2_font_10x20_t_cyrillic);
             u8g2->print(F("C"));
         }
-        cursor += 16;
-        u8g2->setCursor(0, cursor);
     }
 }
 
 void MyHeatHardwareIO::showRelay()
 {
     byte relayIndex = getCurrentRelayIndex();
-    MyHeatRelay relay = MyHeatDevice::getInstance().relays.getRelay(relayIndex);
+    MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
+    MyHeatRelay relay = myHeatDevice.relays.getRelay(relayIndex);
+    u8g2->setCursor(0, LINE_Y[0]);
     u8g2->print(F("Реле "));
     u8g2->print(String(relayIndex) + ":");
     if (isRelayEditActive)
     {
         u8g2->print(F(" зміна"));
     }
-    u8g2->setCursor(0, 40);
+    u8g2->setCursor(0, LINE_Y[1]);
     u8g2->print(F("Стан: "));
     if (isRelayEditActive)
     {
         String modeText = MyHeatUtils::getConvertedStateToText(static_cast<byte>(pendingRelayMode));
         u8g2_uint_t x = u8g2->getUTF8Width("Стан: ");
-        u8g2->drawBox(x - 1, 40 - u8g2->getAscent() - 1, u8g2->getUTF8Width(modeText.c_str()) + 2, u8g2->getMaxCharHeight());
+        u8g2->drawBox(x - 1, LINE_Y[1] - u8g2->getAscent() - 1, u8g2->getUTF8Width(modeText.c_str()) + 2, u8g2->getMaxCharHeight());
         u8g2->setFontMode(1);
         u8g2->setDrawColor(0);
         u8g2->print(modeText);
@@ -172,18 +176,39 @@ void MyHeatHardwareIO::showRelay()
     {
         u8g2->print(MyHeatUtils::getConvertedStateToText(static_cast<byte>(relay.getMode())));
     }
-    u8g2->setCursor(0, 56);
+    u8g2->setCursor(0, LINE_Y[2]);
     u8g2->print("Активне: " + MyHeatUtils::getConvertedActiveToText(relay.getIsActive()));
+
+    // What decides the relay state: manual mode, the function that won in auto, or nothing
+    String controller;
+    int8_t functionIndex = relay.getControllingFunction();
+    if (relay.getMode() != RelayMode::AUTO)
+    {
+        controller = F("вручну");
+    }
+    else if (functionIndex >= 0 && functionIndex < myHeatDevice.customFunctions.getCustomFunctionCount())
+    {
+        const char *name = myHeatDevice.customFunctions.getCustomFunction(functionIndex).getName();
+        controller = strlen(name) > 0 ? String(name) : "Функція " + String(functionIndex);
+    }
+    else
+    {
+        controller = F("немає");
+    }
+    drawLabeledText(LINE_Y[3], F("Керує: "), controller, false); // Left-aligned like the other relay lines
 }
 
 void MyHeatHardwareIO::showSmokeSensor()
 {
     MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
+    u8g2->setCursor(0, LINE_Y[0]);
     u8g2->print(F("Датчик диму: "));
-    u8g2->setCursor(0, 40);
+    u8g2->setCursor(0, LINE_Y[1]);
     u8g2->print(myHeatDevice.smokeSensor.getValue() == -1 ? "Ініціалізація" : String(myHeatDevice.smokeSensor.getValue()));
-    u8g2->setCursor(0, 56);
+    u8g2->setCursor(0, LINE_Y[2]);
     u8g2->print("Небезпечно: " + MyHeatUtils::getConvertedActiveToText(myHeatDevice.smokeSensor.getIsOverThreshold()));
+    u8g2->setCursor(0, LINE_Y[3]);
+    u8g2->print("Поріг: " + String(myHeatDevice.smokeSensor.getThreshold()));
 }
 
 void MyHeatHardwareIO::handleEncoder()
@@ -364,7 +389,6 @@ void MyHeatHardwareIO::updateScreen()
 {
     u8g2->clearBuffer();
     u8g2->setPowerSave(false);
-    u8g2->setCursor(0, 24);
     hasScrollingText = false;
 
     if (menuIndex < HOME_SCREENS)
@@ -562,7 +586,7 @@ void MyHeatHardwareIO::reevaluateScreensCount()
 {
     MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
 
-    maxTemperatureScreens = ceil((float)myHeatDevice.temperatures.getTemperatureCount() / 3);
+    maxTemperatureScreens = ceil((float)myHeatDevice.temperatures.getTemperatureCount() / TEMPERATURES_PER_SCREEN);
     maxRelayScreens = myHeatDevice.relays.getRelayCount();
     maxScreens = HOME_SCREENS + maxTemperatureScreens + maxRelayScreens + 1;
 

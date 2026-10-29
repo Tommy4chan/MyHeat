@@ -60,6 +60,7 @@ void MyHeatDevice::updateRelays()
     struct RelayTarget {
         bool isActive = false;
         int maxPriority = -1;
+        int8_t functionIndex = -1;
     };
     std::vector<RelayTarget> activeRelays(relays.getRelayCount());
 
@@ -169,6 +170,7 @@ void MyHeatDevice::updateRelays()
                         if (prio > activeRelays[relayIdx].maxPriority) {
                             activeRelays[relayIdx].maxPriority = prio;
                             activeRelays[relayIdx].isActive = requestedState;
+                            activeRelays[relayIdx].functionIndex = i;
                         }
                     }
                 }
@@ -178,6 +180,8 @@ void MyHeatDevice::updateRelays()
 
     for (int i = 0; i < relays.getRelayCount(); i++)
     {
+        relaysArray[i].setControllingFunction(relaysArray[i].getMode() == RelayMode::AUTO ? activeRelays[i].functionIndex : -1);
+
         if (relaysArray[i].getMode() == RelayMode::OFF)
         {
             relaysArray[i].setIsActive(false);

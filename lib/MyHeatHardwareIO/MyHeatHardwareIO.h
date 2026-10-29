@@ -33,6 +33,11 @@ private:
     bool isScreenOn;
 
     static constexpr byte HOME_SCREENS = 1;
+    static constexpr byte TEMPERATURES_PER_SCREEN = 4;
+    // Baselines of the 4 text lines, 16 px apart so 8x13 text spans the whole 64 px height
+    static constexpr byte LINE_Y[4] = {12, 28, 44, 60};
+    // The 10x20 temperature font is 13 px tall above the baseline, one pixel lower keeps its top row on screen
+    static constexpr byte LARGE_LINE_Y[4] = {13, 29, 45, 61};
     byte maxTemperatureScreens;
     byte maxRelayScreens;
     byte maxScreens;
@@ -72,7 +77,7 @@ private:
 
     void showHome();
     void drawScrollingText(byte x, byte y, const String &text, bool isCentered = false);
-    void drawLabeledText(byte y, const String &label, const String &text);
+    void drawLabeledText(byte y, const String &label, const String &text, bool isCentered = true);
     void showTemperature();
     void showRelay();
     void showSmokeSensor();

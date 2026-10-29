@@ -11,6 +11,7 @@ private:
     byte pin;
     bool isActiveOnHigh;
     bool isActive;
+    int8_t controllingFunction = -1; // Function that decided the state in auto mode, -1 if none
 
     void setPin(byte pin)
     {
@@ -71,6 +72,16 @@ public:
     RelayMode getMode()
     {
         return mode;
+    }
+
+    void setControllingFunction(int8_t functionIndex)
+    {
+        controllingFunction = functionIndex;
+    }
+
+    int8_t getControllingFunction()
+    {
+        return controllingFunction;
     }
 
     bool getIsActive()
