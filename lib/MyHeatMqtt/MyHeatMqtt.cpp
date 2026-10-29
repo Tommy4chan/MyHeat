@@ -28,6 +28,10 @@ namespace MyHeatMqtt
     ChangeTracker smokeTracker;
     enum SmokeSlot : byte { SMOKE_STATUS = 0, SMOKE_ALARM = 1 };
 
+    // Smoke level change (in raw ADC counts, 0-4095) that is pushed immediately, smaller jitter waits for the interval
+    static constexpr int SMOKE_VALUE_DEADBAND = 20;
+    static int lastPublishedSmokeValue = -1;
+
     void resetTrackers()
     {
         temperatureStatusTracker.reset();
@@ -37,6 +41,7 @@ namespace MyHeatMqtt
         functionEnabledTracker.reset();
         functionNameTracker.reset();
         smokeTracker.reset();
+        lastPublishedSmokeValue = -1;
     }
 
     WiFiClient espClient;
@@ -358,8 +363,6 @@ namespace MyHeatMqtt
         String objectId = "relay_" + String(index) + "_mode";
         JsonDocument doc = createDiscoveryDoc("select", objectId, "Relay " + String(index) + " Mode");
         doc["icon"] = "mdi:cog";
-        // The relay switch is the main control, mode stays available on the device page and in automations
-        doc["entity_category"] = "config";
         doc["state_topic"] = "~/relay/" + String(index) + "/mode";
         doc["command_topic"] = "~/relay/" + String(index) + "/mode/set";
         JsonArray options = doc["options"].to<JsonArray>();
@@ -375,8 +378,6 @@ namespace MyHeatMqtt
         String objectId = "relay_" + String(index) + "_active";
         JsonDocument doc = createDiscoveryDoc("binary_sensor", objectId, "Relay " + String(index) + " Active");
         doc["device_class"] = "running";
-        // Same information as the relay switch, kept for existing automations
-        doc["entity_category"] = "diagnostic";
         doc["state_topic"] = "~/relay/" + String(index) + "/active";
         doc["payload_on"] = "ON";
         doc["payload_off"] = "OFF";
@@ -437,7 +438,6 @@ namespace MyHeatMqtt
         valueDoc["icon"] = "mdi:smoke-detector-variant";
         valueDoc["state_topic"] = "~/smoke/value";
         valueDoc["state_class"] = "measurement";
-        valueDoc["entity_category"] = "diagnostic";
         addAvailability(valueDoc, "~/smoke/status");
         publishDiscovery("sensor", "smoke", valueDoc);
     }
@@ -639,13 +639,16 @@ namespace MyHeatMqtt
         snprintf(topic, sizeof(topic), "%s/smoke/alarm", baseTopic.c_str());
         publishState(smokeTracker, SMOKE_ALARM, topic, active ? "ON" : "OFF", force);
 
-        // The raw analog value is noisy, publishing it on every change would flood the broker
-        if (force)
+        // The raw analog value jitters by a few counts, so only changes bigger than the deadband are pushed
+        if (force || lastPublishedSmokeValue < 0 || abs(val - lastPublishedSmokeValue) >= SMOKE_VALUE_DEADBAND)
         {
             char payload[12];
             snprintf(payload, sizeof(payload), "%d", val);
             snprintf(topic, sizeof(topic), "%s/smoke/value", baseTopic.c_str());
-            mqtt.publish(topic, payload, true);
+            if (mqtt.publish(topic, payload, true))
+            {
+                lastPublishedSmokeValue = val;
+            }
         }
     }
 
