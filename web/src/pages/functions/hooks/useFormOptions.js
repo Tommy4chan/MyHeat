@@ -1,90 +1,72 @@
 import useFunctionStore from "@/store/functionStore";
-import {
-  COND_AND, COND_OR, COND_NOT, COND_CMP,
-  OP_EQ, OP_NEQ, OP_LT, OP_GT, OP_LTE, OP_GTE, OP_AVAILABLE, OP_UNAVAILABLE,
-  SRC_TEMP, SRC_RELAY, SRC_SMOKE,
-  ACT_SET_RELAY, ACT_SET_RELAY_TIMER,
-} from "@/utils/functionEnums";
+import useTemperatureStore from "@/store/temperatureStore";
+import useRelayStore from "@/store/relayStore";
+import useSettingStore from "@/store/settingStore";
+import { SRC_TEMP, SRC_RELAY, SRC_SMOKE, ACT_SET_RELAY, ACT_SET_RELAY_TIMER } from "@/utils/functionEnums";
+import { getSourceName } from "../utils/describe";
 
-// Operators that have a right-hand side value/source
-export const OPS_WITH_RHS = new Set([OP_EQ, OP_NEQ, OP_LT, OP_GT, OP_LTE, OP_GTE]);
+// Values of the "src:si" select that merges source type and index
+export const toSourceValue = (src, si) => `${src}:${si ?? 0}`;
+export const fromSourceValue = (value) => value.split(":").map(Number);
 
-// Operators that support hysteresis
-export const OPS_WITH_HYST = new Set([OP_EQ, OP_NEQ, OP_LT, OP_GT, OP_LTE, OP_GTE]);
+// Timer select merges action type and timer type: "none" is a plain relay action
+export const timerOptions = [
+  { value: "none", text: "без таймера" },
+  { value: "0",    text: "з затримкою вимкнення" },
+  { value: "1",    text: "імпульсом" },
+  { value: "2",    text: "циклічно" },
+];
+export const toTimerValue = (act) => (act.t === ACT_SET_RELAY_TIMER ? String(act.tt ?? 0) : "none");
+export const fromTimerValue = (value) =>
+  value === "none" ? { t: ACT_SET_RELAY } : { t: ACT_SET_RELAY_TIMER, tt: +value };
 
 export const useFormOptions = () => {
   const { temperatureCount, relayCount } = useFunctionStore();
+  const { temperatures } = useTemperatureStore();
+  const { relays } = useRelayStore();
+  const { smokeSensor } = useSettingStore();
 
-  const tempSensorsOptions = Array.from({ length: temperatureCount }, (_, i) => ({ value: i, text: `T${i}` }));
-
-  const relayOptions = Array.from({ length: relayCount }, (_, i) => ({
-    value: i,
-    text: `Реле ${i}`,
-  }));
-
-  // Source type options — what the LHS and RHS2 can be
-  const sourceTypeOptions = [
-    { value: SRC_TEMP,  text: "Датчик T" },
-    { value: SRC_RELAY, text: "Реле" },
-    { value: SRC_SMOKE, text: "Датчик диму" },
+  const sourceOptions = [
+    ...Array.from({ length: temperatureCount }, (_, i) => ({ value: toSourceValue(SRC_TEMP, i), text: getSourceName(SRC_TEMP, i) })),
+    ...Array.from({ length: relayCount }, (_, i) => ({ value: toSourceValue(SRC_RELAY, i), text: getSourceName(SRC_RELAY, i) })),
+    { value: toSourceValue(SRC_SMOKE, 0), text: "Дим: значення" },
+    { value: toSourceValue(SRC_SMOKE, 1), text: "Дим: поріг" },
   ];
 
-  // Returns the index sub-options depending on chosen source type
-  const getIndexOptions = (sourceType) => {
-    switch (sourceType) {
-      case SRC_TEMP:  return tempSensorsOptions;
-      case SRC_RELAY: return relayOptions;
-      case SRC_SMOKE: return [
-        { value: 0, text: "Значення" },
-        { value: 1, text: "Перевищення порогу" },
-      ];
-      default: return [];
+  // Keeps a saved source selectable even if that sensor or relay no longer exists
+  const getSourceOptions = (src, si) => {
+    const value = toSourceValue(src, si);
+    return sourceOptions.some((o) => o.value === value)
+      ? sourceOptions
+      : [{ value, text: `${getSourceName(src, si ?? 0)} (немає)` }, ...sourceOptions];
+  };
+
+  const getRelayOptions = (ti) => {
+    const options = Array.from({ length: relayCount }, (_, i) => ({ value: i, text: getSourceName(SRC_RELAY, i) }));
+    return ti < relayCount ? options : [{ value: ti, text: `${getSourceName(SRC_RELAY, ti)} (немає)` }, ...options];
+  };
+
+  // Current reading of a source, only to help the user pick thresholds
+  const getLiveValue = (src, si) => {
+    switch (src) {
+      case SRC_TEMP: {
+        const value = parseFloat(temperatures[si]?.value);
+        if (isNaN(value)) return null;
+        return value <= -127 ? "помилка" : `${value.toFixed(1)} °C`;
+      }
+      case SRC_RELAY: {
+        const relay = relays[si];
+        return relay ? (relay.isActive ? "увімкнене" : "вимкнене") : null;
+      }
+      case SRC_SMOKE: {
+        if (si === 1) return smokeSensor?.isOverThreshold === undefined ? null : smokeSensor.isOverThreshold ? "перевищено" : "не перевищено";
+        if (smokeSensor?.value === undefined) return null;
+        return smokeSensor.value === -1 ? "ініціалізація" : String(smokeSensor.value);
+      }
+      default:
+        return null;
     }
   };
 
-  const conditionTypeOptions = [
-    { value: COND_CMP, text: "Порівняння" },
-    { value: COND_AND, text: "І (AND)" },
-    { value: COND_OR,  text: "АБО (OR)" },
-    { value: COND_NOT, text: "НІ (NOT)" },
-  ];
-
-  const cmpOpOptions = [
-    { value: OP_LT,          text: "<" },
-    { value: OP_LTE,         text: "≤" },
-    { value: OP_GT,          text: ">" },
-    { value: OP_GTE,         text: "≥" },
-    { value: OP_EQ,          text: "=" },
-    { value: OP_NEQ,         text: "≠" },
-    { value: OP_AVAILABLE,   text: "Доступний" },
-    { value: OP_UNAVAILABLE, text: "Недоступний" },
-  ];
-
-  const actionTypeOptions = [
-    { value: ACT_SET_RELAY,       text: "Увімк. / Вимк. реле" },
-    { value: ACT_SET_RELAY_TIMER, text: "Реле з таймером" },
-  ];
-
-  const relayStateOptions = [
-    { value: 1, text: "Увімкнути" },
-    { value: 0, text: "Вимкнути" },
-  ];
-
-  const timerTypeOptions = [
-    { value: 0, text: "Перезапуск (Off-Delay)" },
-    { value: 1, text: "Імпульсний (One-Shot)" },
-    { value: 2, text: "Циклічний" },
-  ];
-
-  return {
-    tempSensorsOptions,
-    relayOptions,
-    sourceTypeOptions,
-    getIndexOptions,
-    conditionTypeOptions,
-    cmpOpOptions,
-    actionTypeOptions,
-    relayStateOptions,
-    timerTypeOptions,
-  };
+  return { getSourceOptions, getRelayOptions, getLiveValue };
 };

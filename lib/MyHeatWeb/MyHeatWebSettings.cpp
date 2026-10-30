@@ -8,6 +8,13 @@ namespace MyHeatWeb
         MyHeatDevice &myHeatDevice = MyHeatDevice::getInstance();
         MyHeatHardwareIO &myHeatHardwareIO = MyHeatHardwareIO::getInstance();
 
+        // Web UI picks the pin list for this chip
+#if CONFIG_IDF_TARGET_ESP32S3
+        response[F("chip")] = F("esp32s3");
+#else
+        response[F("chip")] = F("esp32");
+#endif
+
         response[F("usedPins")][0] = myHeatDevice.temperatures.getTemperaturePin();
         response[F("usedPins")][1] = myHeatHardwareIO.getEncA();
         response[F("usedPins")][2] = myHeatHardwareIO.getEncB();

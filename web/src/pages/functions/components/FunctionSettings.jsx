@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import ColumnBlock from '@/components/layout/ColumnBlock';
 import Select from '@/components/ui/Select';
 import SaveButton from '@/components/ui/SaveButton';
@@ -5,6 +6,10 @@ import Button from '@/components/ui/Button';
 import { FunctionForm } from './FunctionForm';
 import { useFunctionEditor } from '../hooks/useFunctionEditor';
 import { useFormOptions } from '../hooks/useFormOptions';
+import useSettingStore from '@/store/settingStore';
+
+// Smoke readings are only sent on request, poll them so conditions can show the current value
+const SMOKE_POLL_INTERVAL = 5000;
 
 export const FunctionSettings = () => {
   const {
@@ -19,6 +24,18 @@ export const FunctionSettings = () => {
   } = useFunctionEditor();
 
   const options = useFormOptions();
+  const { getSmokeSensor } = useSettingStore();
+
+  useEffect(() => {
+    getSmokeSensor();
+    const interval = setInterval(getSmokeSensor, SMOKE_POLL_INTERVAL);
+    return () => clearInterval(interval);
+  }, [getSmokeSensor]);
+
+  const handleDeleteClick = () => {
+    const name = selectedFunction?.name || `Функція ${selectedIndex}`;
+    if (window.confirm(`Видалити «${name}»?`)) handleDelete();
+  };
 
   return (
     <ColumnBlock>
@@ -58,7 +75,7 @@ export const FunctionSettings = () => {
 
       <div className="flex flex-col gap-2">
         <SaveButton onClick={handleSave} />
-        <Button buttonText="Видалити" color="red" onClick={handleDelete} />
+        <Button buttonText="Видалити" color="red" onClick={handleDeleteClick} />
       </div>
     </ColumnBlock>
   );

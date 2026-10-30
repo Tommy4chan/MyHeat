@@ -1,6 +1,8 @@
 import Button from '@/components/ui/Button';
 import DarkWrapperBlock from '@/components/layout/DarkWrapperBlock';
 import useFunctionStore from '@/store/functionStore';
+import { toEditorTree } from '@/pages/functions/utils/conditionTree';
+import { describeFunction } from '@/pages/functions/utils/describe';
 
 const FunctionCard = ({ functionData, functionIndex }) => {
   const { setFunctionIsEnabled } = useFunctionStore();
@@ -15,9 +17,10 @@ const FunctionCard = ({ functionData, functionIndex }) => {
         <p className="text-lg font-bold text-white mb-1 break-words">
           Функція {functionIndex}: {functionData.name || '(Без назви)'}
         </p>
-        <p className="text-sm text-gray-400 mb-2">
-          Пріоритет: {functionData.priority ?? 0} | Умов: {functionData.conditions?.length || 0} | Дій: {functionData.actions?.length || 0}
+        <p className="text-sm text-gray-400 mb-1 break-words">
+          {describeFunction(toEditorTree(functionData.conditions), functionData.actions)}
         </p>
+        <p className="text-sm text-gray-500 mb-2">Пріоритет: {functionData.priority ?? 0}</p>
         
         <div className="flex gap-2">
           <p className="text-md text-gray-300">

@@ -1,269 +1,215 @@
+import { useState } from 'react';
+import { MdTune, MdClose, MdSwapHoriz } from 'react-icons/md';
 import Select from '@/components/ui/Select';
-import Input from '@/components/ui/Input';
-import Button from '@/components/ui/Button';
-import FormField from '@/components/ui/FormField';
 import {
-  COND_AND, COND_OR, COND_NOT, COND_CMP,
-  SRC_TEMP, SRC_RELAY, SRC_SMOKE,
+  COND_AND, COND_OR, COND_NOT,
+  SRC_TEMP,
   OP_EQ, OP_NEQ, OP_LT, OP_GT, OP_LTE, OP_GTE, OP_AVAILABLE, OP_UNAVAILABLE,
 } from '@/utils/functionEnums';
+import { newCondition, newGroup, isGroup } from '../utils/conditionTree';
+import { OP_SYMBOLS, isBooleanSource, getBooleanLabels, getUnit, getSourceName, getHysteresisHint } from '../utils/describe';
+import { toSourceValue, fromSourceValue } from '../hooks/useFormOptions';
+import { NumberInput, IconButton, AddButton, NotToggle, Hint } from './EditorControls';
 
-// Left-border accent — the signature: encodes node type, used nowhere else
-const NODE_ACCENT = {
-  [COND_CMP]: 'border-l-blue-500',
+// Left-border accent encodes the node type
+const GROUP_ACCENT = {
   [COND_AND]: 'border-l-green-500',
   [COND_OR]:  'border-l-amber-500',
-  [COND_NOT]: 'border-l-red-500',
 };
 
-const NODE_LABEL = {
-  [COND_AND]: 'Всі умови нижче мають бути істинними',
-  [COND_OR]:  'Хоча б одна умова нижче має бути істинною',
-  [COND_NOT]: 'Умова нижче має бути хибною',
-};
-
-const EMPTY_CMP = {
-  t: COND_CMP, src: SRC_TEMP, si: 0,
-  d1: 0, d1sign: 1,                   // d1sign: 1=plus, -1=minus
-  op: OP_LT,
-  ivs: false, v: 25,
-  src2: SRC_TEMP, si2: 0,
-  d2: 0, d2sign: 1,
-  hyst: 0.5,
-  children: [],
-};
-
-// Which ops make sense per source type
-const OPS_FOR_SOURCE = {
-  [SRC_TEMP]:   [OP_LT, OP_LTE, OP_GT, OP_GTE, OP_EQ, OP_NEQ, OP_AVAILABLE, OP_UNAVAILABLE],
-  [SRC_RELAY]:  [OP_EQ, OP_NEQ],
-  [SRC_SMOKE]:  [OP_LT, OP_LTE, OP_GT, OP_GTE, OP_EQ, OP_NEQ, OP_AVAILABLE, OP_UNAVAILABLE],
-};
-
-const ALL_OPS = [
-  { value: OP_LT,          text: '<  (менше)' },
-  { value: OP_LTE,         text: '≤  (менше або рівне)' },
-  { value: OP_GT,          text: '>  (більше)' },
-  { value: OP_GTE,         text: '≥  (більше або рівне)' },
-  { value: OP_EQ,          text: '=  (рівне)' },
-  { value: OP_NEQ,         text: '≠  (не рівне)' },
-  { value: OP_AVAILABLE,   text: 'Доступний (не помилка)' },
-  { value: OP_UNAVAILABLE, text: 'Недоступний (помилка)' },
+const GROUP_TYPE_OPTIONS = [
+  { value: COND_AND, text: 'всі умови' },
+  { value: COND_OR,  text: 'хоча б одна умова' },
 ];
 
-const SIGN_OPTIONS = [
-  { value: 1,  text: '+' },
-  { value: -1, text: '−' },
+const NUMERIC_OP_OPTIONS = [OP_LT, OP_LTE, OP_GT, OP_GTE, OP_EQ, OP_NEQ, OP_AVAILABLE, OP_UNAVAILABLE]
+  .map((op) => ({ value: op, text: OP_SYMBOLS[op] }));
+
+const BOOLEAN_OP_OPTIONS = [
+  { value: OP_EQ,  text: 'є' },
+  { value: OP_NEQ, text: 'не є' },
 ];
 
-// Does this op need a right-hand side?
-const hasRHS  = (op) => [OP_LT, OP_LTE, OP_GT, OP_GTE, OP_EQ, OP_NEQ].includes(op);
-// Does this source benefit from delta correction and hysteresis?
-const hasDelta = (src) => src === SRC_TEMP || src === SRC_SMOKE;
-const hasHyst  = (src) => src === SRC_TEMP || src === SRC_SMOKE;
+// Root (depth 0) and one nested level may hold groups, so the tree is at most 3 levels deep
+const MAX_GROUP_DEPTH = 2;
 
-// Source selector + optional inline delta
-const SourcePicker = ({ src, si, delta, deltaSign, onSrcChange, onSiChange, onDeltaChange, onDeltaSignChange, options }) => {
-  const { sourceTypeOptions, getIndexOptions } = options;
-  const showDelta = hasDelta(src);
-  const indexOpts = getIndexOptions(src);
+const signed = (magnitude, sign) => Math.abs(magnitude ?? 0) * (sign ?? 1);
+const isAvailabilityOp = (op) => op === OP_AVAILABLE || op === OP_UNAVAILABLE;
+
+const ConditionRow = ({ node, options, onChange, onRemove, notToggle }) => {
+  const { getSourceOptions, getLiveValue } = options;
+  const si = node.si ?? 0;
+  const delta1 = signed(node.d1, node.d1sign);
+  const delta2 = signed(node.d2, node.d2sign);
+  const [isExtrasOpen, setIsExtrasOpen] = useState(delta1 !== 0 || (node.ivs && delta2 !== 0));
+
+  const update = (updates) => onChange({ ...node, ...updates });
+
+  const isBoolean = isBooleanSource(node.src, si) && !node.ivs;
+  const hasRhs = !isBoolean && !isAvailabilityOp(node.op);
+  const liveValue = getLiveValue(node.src, si);
+  const liveValue2 = node.ivs ? getLiveValue(node.src2 ?? SRC_TEMP, node.si2 ?? 0) : null;
+  const unit = getUnit(node.src);
+  const hint = hasRhs ? getHysteresisHint(node) : null;
+
+  const handleSourceChange = (e) => {
+    const [src, nextSi] = fromSourceValue(e.target.value);
+    const wasBoolean = isBooleanSource(node.src, si);
+    if (isBooleanSource(src, nextSi)) {
+      update({ src, si: nextSi, ivs: false, d1: 0, d1sign: 1, op: wasBoolean ? node.op : OP_EQ, v: wasBoolean ? node.v : 1 });
+    } else if (wasBoolean) {
+      update({ src, si: nextSi, op: OP_LT, v: src === SRC_TEMP ? 25 : 300, hyst: src === SRC_TEMP ? 0.5 : 20 });
+    } else {
+      update({ src, si: nextSi });
+    }
+  };
+
+  const handleSource2Change = (e) => {
+    const [src2, si2] = fromSourceValue(e.target.value);
+    update({ src2, si2 });
+  };
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Select value={src} options={sourceTypeOptions} onChange={(e) => onSrcChange(+e.target.value)} />
-      {indexOpts.length > 0 && (
-        <Select value={si ?? 0} options={indexOpts} onChange={(e) => onSiChange(+e.target.value)} />
+    <div className='flex flex-col gap-1.5 bg-gray-900 border border-gray-700 border-l-2 border-l-blue-500 rounded p-2'>
+      <div className='flex flex-wrap items-center gap-2'>
+        {notToggle}
+        <Select value={toSourceValue(node.src, si)} options={getSourceOptions(node.src, si)} onChange={handleSourceChange} />
+        {liveValue && <span className='text-xs text-gray-500 whitespace-nowrap'>зараз {liveValue}</span>}
+
+        {isBoolean ? (
+          <>
+            <Select value={node.op === OP_NEQ ? OP_NEQ : OP_EQ} options={BOOLEAN_OP_OPTIONS} onChange={(e) => update({ op: +e.target.value })} />
+            <Select
+              value={(node.v ?? 1) === 1 ? 1 : 0}
+              options={Object.entries(getBooleanLabels(node.src)).reverse().map(([value, text]) => ({ value: +value, text }))}
+              onChange={(e) => update({ v: +e.target.value })}
+            />
+          </>
+        ) : (
+          <>
+            <Select value={node.op} options={NUMERIC_OP_OPTIONS} onChange={(e) => update({ op: +e.target.value })} />
+            {hasRhs && (node.ivs ? (
+              <>
+                <Select
+                  value={toSourceValue(node.src2 ?? SRC_TEMP, node.si2)}
+                  options={getSourceOptions(node.src2 ?? SRC_TEMP, node.si2 ?? 0)}
+                  onChange={handleSource2Change}
+                />
+                {liveValue2 && <span className='text-xs text-gray-500 whitespace-nowrap'>зараз {liveValue2}</span>}
+              </>
+            ) : (
+              <span className='flex items-center gap-1'>
+                <NumberInput value={node.v ?? 0} onChange={(v) => update({ v })} className='w-20' />
+                {unit && <span className='text-sm text-gray-400'>{unit}</span>}
+              </span>
+            ))}
+            {hasRhs && (
+              <IconButton
+                icon={MdSwapHoriz}
+                isActive={node.ivs}
+                title={node.ivs ? 'Порівнювати з числом' : 'Порівнювати з іншим датчиком'}
+                onClick={() => update({ ivs: !node.ivs })}
+              />
+            )}
+          </>
+        )}
+
+        <div className='ml-auto flex items-center gap-1'>
+          {hasRhs && <IconButton icon={MdTune} isActive={isExtrasOpen} title='Поправка і гістерезис' onClick={() => setIsExtrasOpen(!isExtrasOpen)} />}
+          {onRemove && <IconButton icon={MdClose} isDanger title='Видалити умову' onClick={onRemove} />}
+        </div>
+      </div>
+
+      {hasRhs && isExtrasOpen && (
+        <div className='flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-400'>
+          <label className='flex items-center gap-2'>
+            Поправка {getSourceName(node.src, si)}
+            <NumberInput value={delta1} onChange={(d) => update({ d1: Math.abs(d), d1sign: d < 0 ? -1 : 1 })} className='w-20' />
+          </label>
+          {node.ivs && (
+            <label className='flex items-center gap-2'>
+              Поправка {getSourceName(node.src2 ?? SRC_TEMP, node.si2 ?? 0)}
+              <NumberInput value={delta2} onChange={(d) => update({ d2: Math.abs(d), d2sign: d < 0 ? -1 : 1 })} className='w-20' />
+            </label>
+          )}
+          <label className='flex items-center gap-2'>
+            Гістерезис
+            <NumberInput value={node.hyst ?? 0} onChange={(h) => update({ hyst: Math.abs(h) })} className='w-20' />
+          </label>
+        </div>
       )}
-      {showDelta && (
-        <>
-          <Select value={deltaSign ?? 1} options={SIGN_OPTIONS} onChange={(e) => onDeltaSignChange(+e.target.value)} className="w-14" />
-          <Input
-            value={delta ?? 0}
-            isNumber
-            onChange={(e) => onDeltaChange(Math.abs(parseFloat(e.target.value) || 0))}
-            className="w-20"
-            placeholder="0"
-          />
-        </>
-      )}
+
+      {hint && <Hint>{hint}</Hint>}
     </div>
   );
 };
 
-export const ConditionNode = ({ node, options, onChange, isRoot = false }) => {
-  if (!node) return null;
+// Renders a NOT node as its child with the НЕ toggle switched on
+const ConditionItem = ({ node, options, depth, onChange, onRemove }) => {
+  const isNegated = node.t === COND_NOT;
+  const inner = isNegated ? node.children[0] : node;
 
-  const { conditionTypeOptions, getIndexOptions } = options;
+  const handleInnerChange = (newInner) => onChange(isNegated ? { ...node, children: [newInner] } : newInner);
+  const notToggle = <NotToggle isActive={isNegated} onClick={() => onChange(isNegated ? inner : { t: COND_NOT, children: [node] })} />;
 
-  const handleChange = (updates) => onChange({ ...node, ...updates });
+  return isGroup(inner) ? (
+    <ConditionGroup node={inner} options={options} depth={depth} onChange={handleInnerChange} onRemove={onRemove} notToggle={notToggle} />
+  ) : (
+    <ConditionRow node={inner} options={options} onChange={handleInnerChange} onRemove={onRemove} notToggle={notToggle} />
+  );
+};
 
-  const handleTypeChange = (e) => {
-    const t = +e.target.value;
-    if (t === COND_CMP) onChange({ ...EMPTY_CMP });
-    else onChange({ t, children: node.children || [] });
+export const ConditionGroup = ({ node, options, onChange, depth = 0, onRemove, notToggle }) => {
+  const children = node.children || [];
+  const isRoot = depth === 0;
+
+  const handleChildChange = (index, child) => {
+    const next = [...children];
+    next[index] = child;
+    onChange({ ...node, children: next });
   };
 
-  const handleChildChange = (idx, newChild) => {
-    const children = [...(node.children || [])];
-    if (newChild === null) children.splice(idx, 1);
-    else children[idx] = newChild;
-    onChange({ ...node, children });
+  // Removing the last child of a nested group removes the group, the root always keeps one condition
+  const handleChildRemove = (index) => {
+    const next = children.filter((_, i) => i !== index);
+    if (next.length === 0 && onRemove) onRemove();
+    else onChange({ ...node, children: next.length ? next : [newCondition()] });
   };
 
-  const handleSrcChange = (newSrc) => {
-    // Reset index and operator when source changes
-    const allowed = OPS_FOR_SOURCE[newSrc] ?? [OP_LT];
-    const op = allowed.includes(node.op) ? node.op : allowed[0];
-    // Reset delta defaults
-    const d1 = 0, d1sign = 1;
-    // Relay src: auto-set op to EQ, value to 1 (ON) as sensible default
-    const v = newSrc === SRC_RELAY ? 1 : (node.v ?? 25);
-    handleChange({ src: newSrc, si: 0, op, d1, d1sign, v });
-  };
-
-  const showRHS   = hasRHS(node.op);
-  const showHyst  = showRHS && hasHyst(node.src);
-  const accentClass = NODE_ACCENT[node.t] ?? 'border-l-gray-600';
-
-  // Build filtered op options for the current source
-  const allowedOps = OPS_FOR_SOURCE[node.src] ?? ALL_OPS.map(o => o.value);
-  const filteredOpOptions = ALL_OPS.filter(o => allowedOps.includes(o.value));
-
-  // RHS relay-specific: if the relay state should only be ON/OFF
-  const rhsIsRelayState = node.ivs && node.src2 === SRC_RELAY;
+  const canRemoveChild = children.length > 1 || !isRoot;
 
   return (
-    <div className={`border-l-2 ${accentClass} pl-3 flex flex-col gap-2`}>
-      {/* Header: type + delete */}
-      <div className="flex items-center gap-2">
-        <Select value={node.t} options={conditionTypeOptions} onChange={handleTypeChange} className="text-sm" />
-        {!isRoot && (
-          <button
-            onClick={() => onChange(null)}
-            className="ml-auto text-gray-500 hover:text-red-400 transition-colors text-xl leading-none"
-            title="Видалити"
-          >
-            ×
-          </button>
+    <div className={`flex flex-col gap-2 ${isRoot ? '' : `border-l-2 ${GROUP_ACCENT[node.t]} pl-3`}`}>
+      {(children.length > 1 || !isRoot) && (
+        <div className='flex flex-wrap items-center gap-2 text-sm text-gray-400'>
+          {notToggle}
+          <span>мають виконуватись</span>
+          <Select value={node.t} options={GROUP_TYPE_OPTIONS} onChange={(e) => onChange({ ...node, t: +e.target.value })} />
+          {onRemove && (
+            <div className='ml-auto'>
+              <IconButton icon={MdClose} isDanger title='Видалити групу' onClick={onRemove} />
+            </div>
+          )}
+        </div>
+      )}
+
+      {children.map((child, index) => (
+        <ConditionItem
+          key={index}
+          node={child}
+          options={options}
+          depth={depth + 1}
+          onChange={(newChild) => handleChildChange(index, newChild)}
+          onRemove={canRemoveChild ? () => handleChildRemove(index) : null}
+        />
+      ))}
+
+      <div className='flex flex-wrap gap-2'>
+        <AddButton text='Умова' onClick={() => onChange({ ...node, children: [...children, newCondition()] })} />
+        {depth < MAX_GROUP_DEPTH && (
+          <AddButton text='Група' onClick={() => onChange({ ...node, children: [...children, newGroup()] })} />
         )}
       </div>
-
-      {/* Comparison body */}
-      {node.t === COND_CMP && (
-        <div className="flex flex-col gap-3 bg-gray-900 rounded p-3 border border-gray-700">
-
-          {/* LHS */}
-          <FormField label="Джерело">
-            <SourcePicker
-              src={node.src}
-              si={node.si}
-              delta={node.d1}
-              deltaSign={node.d1sign ?? 1}
-              onSrcChange={handleSrcChange}
-              onSiChange={(v) => handleChange({ si: v })}
-              onDeltaChange={(v) => handleChange({ d1: v })}
-              onDeltaSignChange={(v) => handleChange({ d1sign: v })}
-              options={options}
-            />
-          </FormField>
-
-          {/* Operator — filtered to what makes sense for this source */}
-          <FormField label="Умова">
-            <Select value={node.op} options={filteredOpOptions} onChange={(e) => handleChange({ op: +e.target.value })} />
-          </FormField>
-
-          {/* RHS — only for standard comparison operators */}
-          {showRHS && (
-            <FormField label="Порівняти з">
-              <div className="flex flex-col gap-2">
-                <Select
-                  value={node.ivs ? 'source' : 'const'}
-                  options={[
-                    { value: 'const',  text: 'Значенням' },
-                    { value: 'source', text: 'Іншим джерелом' },
-                  ]}
-                  onChange={(e) => handleChange({ ivs: e.target.value === 'source' })}
-                />
-
-                {node.ivs ? (
-                  <SourcePicker
-                    src={node.src2 ?? SRC_TEMP}
-                    si={node.si2}
-                    delta={node.d2}
-                    deltaSign={node.d2sign ?? 1}
-                    onSrcChange={(v) => handleChange({ src2: v, si2: 0 })}
-                    onSiChange={(v) => handleChange({ si2: v })}
-                    onDeltaChange={(v) => handleChange({ d2: v })}
-                    onDeltaSignChange={(v) => handleChange({ d2sign: v })}
-                    options={options}
-                  />
-                ) : (
-                  node.src === SRC_RELAY ? (
-                    // Relay comparison: show ON/OFF picker instead of raw number
-                    <Select
-                      value={node.v ?? 1}
-                      options={[
-                        { value: 1, text: 'Увімкнено (ON)' },
-                        { value: 0, text: 'Вимкнено (OFF)' },
-                      ]}
-                      onChange={(e) => handleChange({ v: +e.target.value })}
-                    />
-                  ) : (
-                    <Input
-                      value={node.v ?? 25}
-                      isNumber
-                      onChange={(e) => handleChange({ v: parseFloat(e.target.value) || 0 })}
-                      className="w-32"
-                      placeholder="25"
-                    />
-                  )
-                )}
-              </div>
-            </FormField>
-          )}
-
-          {/* Hysteresis — only for temp/smoke, only when comparison is active */}
-          {showHyst && (
-            <FormField label="Гістерезис">
-              <Input
-                value={node.hyst ?? 0.5}
-                isNumber
-                onChange={(e) => handleChange({ hyst: Math.abs(parseFloat(e.target.value) || 0) })}
-                className="w-28"
-                placeholder="0.5"
-              />
-            </FormField>
-          )}
-        </div>
-      )}
-
-      {/* Logical body */}
-      {node.t !== COND_CMP && (
-        <div className="flex flex-col gap-3">
-          {NODE_LABEL[node.t] && (
-            <p className="text-xs text-gray-500">{NODE_LABEL[node.t]}</p>
-          )}
-          <div className="flex flex-col gap-3">
-            {(node.children || []).map((child, idx) => (
-              <ConditionNode
-                key={idx}
-                node={child}
-                options={options}
-                onChange={(newChild) => handleChildChange(idx, newChild)}
-                isRoot={false}
-              />
-            ))}
-          </div>
-          {!(node.t === COND_NOT && (node.children || []).length >= 1) && (
-            <button
-              onClick={() => handleChildChange((node.children || []).length, { ...EMPTY_CMP })}
-              className="self-start text-xs text-gray-500 hover:text-gray-200 transition-colors px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded border border-gray-700 border-dashed"
-            >
-              + Додати умову
-            </button>
-          )}
-        </div>
-      )}
     </div>
   );
 };

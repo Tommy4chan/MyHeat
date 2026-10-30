@@ -11,7 +11,7 @@ import { useSmokeSensorSettings } from "../hooks/useSmokeSensorSettings";
 
 const SmokeSensor = () => {
 
-  const { getAvailableInputPins } = usePinStore();
+  const { getAvailableAnalogPins } = usePinStore();
   const { settings, sensor, handleSettingsChange, handleSmokeSensorSettingsSave } = useSmokeSensorSettings();
 
   return (
@@ -42,7 +42,7 @@ const SmokeSensor = () => {
           <FormField label='Пін'>
             <Select
               value={settings.pin}
-              options={getAvailableInputPins(settings?.pin)}
+              options={getAvailableAnalogPins(settings?.pin)}
               onChange={handleSettingsChange}
               className={'w-full'}
               name="pin"

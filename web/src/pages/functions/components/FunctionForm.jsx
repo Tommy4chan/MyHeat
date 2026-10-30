@@ -2,92 +2,92 @@ import Input from '@/components/ui/Input';
 import FormField from '@/components/ui/FormField';
 import SelectToggle from '@/components/ui/SelectToggle';
 import DarkWrapperBlock from '@/components/layout/DarkWrapperBlock';
-import { ConditionNode } from './ConditionTree';
+import { ConditionGroup } from './ConditionTree';
 import { ActionList } from './ActionList';
-import { ACT_SET_RELAY, COND_CMP, SRC_TEMP, OP_LT } from '@/utils/functionEnums';
+import { EMPTY_ACTION, toEditorTree } from '../utils/conditionTree';
+import { describeFunction } from '../utils/describe';
 
-const EMPTY_CMP = {
-  t: COND_CMP, src: SRC_TEMP, si: 0,
-  d1: 0, d1sign: 1,
-  op: OP_LT,
-  ivs: false, v: 25,
-  src2: SRC_TEMP, si2: 0,
-  d2: 0, d2sign: 1,
-  hyst: 0.5,
-  children: [],
-};
+const SectionTitle = ({ children }) => (
+  <h3 className='text-sm font-semibold text-gray-400 uppercase tracking-wider'>{children}</h3>
+);
 
 export const FunctionForm = ({ selectedFunction, options, onUpdateFunction }) => {
   if (!selectedFunction) return null;
 
-  const handleActionChange = (index, field, value) => {
-    const newActions = [...selectedFunction.actions];
-    newActions[index] = { ...newActions[index], [field]: value };
+  const actions = selectedFunction.actions || [];
+
+  const handleActionChange = (index, updates) => {
+    const newActions = [...actions];
+    newActions[index] = { ...newActions[index], ...updates };
     onUpdateFunction({ actions: newActions });
   };
 
   const handleAddAction = () => {
-    onUpdateFunction({
-      actions: [...selectedFunction.actions, { t: ACT_SET_RELAY, ti: 0, v: 1, d: 60, tt: 0 }],
-    });
+    onUpdateFunction({ actions: [...actions, { ...EMPTY_ACTION }] });
   };
 
   const handleRemoveAction = (index) => {
-    const newActions = selectedFunction.actions.filter((_, i) => i !== index);
-    onUpdateFunction({ actions: newActions.length ? newActions : [{ t: ACT_SET_RELAY, ti: 0, v: 1, d: 60, tt: 0 }] });
+    const newActions = actions.filter((_, i) => i !== index);
+    onUpdateFunction({ actions: newActions.length ? newActions : [{ ...EMPTY_ACTION }] });
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className='flex flex-col gap-4'>
       {/* Function metadata */}
-      <DarkWrapperBlock className="!flex-col !items-stretch gap-3">
-        <FormField label="Назва">
+      <DarkWrapperBlock className='!flex-col !items-stretch gap-3'>
+        <FormField label='Назва'>
           <Input
             value={selectedFunction.name}
             onChange={(e) => onUpdateFunction({ name: e.target.value })}
-            placeholder="Введіть назву"
-            className="w-full"
+            placeholder='Введіть назву'
+            className='w-full'
           />
         </FormField>
-        <div className="flex gap-4">
-          <FormField label="Увімкнено">
+        <div className='flex gap-4'>
+          <FormField label='Увімкнено'>
             <SelectToggle
               value={selectedFunction.isEnabled}
               onChange={(e) => onUpdateFunction({ isEnabled: e.target.value === 'true' })}
             />
           </FormField>
-          <FormField label="Пріоритет">
+          <FormField label='Пріоритет'>
             <Input
               value={selectedFunction.priority ?? 0}
               isNumber
               onChange={(e) => onUpdateFunction({ priority: parseInt(e.target.value) || 0 })}
-              className="w-20"
+              className='w-20'
             />
+            <p className='mt-1 text-xs text-gray-500'>при конфлікті за реле перемагає більший</p>
           </FormField>
         </div>
       </DarkWrapperBlock>
 
-      {/* Conditions */}
-      <div className="flex flex-col gap-2">
-        <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Умови</h3>
-        <ConditionNode
+      {/* Whole rule in one sentence */}
+      <p className='text-sm text-gray-300 bg-gray-900 border border-gray-700 rounded px-3 py-2 break-words'>
+        {describeFunction(selectedFunction.conditionTree, actions)}
+      </p>
+
+      <div className='flex flex-col gap-2'>
+        <SectionTitle>Якщо</SectionTitle>
+        <ConditionGroup
           node={selectedFunction.conditionTree}
           options={options}
-          onChange={(newNode) => onUpdateFunction({ conditionTree: newNode ?? { ...EMPTY_CMP } })}
-          isRoot={true}
+          onChange={(newTree) => onUpdateFunction({ conditionTree: newTree ?? toEditorTree([]) })}
         />
       </div>
 
-      {/* Actions */}
-      <div className="flex flex-col gap-2">
-        <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Дії</h3>
+      <div className='flex flex-col gap-2'>
+        <SectionTitle>То</SectionTitle>
         <ActionList
-          actions={selectedFunction.actions || []}
+          actions={actions}
           options={options}
           onActionChange={handleActionChange}
           onAddAction={handleAddAction}
           onRemoveAction={handleRemoveAction}
         />
+        <p className='text-xs text-gray-500'>
+          Коли умова не виконується, функція не керує реле: ним керують інші функції, а якщо жодна — реле в режимі АВТО вимкнене.
+        </p>
       </div>
     </div>
   );

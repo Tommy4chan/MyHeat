@@ -9,7 +9,7 @@ import usePinStore from '@/store/pinStore';
 import { useTemperatureSettings } from '../hooks/useTemperatureSettings';
 
 export const TemperatureSettingsForm = () => {
-  const { getAvailableInputPins } = usePinStore();
+  const { getAvailableIOPins } = usePinStore();
   const { settings, handleSettingsChange, handleSettingsSave } = useTemperatureSettings();
 
   return (
@@ -19,7 +19,7 @@ export const TemperatureSettingsForm = () => {
         <FormField label='Пін'>
           <Select
             value={settings.temperaturePin}
-            options={getAvailableInputPins(settings.temperaturePin)}
+            options={getAvailableIOPins(settings.temperaturePin)}
             onChange={handleSettingsChange}
             name='temperaturePin'
             className='w-full'
