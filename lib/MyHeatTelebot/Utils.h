@@ -15,6 +15,7 @@ namespace MyHeatTelebot
     Text getCallbackFromQuery(Text query);
     byte getValueFromQuery(const String& query);
     void setFunctionScreen(fb::TextEdit &msg, const MyHeatCustomFunction& customFunction, byte functionIndex);
+    String escapeHtml(const String& text);
 }
 
 #endif

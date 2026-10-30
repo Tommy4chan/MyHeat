@@ -131,18 +131,20 @@ namespace MyHeatTelebot
         {
             MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
 
+            // HTML mode so passwords can be hidden as spoilers, user values are escaped
+            msg.mode = fb::Message::Mode::HTML;
             msg.text = "Датчик диму: \n"
                        "Значення: " +
                        (myHeatDevice.smokeSensor.getValue() == -1 ? "Ініціалізація" : String(myHeatDevice.smokeSensor.getValue())) + "\n" +
                        "Увімкнений: " + MyHeatUtils::getConvertedActiveToText(myHeatDevice.smokeSensor.getIsEnabled()) + "\n" +
                        "Поріг спрацювання: " + String(myHeatDevice.smokeSensor.getThreshold()) + " \n\n" +
-                       "Веб-інтерфейс: http://" + myHeatWifi.getMDNS() + ".local\n\n" +
+                       "Веб-інтерфейс: http://" + escapeHtml(myHeatWifi.getMDNS()) + ".local\n\n" +
                        "Мережа: \n" +
-                       "Ім'я: " + myHeatWifi.getWifiSSID() + "\n" +
-                       "Пароль: " + myHeatWifi.getWifiPassword() + "\n\n" +
+                       "Ім'я: " + escapeHtml(myHeatWifi.getWifiSSID()) + "\n" +
+                       "Пароль: <tg-spoiler>" + escapeHtml(myHeatWifi.getWifiPassword()) + "</tg-spoiler>\n\n" +
                        "Точка доступу: \n" +
-                       "Ім'я: " + myHeatWifi.getAPSSID() + "\n" +
-                       "Пароль: " + myHeatWifi.getAPPassword() + "\n" +
+                       "Ім'я: " + escapeHtml(myHeatWifi.getAPSSID()) + "\n" +
+                       "Пароль: <tg-spoiler>" + escapeHtml(myHeatWifi.getAPPassword()) + "</tg-spoiler>\n" +
                        "Режим резервної точки доступу: " + MyHeatUtils::getConvertedStateToText(myHeatWifi.getIsFallbackAPEnabled());
             break;
         }

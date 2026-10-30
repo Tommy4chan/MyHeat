@@ -1,5 +1,6 @@
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import PasswordInput from '@/components/ui/PasswordInput';
 import DarkWrapperBlock from "@/components/layout/DarkWrapperBlock";
 import SaveButton from "@/components/ui/SaveButton";
 import SettingsForm from "@/components/layout/SettingsForm";
@@ -23,10 +24,10 @@ const Bot = () => {
             />
           </FormField>
           <FormField label='Токен'>
-            <Input className='w-full' value={botToken} onChange={(e) => setBotToken(e.target.value)} />
+            <PasswordInput className='w-full' value={botToken} onChange={(e) => setBotToken(e.target.value)} />
           </FormField>
           <FormField label='Фраза реєстрації'>
-            <Input className='w-full' value={botPassword} onChange={(e) => setBotPassword(e.target.value)} />
+            <PasswordInput className='w-full' value={botPassword} onChange={(e) => setBotPassword(e.target.value)} />
           </FormField>
           <FormField label='Сповіщення безпеки'>
             <SelectToggle

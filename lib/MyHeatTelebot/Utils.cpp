@@ -22,7 +22,6 @@ namespace MyHeatTelebot
         finalResult += "\nПріоритет: ";
         finalResult += String(customFunction.getPriority());
         finalResult += "\n\n";
-        finalResult += "Деталі умов та дій дивіться у Веб-інтерфейсі.\n";
         
         return finalResult;
     }
@@ -41,5 +40,23 @@ namespace MyHeatTelebot
     {
         msg.text = getConvertedFunctionToText(customFunction, functionIndex);
         msg.setInlineMenu(getFunctionInlineMenu(functionIndex));
+    }
+
+    // Telegram HTML mode only requires these three characters to be escaped
+    String escapeHtml(const String& text)
+    {
+        String escaped;
+        escaped.reserve(text.length());
+        for (char c : text)
+        {
+            switch (c)
+            {
+            case '&': escaped += F("&amp;"); break;
+            case '<': escaped += F("&lt;"); break;
+            case '>': escaped += F("&gt;"); break;
+            default: escaped += c;
+            }
+        }
+        return escaped;
     }
 }

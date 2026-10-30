@@ -1,6 +1,7 @@
 import Button from '@/components/ui/Button'
 import DarkWrapperBlock from '@/components/layout/DarkWrapperBlock';
 import Input from '@/components/ui/Input';
+import PasswordInput from '@/components/ui/PasswordInput';
 import SettingsForm from '@/components/layout/SettingsForm';
 import SaveButton from '@/components/ui/SaveButton';
 import FormField from '@/components/ui/FormField';
@@ -54,7 +55,7 @@ const Wifi = () => {
             <Input className='w-full' value={settings.wifiSSID} onChange={handleSettingsChange} name='wifiSSID' />
           </FormField>
           <FormField label="Пароль">
-            <Input className='w-full' value={settings.wifiPassword} onChange={handleSettingsChange} name='wifiPassword' />
+            <PasswordInput className='w-full' value={settings.wifiPassword} onChange={handleSettingsChange} name='wifiPassword' />
           </FormField>
         </DarkWrapperBlock>
       </WrapperBlock>
@@ -65,7 +66,7 @@ const Wifi = () => {
             <Input className='w-full' value={settings.apSSID} onChange={handleSettingsChange} name='apSSID' />
           </FormField>
           <FormField label="Пароль">
-            <Input className='w-full' value={settings.apPassword} onChange={handleSettingsChange} name='apPassword' />
+            <PasswordInput className='w-full' value={settings.apPassword} onChange={handleSettingsChange} name='apPassword' />
           </FormField>
           <FormField label="Резервна точка доступу">
             <SelectToggle

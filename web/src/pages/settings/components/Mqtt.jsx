@@ -1,5 +1,6 @@
 import DarkWrapperBlock from '@/components/layout/DarkWrapperBlock';
 import Input from '@/components/ui/Input';
+import PasswordInput from '@/components/ui/PasswordInput';
 import SettingsForm from '@/components/layout/SettingsForm';
 import SaveButton from '@/components/ui/SaveButton';
 import FormField from '@/components/ui/FormField';
@@ -37,7 +38,7 @@ const Mqtt = () => {
           <Input className='w-full' value={settings.user || ''} onChange={handleSettingsChange} name='user' />
         </FormField>
         <FormField label="Пароль">
-          <Input className='w-full' value={settings.password || ''} onChange={handleSettingsChange} name='password' />
+          <PasswordInput className='w-full' value={settings.password || ''} onChange={handleSettingsChange} name='password' />
         </FormField>
         <FormField label="Інтервал оновлення (мс)">
           <Input type="number" className='w-full' value={settings.publishInterval || 60000} onChange={handleSettingsChange} name='publishInterval' />
