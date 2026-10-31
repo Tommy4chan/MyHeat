@@ -13,6 +13,10 @@
 #define XSTR(...) #__VA_ARGS__
 #define STR(x) XSTR(x)
 
+#ifndef TELEGRAM_BOT_BOOT_NOTIFICATION
+#define TELEGRAM_BOT_BOOT_NOTIFICATION false
+#endif
+
 namespace MyHeatTelebot
 {
     class BotSave : public MyHeatSaveInterface
@@ -22,6 +26,7 @@ namespace MyHeatTelebot
         String registerPhrase = STR(REGISTER_PHRASE);
         String token = STR(TELEGRAM_BOT_TOKEN);
         bool isAlertNotificationsEnabled = TELEGRAM_BOT_ALERT_NOTIFICATIONS;
+        bool isBootNotificationEnabled = TELEGRAM_BOT_BOOT_NOTIFICATION;
 
         void serialize(JsonDocument &doc)
         {
@@ -29,6 +34,7 @@ namespace MyHeatTelebot
             doc[F("registerPhrase")] = registerPhrase;
             doc[F("telegramBotToken")] = token;
             doc[F("isAlertNotificationsEnabled")] = isAlertNotificationsEnabled;
+            doc[F("isBootNotificationEnabled")] = isBootNotificationEnabled;
         }
 
         void deserialize(const JsonDocument &doc)
@@ -37,6 +43,7 @@ namespace MyHeatTelebot
             registerPhrase = doc[F("registerPhrase")] | STR(REGISTER_PHRASE);
             token = doc[F("telegramBotToken")] | STR(TELEGRAM_BOT_TOKEN);
             isAlertNotificationsEnabled = doc[F("isAlertNotificationsEnabled")] | TELEGRAM_BOT_ALERT_NOTIFICATIONS;
+            isBootNotificationEnabled = doc[F("isBootNotificationEnabled")] | TELEGRAM_BOT_BOOT_NOTIFICATION;
         }
 
         void manualDeserialize(const JsonDocument& doc)
@@ -66,8 +73,10 @@ namespace MyHeatTelebot
     String getRegisterPhrase();
     bool getIsEnabled();
     bool getIsAlertNotificationsEnabled();
-    void setSettings(const String& token, const String& registerPhrase, bool isActive, bool alertNotifications);
+    bool getIsBootNotificationEnabled();
+    void setSettings(const String& token, const String& registerPhrase, bool isActive, bool alertNotifications, bool bootNotification);
     void sendAlertNotification(const String& message);
+    void sendBootNotification();
     void manualDeserialize(const JsonDocument& data);
     
     void save();

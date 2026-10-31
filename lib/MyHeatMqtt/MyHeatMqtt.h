@@ -12,6 +12,10 @@
 #define MQTT_DEVICE_NAME "MyHeat Controller"
 #endif
 
+#ifndef MQTT_BOOT_NOTIFICATION
+#define MQTT_BOOT_NOTIFICATION false
+#endif
+
 #ifndef FIRMWARE_VERSION
 #define FIRMWARE_VERSION "dev"
 #endif
@@ -28,6 +32,7 @@ namespace MyHeatMqtt
         bool isEnabled = MQTT_ENABLED;
         uint32_t publishInterval = MQTT_PUBLISH_INTERVAL;
         String deviceName = MQTT_DEVICE_NAME;
+        bool isBootNotificationEnabled = MQTT_BOOT_NOTIFICATION;
 
         void serialize(JsonDocument &json) override;
         void deserialize(const JsonDocument &json) override;
@@ -98,6 +103,8 @@ namespace MyHeatMqtt
 
     // ----- Alerts -----
     void onAlertEvent(const AlertEvent &event);
+    void queueAlertEvent(const String &payload);
+    void queueBootEvent();
     void publishPendingAlertEvents();
 
     // ----- Command handling -----

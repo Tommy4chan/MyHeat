@@ -381,9 +381,17 @@ void MyHeatWifi::setIsWebsocketClientsConnected(bool isConnected)
 
 void MyHeatWifi::manualDeserialize(const JsonDocument& data)
 {
+    String oldSSID = wifiSSID;
+    String oldPassword = wifiPassword;
     deserialize(data);
     restartMDNS();
-    setSTAMode();
-    beginNTP();
     save();
+
+    // Reconnecting drops the websocket that carried the import, so only do it when the network changed
+    if (wifiSSID != oldSSID || wifiPassword != oldPassword || isAPActive || isFallbackAPActive)
+    {
+        setSTAMode();
+    }
+    // NTP resolves its server over DNS, that has to happen on the main loop, not in the web task
+    isNtpStartPending = true;
 }

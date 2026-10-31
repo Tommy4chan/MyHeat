@@ -18,6 +18,9 @@ namespace MyHeatWeb
         MyHeatAlerts::registerHandler(sendAlertNotification);
     }
 
+    // Set only once Update.end() accepted the image, so a request without a file part can't trigger a reboot
+    static bool isUpdateSucceeded = false;
+
     void setupOTA()
     {
         server.on("/update", HTTP_OPTIONS, [](AsyncWebServerRequest *request) {
@@ -25,33 +28,46 @@ namespace MyHeatWeb
         });
 
         server.on("/update", HTTP_POST, [](AsyncWebServerRequest *request) {
-            bool shouldReboot = !Update.hasError();
-            AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", shouldReboot ? "OK" : "FAIL");
+            MyHeatUtils::clearFlashUpdateActivity();
+            bool shouldReboot = isUpdateSucceeded;
+            isUpdateSucceeded = false;
+            AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", shouldReboot ? String("OK") : String("FAIL: ") + Update.errorString());
             response->addHeader("Connection", "close");
             request->send(response);
-            
+
             if (shouldReboot) {
                 MyHeatWeb::restartRequired = true;
             }
         }, [](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+            MyHeatUtils::markFlashUpdateActivity();
+
             if (!index) {
+                isUpdateSucceeded = false;
                 Serial.printf("Update Start: %s\n", filename.c_str());
                 int cmd = U_FLASH;
                 if (request->hasParam("type") && request->getParam("type")->value() == "fs") {
                     cmd = U_SPIFFS;
                 }
-                
-                if (!Update.begin(request->contentLength(), cmd)) {
+
+                // An earlier upload that was cut off leaves Update running, every new begin() would fail until reboot
+                if (Update.isRunning()) {
+                    Update.abort();
+                }
+
+                // contentLength() is the whole multipart body, bigger than the file itself, so a full size
+                // filesystem image never fit. The real size is set by end(true) from the bytes written
+                if (!Update.begin(UPDATE_SIZE_UNKNOWN, cmd)) {
                     Update.printError(Serial);
                 }
             }
-            if (!Update.hasError()) {
+            if (Update.isRunning() && !Update.hasError()) {
                 if (Update.write(data, len) != len) {
                     Update.printError(Serial);
                 }
             }
-            if (final) {
+            if (final && Update.isRunning()) {
                 if (Update.end(true)) {
+                    isUpdateSucceeded = true;
                     Serial.printf("Update Success: %uB\n", index + len);
                 } else {
                     Update.printError(Serial);
@@ -94,168 +110,216 @@ namespace MyHeatWeb
         }
     }
 
+    // Messages bigger than one TCP packet (settings import, large functions) arrive in several chunks,
+    // they are collected here and processed once complete
+    static constexpr size_t MAX_WS_MESSAGE_SIZE = 16384;
+    static std::vector<uint8_t> pendingMessage;
+    static uint32_t pendingClientId = 0;
+
     void handleWebSocketMessage(AsyncWebSocketClient *client, void *arg, uint8_t *data, size_t len)
     {
         AwsFrameInfo *info = (AwsFrameInfo *)arg;
-        if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT)
+        if (info->final && info->num == 0 && info->index == 0 && info->len == len && info->opcode == WS_TEXT)
         {
-            JsonDocument received;
-            deserializeJson(received, data, len);
+            processWebSocketMessage(client, data, len);
+            return;
+        }
 
-            String messageType = received["messageType"].as<String>();
-            JsonObject payload = received["payload"].as<JsonObject>();
+        if (info->message_opcode != WS_TEXT)
+        {
+            return;
+        }
 
-            JsonDocument response;
-            JsonObject responsePayload = response["payload"].to<JsonObject>();
-            JsonObject responseStatus = response["status"].to<JsonObject>();
-            response["messageType"] = messageType + "Response";
+        // First chunk of the first frame starts a new message
+        if (info->num == 0 && info->index == 0)
+        {
+            pendingMessage.clear();
+            pendingClientId = client->id();
+        }
 
-            switch (su::SH(messageType.c_str()))
-            {
-                // case su::SH("ping"):
-                //     response["payload"] = "pong";
-                //     break;
+        // Chunks of another client's message can't be mixed in, that message is dropped
+        if (client->id() != pendingClientId || pendingMessage.size() + len > MAX_WS_MESSAGE_SIZE)
+        {
+            pendingMessage.clear();
+            pendingMessage.shrink_to_fit();
+            pendingClientId = 0;
+            return;
+        }
 
-            case su::SH("setWifiSettings"):
-                setWifiSettings(payload, responseStatus);
-                break;
+        if (pendingMessage.empty() && info->num == 0 && info->len <= MAX_WS_MESSAGE_SIZE)
+        {
+            pendingMessage.reserve(info->len);
+        }
+        pendingMessage.insert(pendingMessage.end(), data, data + len);
 
-            case su::SH("getWifiSettings"):
-                getWifiSettings(responsePayload);
-                break;
+        if (info->final && info->index + len == info->len)
+        {
+            processWebSocketMessage(client, pendingMessage.data(), pendingMessage.size());
+            // Free the buffer, imports are rare and the memory is better left to the heap
+            pendingMessage.clear();
+            pendingMessage.shrink_to_fit();
+            pendingClientId = 0;
+        }
+    }
 
-            case su::SH("startWifiScan"):
-                startWifiScan();
-                break;
+    void processWebSocketMessage(AsyncWebSocketClient *client, const uint8_t *data, size_t len)
+    {
+        JsonDocument received;
+        deserializeJson(received, data, len);
 
-            case su::SH("getDiscoveredTemperatureSensors"):
-                getDiscoveredTemperatureSensors(responsePayload, responseStatus);
-                break;
+        String messageType = received["messageType"].as<String>();
+        JsonObject payload = received["payload"].as<JsonObject>();
 
-            case su::SH("setTemperatureSensor"):
-                setTemperatureSensor(payload, responseStatus);
-                break;
+        JsonDocument response;
+        JsonObject responsePayload = response["payload"].to<JsonObject>();
+        JsonObject responseStatus = response["status"].to<JsonObject>();
+        response["messageType"] = messageType + "Response";
 
-            case su::SH("deleteTemperatureSensor"):
-                deleteTemperatureSensor(payload, responseStatus);
-                break;
+        switch (su::SH(messageType.c_str()))
+        {
+            // case su::SH("ping"):
+            //     response["payload"] = "pong";
+            //     break;
 
-            case su::SH("getTemperatureSensorsSettings"):
-                getTemperatureSensorsSettings(responsePayload);
-                break;
+        case su::SH("setWifiSettings"):
+            setWifiSettings(payload, responseStatus);
+            break;
 
-            case su::SH("setTemperatureSensorsSettings"):
-                setTemperatureSensorsSettings(payload, responseStatus);
-                break;
+        case su::SH("getWifiSettings"):
+            getWifiSettings(responsePayload);
+            break;
 
-            case su::SH("getRelaysSettings"):
-                getRelaysSettings(responsePayload);
-                break;
+        case su::SH("startWifiScan"):
+            startWifiScan();
+            break;
 
-            case su::SH("setRelayMode"):
-                setRelayMode(payload, responseStatus);
-                break;
+        case su::SH("getDiscoveredTemperatureSensors"):
+            getDiscoveredTemperatureSensors(responsePayload, responseStatus);
+            break;
 
-            case su::SH("setRelaysSettings"):
-                setRelaysSettings(payload, responseStatus);
-                break;
+        case su::SH("setTemperatureSensor"):
+            setTemperatureSensor(payload, responseStatus);
+            break;
 
-            case su::SH("setRelayCount"):
-                setRelayCount(payload, responseStatus);
-                break;
+        case su::SH("deleteTemperatureSensor"):
+            deleteTemperatureSensor(payload, responseStatus);
+            break;
 
-            case su::SH("getRelayCount"):
-                getRelayCount(responsePayload);
-                break;
+        case su::SH("getTemperatureSensorsSettings"):
+            getTemperatureSensorsSettings(responsePayload);
+            break;
 
-            case su::SH("setFunctionIsEnabled"):
-                setFunctionIsEnabled(payload, responseStatus);
-                break;
+        case su::SH("setTemperatureSensorsSettings"):
+            setTemperatureSensorsSettings(payload, responseStatus);
+            break;
 
-            case su::SH("setFunctionsSettings"):
-                setFunctionsSettings(payload, responseStatus);
-                break;
+        case su::SH("getRelaysSettings"):
+            getRelaysSettings(responsePayload);
+            break;
 
-            case su::SH("getPinsData"):
-                getUsedPinsData(responsePayload);
-                break;
+        case su::SH("setRelayMode"):
+            setRelayMode(payload, responseStatus);
+            break;
 
-            case su::SH("getNTPSettings"):
-                getNTPSettings(responsePayload);
-                break;
+        case su::SH("setRelaysSettings"):
+            setRelaysSettings(payload, responseStatus);
+            break;
 
-            case su::SH("setNTPSettings"):
-                setNTPSettings(payload, responseStatus);
-                break;
+        case su::SH("setRelayCount"):
+            setRelayCount(payload, responseStatus);
+            break;
 
-            case su::SH("getTelegramBotSettings"):
-                getTelegramBotSettings(responsePayload);
-                break;
+        case su::SH("getRelayCount"):
+            getRelayCount(responsePayload);
+            break;
 
-            case su::SH("setTelegramBotSettings"):
-                setTelegramBotSettings(payload, responseStatus);
-                break;
+        case su::SH("setFunctionIsEnabled"):
+            setFunctionIsEnabled(payload, responseStatus);
+            break;
 
-            case su::SH("deleteTelegramUser"):
-                deleteTelegramUser(payload, responseStatus);
-                break;
+        case su::SH("setFunctionsSettings"):
+            setFunctionsSettings(payload, responseStatus);
+            break;
 
-            case su::SH("getHardwareIOSettings"):
-                getHardwareIOSettings(responsePayload);
-                break;
+        case su::SH("getPinsData"):
+            getUsedPinsData(responsePayload);
+            break;
 
-            case su::SH("setHardwareIOSettings"):
-                setHardwareIOSettings(payload, responseStatus);
-                break;
+        case su::SH("getNTPSettings"):
+            getNTPSettings(responsePayload);
+            break;
 
-            case su::SH("getAllDeviceSettings"):
-                getAllDeviceSettings(responsePayload);
-                break;
+        case su::SH("setNTPSettings"):
+            setNTPSettings(payload, responseStatus);
+            break;
 
-            case su::SH("setAllDeviceSettings"):
-                setAllDeviceSettings(payload, responseStatus);
-                break;
+        case su::SH("getTelegramBotSettings"):
+            getTelegramBotSettings(responsePayload);
+            break;
 
-            case su::SH("getMqttSettings"):
-                getMqttSettings(responsePayload);
-                break;
+        case su::SH("setTelegramBotSettings"):
+            setTelegramBotSettings(payload, responseStatus);
+            break;
 
-            case su::SH("setMqttSettings"):
-                setMqttSettings(payload, responseStatus);
-                break;
+        case su::SH("deleteTelegramUser"):
+            deleteTelegramUser(payload, responseStatus);
+            break;
 
-            case su::SH("restartDevice"):
-                setWarningMessage(responseStatus, "Перезавантаження пристрою");
-                restartRequired = true;
-                break;
+        case su::SH("getHardwareIOSettings"):
+            getHardwareIOSettings(responsePayload);
+            break;
 
-            case su::SH("getSmokeSensorSettings"):
-                getSmokeSensorSettings(responsePayload);
-                break;
+        case su::SH("setHardwareIOSettings"):
+            setHardwareIOSettings(payload, responseStatus);
+            break;
 
-            case su::SH("setSmokeSensorSettings"):
-                setSmokeSensorSettings(payload, responseStatus);
-                break;
+        case su::SH("getAllDeviceSettings"):
+            getAllDeviceSettings(responsePayload);
+            break;
 
-            case su::SH("getSmokeSensor"):
-                getSmokeSensor(responsePayload);
-                break;
+        case su::SH("setAllDeviceSettings"):
+            setAllDeviceSettings(payload, responseStatus);
+            break;
 
-            default:
-                setErrorMessage(responseStatus, "Невідовий тип повідомлення");
-                break;
-            }
+        case su::SH("getMqttSettings"):
+            getMqttSettings(responsePayload);
+            break;
 
-            String responseString;
-            serializeJson(response, responseString);
+        case su::SH("setMqttSettings"):
+            setMqttSettings(payload, responseStatus);
+            break;
 
-            client->text(responseString);
+        case su::SH("restartDevice"):
+            setWarningMessage(responseStatus, "Перезавантаження пристрою");
+            restartRequired = true;
+            break;
 
-            if (messageType.startsWith("set") || messageType.startsWith("del"))
-            {
-                MyHeatDevice::getInstance().manualTick();
-                requestFullSend();
-            }
+        case su::SH("getSmokeSensorSettings"):
+            getSmokeSensorSettings(responsePayload);
+            break;
+
+        case su::SH("setSmokeSensorSettings"):
+            setSmokeSensorSettings(payload, responseStatus);
+            break;
+
+        case su::SH("getSmokeSensor"):
+            getSmokeSensor(responsePayload);
+            break;
+
+        default:
+            setErrorMessage(responseStatus, "Невідовий тип повідомлення");
+            break;
+        }
+
+        String responseString;
+        serializeJson(response, responseString);
+
+        client->text(responseString);
+
+        if (messageType.startsWith("set") || messageType.startsWith("del"))
+        {
+            MyHeatDevice::getInstance().manualTick();
+            requestFullSend();
         }
     }
 

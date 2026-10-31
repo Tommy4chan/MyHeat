@@ -58,15 +58,17 @@ const useSettingStore = create((set, get) => ({
     set({ isScanningForWifiNetworks: false, scannedWifiNetworks: payload });
   },
 
-  setTelegramBotSettings: (token, registerPhrase, isEnabled, isAlertNotificationsEnabled) => {
+  setTelegramBotSettings: (token, registerPhrase, isEnabled, isAlertNotificationsEnabled, isBootNotificationEnabled) => {
     isEnabled = convertToBoolean(isEnabled);
     isAlertNotificationsEnabled = convertToBoolean(isAlertNotificationsEnabled);
+    isBootNotificationEnabled = convertToBoolean(isBootNotificationEnabled);
 
     const payload = {
       token,
       registerPhrase,
       isEnabled,
       isAlertNotificationsEnabled,
+      isBootNotificationEnabled,
     };
 
     useWebSocketStore.getState().sendMessage("setTelegramBotSettings", payload);
@@ -202,8 +204,9 @@ const useSettingStore = create((set, get) => ({
     set({ smokeSensor: payload });
   },
 
-  setMqttSettings: (broker, port, user, password, isEnabled, publishInterval, deviceName) => {
+  setMqttSettings: (broker, port, user, password, isEnabled, publishInterval, deviceName, isBootNotificationEnabled) => {
     isEnabled = convertToBoolean(isEnabled);
+    isBootNotificationEnabled = convertToBoolean(isBootNotificationEnabled);
 
     const payload = {
       broker,
@@ -213,6 +216,7 @@ const useSettingStore = create((set, get) => ({
       isEnabled,
       publishInterval: Number(publishInterval),
       deviceName,
+      isBootNotificationEnabled,
     };
 
     useWebSocketStore.getState().sendMessage("setMqttSettings", payload);

@@ -5,6 +5,8 @@ namespace MyHeatTelebot
 {
     static std::vector<String> pendingAlerts;
     static const byte MAX_PENDING_ALERTS = 10;
+    // Set on boot, sent once the bot can reach Telegram so the message has the real time and IP
+    static bool isBootNotificationPending = false;
 
     void begin()
     {
@@ -15,6 +17,7 @@ namespace MyHeatTelebot
         bot.setPollMode(fb::Poll::Long, 30000);
         bot.attachUpdate(handleUpdate);
         loadUsers();
+        isBootNotificationPending = botSave.isBootNotificationEnabled;
 
         MyHeatAlerts::registerHandler(MyHeatTelebot::sendAlertNotification);
     }
@@ -36,6 +39,12 @@ namespace MyHeatTelebot
                         }
                     }
                     pendingAlerts.clear();
+                }
+
+                if (isBootNotificationPending && MyHeatWifi::getInstance().isConnected())
+                {
+                    isBootNotificationPending = false;
+                    sendBootNotification();
                 }
 
                 // TODO: Add a preloader/connecting screen on OLED here because bot.tick() blocks loop for ~7s during the initial DNS/SSL handshake
@@ -313,13 +322,19 @@ namespace MyHeatTelebot
         return botSave.isAlertNotificationsEnabled;
     }
 
-    void setSettings(const String& token, const String& registerPhrase, bool isEnabled, bool isAlertNotificationsEnabled)
+    bool getIsBootNotificationEnabled()
+    {
+        return botSave.isBootNotificationEnabled;
+    }
+
+    void setSettings(const String& token, const String& registerPhrase, bool isEnabled, bool isAlertNotificationsEnabled, bool isBootNotificationEnabled)
     {
         botSave.token = token;
         bot.setToken(token);
         botSave.registerPhrase = registerPhrase;
         botSave.isEnabled = isEnabled;
         botSave.isAlertNotificationsEnabled = isAlertNotificationsEnabled;
+        botSave.isBootNotificationEnabled = isBootNotificationEnabled;
         save();
     }
 
@@ -328,6 +343,19 @@ namespace MyHeatTelebot
         botSave.manualDeserialize(data);
         save();
         bot.setToken(botSave.token);
+    }
+
+    void sendBootNotification()
+    {
+        String message = "Контролер запущено\n"
+                         "Причина: " + MyHeatUtils::getResetReasonText() + "\n";
+        message.trim();
+
+        for (byte i = 0; i < getUsersCount(); i++)
+        {
+            fb::Message msg(message, getChatIdByIndex(i));
+            bot.sendMessage(msg);
+        }
     }
 
     void sendAlertNotification(const String& message)

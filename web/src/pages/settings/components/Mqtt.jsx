@@ -43,6 +43,14 @@ const Mqtt = () => {
         <FormField label="Інтервал оновлення (мс)">
           <Input type="number" className='w-full' value={settings.publishInterval || 60000} onChange={handleSettingsChange} name='publishInterval' />
         </FormField>
+        <FormField label="Сповіщення про запуск">
+          <SelectToggle
+            value={settings.isBootNotificationEnabled ?? false}
+            onChange={handleSettingsChange}
+            className='w-full'
+            name='isBootNotificationEnabled'
+          />
+        </FormField>
 
       </DarkWrapperBlock>
       <SaveButton onClick={handleMqttSettingsSave} />

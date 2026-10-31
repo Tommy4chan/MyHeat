@@ -10,7 +10,7 @@ import WrapperBlock from "@/components/layout/WrapperBlock";
 import { useBotSettings } from "../hooks/useBotSettings";
 
 const Bot = () => {
-  const { botToken, setBotToken, botPassword, setBotPassword, isBotEnabled, setIsBotEnabled, setTelegramBotSettings, setIsAlertNotificationsEnabled, isAlertNotificationsEnabled, users, deleteTelegramUser } = useBotSettings();
+  const { botToken, setBotToken, botPassword, setBotPassword, isBotEnabled, setIsBotEnabled, setTelegramBotSettings, setIsAlertNotificationsEnabled, isAlertNotificationsEnabled, isBootNotificationEnabled, setIsBootNotificationEnabled, users, deleteTelegramUser } = useBotSettings();
 
   return (
     <SettingsForm title='Телеграм бот'>
@@ -36,6 +36,13 @@ const Bot = () => {
               className='w-full'
             />
           </FormField>
+          <FormField label='Сповіщення про запуск'>
+            <SelectToggle
+              value={isBootNotificationEnabled}
+              onChange={(e) => setIsBootNotificationEnabled(e.target.value)}
+              className='w-full'
+            />
+          </FormField>
         </DarkWrapperBlock>
       </WrapperBlock>
       <WrapperBlock>
@@ -53,7 +60,7 @@ const Bot = () => {
           <DarkWrapperBlock><p>Немає зареєстрованих користувачів</p></DarkWrapperBlock>
         )}
       </WrapperBlock>
-      <SaveButton onClick={() => setTelegramBotSettings(botToken, botPassword, isBotEnabled, isAlertNotificationsEnabled)} />
+      <SaveButton onClick={() => setTelegramBotSettings(botToken, botPassword, isBotEnabled, isAlertNotificationsEnabled, isBootNotificationEnabled)} />
     </SettingsForm>
   )
 }

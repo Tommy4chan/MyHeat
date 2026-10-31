@@ -15,6 +15,8 @@ namespace MyHeatMqtt
     // and tick() publishes
     static std::vector<String> pendingAlertEvents;
     static std::mutex pendingAlertEventsMutex;
+    // Sent on the Alerts event entity so the same HA automations can forward it
+    static const char *BOOT_EVENT_TYPE = "device_started";
 
     // Hash of the last published state per entity. States are built in stack buffers and compared by hash,
     // so the change check allocates nothing on the heap
@@ -75,6 +77,7 @@ namespace MyHeatMqtt
         json["isEnabled"] = isEnabled;
         json["publishInterval"] = publishInterval;
         json["deviceName"] = deviceName;
+        json["isBootNotificationEnabled"] = isBootNotificationEnabled;
     }
 
     void MqttSettings::deserialize(const JsonDocument &json)
@@ -86,6 +89,7 @@ namespace MyHeatMqtt
         isEnabled = json["isEnabled"] | MQTT_ENABLED;
         publishInterval = json["publishInterval"] | MQTT_PUBLISH_INTERVAL;
         deviceName = json["deviceName"] | MQTT_DEVICE_NAME;
+        isBootNotificationEnabled = json["isBootNotificationEnabled"] | MQTT_BOOT_NOTIFICATION;
     }
 
     void MqttSettings::manualDeserialize(const JsonDocument& json)
@@ -113,6 +117,11 @@ namespace MyHeatMqtt
         lastFunctionCount = myHeatDevice.customFunctions.getCustomFunctionCount();
 
         MyHeatAlerts::registerEventHandler(onAlertEvent);
+
+        if (settings.isEnabled && settings.isBootNotificationEnabled)
+        {
+            queueBootEvent();
+        }
     }
 
     void connect()
@@ -527,6 +536,7 @@ namespace MyHeatMqtt
             eventTypes.add(typeName);
             eventTypes.add(typeName + "_resolved");
         }
+        eventTypes.add(BOOT_EVENT_TYPE);
 
         addAvailability(doc);
         publishDiscovery("event", "alerts", doc);
@@ -716,7 +726,24 @@ namespace MyHeatMqtt
 
         String payload;
         serializeJson(doc, payload);
+        queueAlertEvent(payload);
+    }
 
+    // Queued in begin(), published with the other events right after the first connection
+    void queueBootEvent()
+    {
+        JsonDocument doc;
+        doc["event_type"] = BOOT_EVENT_TYPE;
+        doc["reason"] = MyHeatUtils::getResetReasonName();
+        doc["message"] = String(F("Контролер запущено, причина: ")) + MyHeatUtils::getResetReasonText();
+
+        String payload;
+        serializeJson(doc, payload);
+        queueAlertEvent(payload);
+    }
+
+    void queueAlertEvent(const String &payload)
+    {
         std::lock_guard<std::mutex> lock(pendingAlertEventsMutex);
         if (pendingAlertEvents.size() >= MAX_PENDING_ALERT_EVENTS)
         {

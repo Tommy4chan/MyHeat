@@ -70,7 +70,7 @@ namespace MyHeatWeb
 
     void setTelegramBotSettings(JsonObject payload, JsonObject status)
     {
-        MyHeatTelebot::setSettings(payload[F("token")], payload[F("registerPhrase")], payload[F("isEnabled")], payload[F("isAlertNotificationsEnabled")]);
+        MyHeatTelebot::setSettings(payload[F("token")], payload[F("registerPhrase")], payload[F("isEnabled")], payload[F("isAlertNotificationsEnabled")], payload[F("isBootNotificationEnabled")] | false);
 
         setSuccessMessage(status, "Налаштування збереженні");
     }
@@ -83,6 +83,7 @@ namespace MyHeatWeb
         response[F("registerPhrase")] = MyHeatTelebot::getRegisterPhrase();
         response[F("isEnabled")] = MyHeatTelebot::getIsEnabled();
         response[F("isAlertNotificationsEnabled")] = MyHeatTelebot::getIsAlertNotificationsEnabled();
+        response[F("isBootNotificationEnabled")] = MyHeatTelebot::getIsBootNotificationEnabled();
 
         JsonArray usersArray = response[F("users")].to<JsonArray>();
         byte count = MyHeatTelebot::getUsersCount();
@@ -128,6 +129,7 @@ namespace MyHeatWeb
 
     void setMqttSettings(JsonObject payload, JsonObject status)
     {
+        MyHeatMqtt::settings.isBootNotificationEnabled = payload[F("isBootNotificationEnabled")] | false;
         MyHeatMqtt::setSettings(payload[F("broker")], payload[F("port")], payload[F("user")], payload[F("password")], payload[F("isEnabled")], payload[F("publishInterval")], payload[F("deviceName")] | MQTT_DEVICE_NAME);
         MyHeatMqtt::save();
         setSuccessMessage(status, "Налаштування збережені");
@@ -142,6 +144,7 @@ namespace MyHeatWeb
         response[F("isEnabled")] = MyHeatMqtt::getIsEnabled();
         response[F("publishInterval")] = MyHeatMqtt::getPublishInterval();
         response[F("deviceName")] = MyHeatMqtt::getDeviceName();
+        response[F("isBootNotificationEnabled")] = MyHeatMqtt::settings.isBootNotificationEnabled;
     }
 
     void getAllDeviceSettings(JsonObject response)

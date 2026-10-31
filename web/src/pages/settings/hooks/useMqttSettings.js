@@ -10,6 +10,7 @@ export const useMqttSettings = () => {
     isEnabled: false,
     publishInterval: 60000,
     deviceName: "MyHeat Controller",
+    isBootNotificationEnabled: false,
   });
 
   const {
@@ -40,7 +41,8 @@ export const useMqttSettings = () => {
       settings.password,
       settings.isEnabled,
       settings.publishInterval,
-      settings.deviceName
+      settings.deviceName,
+      settings.isBootNotificationEnabled ?? false
     );
   };
 

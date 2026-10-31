@@ -1,5 +1,6 @@
 #include "MyHeatTemperatures.h"
 #include <MyHeatAlerts.h>
+#include <MyHeatUtils.h>
 
 void MyHeatTemperatures::serialize(JsonDocument &doc)
 {
@@ -131,6 +132,12 @@ std::vector<DeviceAddressArray>& MyHeatTemperatures::getTemperatureSensorAddress
 
 void MyHeatTemperatures::updateTemperatures()
 {
+    // OTA flash writes corrupt OneWire reads and would raise false disconnect alerts, the last values are kept instead
+    if (MyHeatUtils::isFlashUpdateInProgress())
+    {
+        return;
+    }
+
     for (size_t i = 0; i < temperatures.size(); i++)
     {
         if (isTemperatureSensorAddressEmpty(i))

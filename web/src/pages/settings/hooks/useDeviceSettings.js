@@ -98,7 +98,9 @@ export const useDeviceSettings = () => {
         setOtaProgress(100);
         setTimeout(() => location.reload(), 3000); // Wait for reboot then refresh
       } else {
-        showErrorToast("Помилка оновлення пристрою.");
+        // Firmware replies "FAIL: <reason>", the reason helps tell a wrong file from a flash problem
+        const reason = xhr.responseText?.startsWith("FAIL: ") ? xhr.responseText.slice(6) : "";
+        showErrorToast(reason ? `Помилка оновлення пристрою: ${reason}` : "Помилка оновлення пристрою.");
         setOtaProgress(0);
       }
     };

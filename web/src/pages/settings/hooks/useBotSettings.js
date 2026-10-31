@@ -6,6 +6,7 @@ export const useBotSettings = () => {
   const [botPassword, setBotPassword] = useState('');
   const [isBotEnabled, setIsBotEnabled] = useState(false);
   const [isAlertNotificationsEnabled, setIsAlertNotificationsEnabled] = useState(false);
+  const [isBootNotificationEnabled, setIsBootNotificationEnabled] = useState(false);
   const [users, setUsers] = useState([]);
 
   const { setTelegramBotSettings, getTelegramBotSettings, telegramBotSettings, deleteTelegramUser } = useSettingStore();
@@ -19,6 +20,7 @@ export const useBotSettings = () => {
     setBotPassword(telegramBotSettings.registerPhrase);
     setIsBotEnabled(telegramBotSettings.isEnabled);
     setIsAlertNotificationsEnabled(telegramBotSettings.isAlertNotificationsEnabled);
+    setIsBootNotificationEnabled(telegramBotSettings.isBootNotificationEnabled ?? false);
     setUsers(telegramBotSettings.users || []);
   }, [telegramBotSettings]);
 
@@ -32,6 +34,8 @@ export const useBotSettings = () => {
     setTelegramBotSettings,
     isAlertNotificationsEnabled,
     setIsAlertNotificationsEnabled,
+    isBootNotificationEnabled,
+    setIsBootNotificationEnabled,
     users,
     deleteTelegramUser
   }

@@ -12,6 +12,13 @@ namespace MyHeatUtils
     String getConvertedStateToText(byte state);
     String getConvertedActiveToText(bool active);
     String getCurrentDateAndTime();
+    // Why the chip started: machine-readable name for HA and Ukrainian text for messages
+    const char *getResetReasonName();
+    String getResetReasonText();
+    // Flash writes during OTA stall the CPU and break timing sensitive reads (OneWire), the upload marks its activity here
+    void markFlashUpdateActivity();
+    void clearFlashUpdateActivity();
+    bool isFlashUpdateInProgress();
     String getAddressToString(uint8_t address[8]);
     JsonDocument getFileContent(String path);
     bool isFloat(const String& str);
