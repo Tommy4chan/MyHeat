@@ -33,7 +33,13 @@ namespace MyHeatWeb
     {
         MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
 
-        myHeatWifi.setWifiSettings(payload[F("wifiSSID")], payload[F("wifiPassword")], payload[F("apSSID")], payload[F("apPassword")], payload[F("isFallbackAPEnabled")], payload[F("mDNS")]);
+        String oldDeviceName = myHeatWifi.getDeviceName();
+        myHeatWifi.setWifiSettings(payload[F("wifiSSID")], payload[F("wifiPassword")], payload[F("apSSID")], payload[F("apPassword")], payload[F("isFallbackAPEnabled")], payload[F("mDNS")], payload[F("deviceName")] | oldDeviceName);
+
+        if (myHeatWifi.getDeviceName() != oldDeviceName)
+        {
+            MyHeatMqtt::refreshDiscovery();
+        }
 
         setSuccessMessage(status, "Налаштування збереженні");
     }
@@ -48,6 +54,7 @@ namespace MyHeatWeb
         response[F("apPassword")] = myHeatWifi.getAPPassword();
         response[F("isFallbackAPEnabled")] = myHeatWifi.getIsFallbackAPEnabled();
         response[F("mDNS")] = myHeatWifi.getMDNS();
+        response[F("deviceName")] = myHeatWifi.getDeviceName();
     }
 
     void setNTPSettings(JsonObject payload, JsonObject status)
@@ -130,7 +137,7 @@ namespace MyHeatWeb
     void setMqttSettings(JsonObject payload, JsonObject status)
     {
         MyHeatMqtt::settings.isBootNotificationEnabled = payload[F("isBootNotificationEnabled")] | false;
-        MyHeatMqtt::setSettings(payload[F("broker")], payload[F("port")], payload[F("user")], payload[F("password")], payload[F("isEnabled")], payload[F("publishInterval")], payload[F("deviceName")] | MQTT_DEVICE_NAME);
+        MyHeatMqtt::setSettings(payload[F("broker")], payload[F("port")], payload[F("user")], payload[F("password")], payload[F("isEnabled")], payload[F("publishInterval")]);
         MyHeatMqtt::save();
         setSuccessMessage(status, "Налаштування збережені");
     }
@@ -143,7 +150,6 @@ namespace MyHeatWeb
         response[F("password")] = MyHeatMqtt::getPassword();
         response[F("isEnabled")] = MyHeatMqtt::getIsEnabled();
         response[F("publishInterval")] = MyHeatMqtt::getPublishInterval();
-        response[F("deviceName")] = MyHeatMqtt::getDeviceName();
         response[F("isBootNotificationEnabled")] = MyHeatMqtt::settings.isBootNotificationEnabled;
     }
 
@@ -177,6 +183,13 @@ namespace MyHeatWeb
         myHeatDevice.smokeSensor.manualDeserialize(payload[F("MyHeatSmokeSensor")]);
         myHeatHardwareIO.manualDeserialize(payload[F("MyHeatHardwareIO")]);
         myHeatWifi.manualDeserialize(payload[F("MyHeatWifi")]);
+
+        // Exports from older versions carry the device name in the MQTT settings
+        const char *legacyDeviceName = payload[F("MyHeatMqtt")][F("deviceName")];
+        if (payload[F("MyHeatWifi")][F("device_name")].isNull() && legacyDeviceName)
+        {
+            myHeatWifi.setDeviceName(legacyDeviceName);
+        }
         MyHeatTelebot::manualDeserialize(payload[F("MyHeatTelebot")]);
         if (!payload["MyHeatMqtt"].isNull()) {
             MyHeatMqtt::settings.manualDeserialize(payload[F("MyHeatMqtt")]);
@@ -187,8 +200,7 @@ namespace MyHeatWeb
                 MyHeatMqtt::settings.user,
                 MyHeatMqtt::settings.password,
                 MyHeatMqtt::settings.isEnabled,
-                MyHeatMqtt::settings.publishInterval,
-                MyHeatMqtt::settings.deviceName
+                MyHeatMqtt::settings.publishInterval
             );
         }
 
@@ -199,6 +211,8 @@ namespace MyHeatWeb
                 MyHeatTelebot::registerUser(v.as<String>());
             }
         }
+
+        MyHeatMqtt::refreshDiscovery();
 
         setSuccessMessage(status, "Налаштування імпортовані");
     }
@@ -227,6 +241,16 @@ namespace MyHeatWeb
 
         response[F("value")] = myHeatDevice.smokeSensor.getValue();
         response[F("isOverThreshold")] = myHeatDevice.smokeSensor.getIsOverThreshold();
+    }
+
+    // Sent on connect, the web UI uses it to name this controller in the controller list
+    void getDeviceInfo(JsonObject response)
+    {
+        MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
+
+        response[F("name")] = myHeatWifi.getDeviceName();
+        response[F("mdns")] = myHeatWifi.getMDNS();
+        response[F("address")] = myHeatWifi.isConnected() ? WiFi.localIP().toString() : WiFi.softAPIP().toString();
     }
 
     void startWifiScan()

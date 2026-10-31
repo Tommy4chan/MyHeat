@@ -38,6 +38,9 @@ namespace MyHeatWeb
     void sendFunctionsData(bool force = true);
     void sendUsedPinsData();
     void sendNetworksData();
+    void sendDeviceInfo();
+    void sendHeartbeat();
+    void sendDeviceScanData();
     void sendDataToClients(JsonDocument &data, const String &messageType);
     void sendIfChanged(JsonDocument &data, RepeatableMessage slot, const String &messageType, bool force);
 

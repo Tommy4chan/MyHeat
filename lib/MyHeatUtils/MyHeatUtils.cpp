@@ -78,7 +78,7 @@ namespace MyHeatUtils
     {
         switch (esp_reset_reason())
         {
-        case ESP_RST_POWERON:   return F("увімкнення живлення");
+        case ESP_RST_POWERON:   return F("подано живлення");
         case ESP_RST_SW:        return F("перезапуск");
         case ESP_RST_PANIC:     return F("збій програми");
         case ESP_RST_INT_WDT:

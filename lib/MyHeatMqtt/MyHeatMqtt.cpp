@@ -76,7 +76,6 @@ namespace MyHeatMqtt
         json["password"] = password;
         json["isEnabled"] = isEnabled;
         json["publishInterval"] = publishInterval;
-        json["deviceName"] = deviceName;
         json["isBootNotificationEnabled"] = isBootNotificationEnabled;
     }
 
@@ -88,7 +87,7 @@ namespace MyHeatMqtt
         password = json["password"] | MQTT_PASSWORD;
         isEnabled = json["isEnabled"] | MQTT_ENABLED;
         publishInterval = json["publishInterval"] | MQTT_PUBLISH_INTERVAL;
-        deviceName = json["deviceName"] | MQTT_DEVICE_NAME;
+        legacyDeviceName = json["deviceName"] | "";
         isBootNotificationEnabled = json["isBootNotificationEnabled"] | MQTT_BOOT_NOTIFICATION;
     }
 
@@ -106,6 +105,13 @@ namespace MyHeatMqtt
 
         mqttData = new MyHeatSave("/mqtt.json", &settings);
         mqttData->read();
+
+        // Older versions stored the device name here, it is moved to the WiFi settings once
+        MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
+        if (!myHeatWifi.hasStoredDeviceName() && settings.legacyDeviceName.length() > 0)
+        {
+            myHeatWifi.setDeviceName(settings.legacyDeviceName);
+        }
 
         mqtt.setServer(settings.broker.c_str(), settings.port);
         mqtt.setBufferSize(max(MQTT_MAX_PACKET_SIZE, (int)MIN_BUFFER_SIZE));
@@ -287,7 +293,7 @@ namespace MyHeatMqtt
         JsonArray mac = device["connections"].to<JsonArray>().add<JsonArray>();
         mac.add("mac");
         mac.add(WiFi.macAddress());
-        device["name"] = settings.deviceName.length() > 0 ? settings.deviceName : String(MQTT_DEVICE_NAME);
+        device["name"] = MyHeatWifi::getInstance().getDeviceName();
         device["manufacturer"] = "MyHeat";
         device["model"] = "MyHeat A1";
         device["sw_version"] = FIRMWARE_VERSION;
@@ -903,12 +909,11 @@ namespace MyHeatMqtt
     String getPassword() { return settings.password; }
     bool getIsEnabled() { return settings.isEnabled; }
     uint32_t getPublishInterval() { return settings.publishInterval; }
-    String getDeviceName() { return settings.deviceName; }
+    String getDeviceName() { return MyHeatWifi::getInstance().getDeviceName(); }
 
     void setSettings(const String &broker, uint16_t port,
                      const String &user, const String &password,
-                     bool isEnabled, uint32_t publishInterval,
-                     const String &deviceName)
+                     bool isEnabled, uint32_t publishInterval)
     {
         settings.broker = broker;
         settings.port = port;
@@ -916,7 +921,6 @@ namespace MyHeatMqtt
         settings.password = password;
         settings.isEnabled = isEnabled;
         settings.publishInterval = publishInterval;
-        settings.deviceName = deviceName;
 
         mqtt.setServer(settings.broker.c_str(), settings.port);
 
@@ -928,6 +932,13 @@ namespace MyHeatMqtt
     void save()
     {
         mqttData->save();
+    }
+
+    void refreshDiscovery()
+    {
+        if (mqtt.connected()) {
+            disconnect(); // the next tick reconnects and publishes discovery again
+        }
     }
 
     void handleEntityCountChange()

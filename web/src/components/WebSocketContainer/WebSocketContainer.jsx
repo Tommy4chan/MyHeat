@@ -7,7 +7,8 @@ const WebSocketProvider = ({ children }) => {
   const { onMessage, setSendMessage, setWebSocketState, setIsConnect, INACTIVITY_TIMEOUT, isConnect } = useWebSocketStore();
 
   const { sendJsonMessage, readyState: webSocketState } = useWebSocket(
-    import.meta.env.DEV ? "ws://esp32-myheat-dev.local/ws" : `ws://${location.host}/ws`,
+    // wss when the page itself is https, e.g. opened through a Cloudflare tunnel, browsers block ws:// there
+    import.meta.env.DEV ? "ws://esp32-myheat-dev.local/ws" : `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`,
     {
       retryOnError: true,
       shouldReconnect: () => true,

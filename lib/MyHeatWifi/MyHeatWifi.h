@@ -8,6 +8,12 @@
 #include <esp_sntp.h>
 #include "MyHeatSave.h"
 #include "MyHeatUtils.h"
+#include "MyHeatDiscovery.h"
+
+// Shown everywhere the controller is named: HA device, Telegram messages, controller list, browser tab
+#ifndef DEVICE_NAME
+#define DEVICE_NAME MyHeat
+#endif
 
 #define XSTR(...) #__VA_ARGS__
 #define STR(x) XSTR(x)
@@ -21,6 +27,9 @@ private:
     String apPassword;
     bool isFallbackAPEnabled = IS_FALLBACK_AP_ENABLED;
     String mDNS;
+    String deviceName;
+    // False until the name is saved in wifi.json, older versions kept it in the MQTT settings
+    bool isDeviceNameStored = false;
     String ntpServer;
     String ntpIANA;
     String ntpTZ; // POSIX Timezone String
@@ -72,7 +81,7 @@ public:
     void setNTPSettings(const String &ntpServer, const String &ntpIANA, const String &ntpTZ);
     void beginNTP();
 
-    void setWifiSettings(const String &wifiSSID, const String &wifiPassword, const String &apSSID, const String &apPassword, bool isFallbackAPEnabled, const String &mDNS);
+    void setWifiSettings(const String &wifiSSID, const String &wifiPassword, const String &apSSID, const String &apPassword, bool isFallbackAPEnabled, const String &mDNS, const String &deviceName);
 
     String getWifiSSID();
     String getWifiPassword();
@@ -88,6 +97,10 @@ public:
     void setMDNS(const String &mDNS);
     void restartMDNS();
     String getMDNS();
+
+    String getDeviceName();
+    void setDeviceName(const String &deviceName);
+    bool hasStoredDeviceName();
 
     void save();
 

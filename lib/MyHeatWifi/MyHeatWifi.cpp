@@ -11,6 +11,7 @@ MyHeatWifi::MyHeatWifi()
     apSSID = STR(SOFTAP_SSID);
     apPassword = STR(SOFTAP_PASSWORD);
     mDNS = STR(MDNS_ADDRESS);
+    deviceName = STR(DEVICE_NAME);
     ntpServer = STR(NTP_SERVER);
     ntpIANA = STR(NTP_IANA);
     ntpTZ = STR(NTP_TZ); // Default POSIX TZ string — set via NTP_TZ build flag
@@ -25,6 +26,7 @@ void MyHeatWifi::serialize(JsonDocument &doc)
     doc["ap_password"] = apPassword;
     doc["is_fallback_ap_enabled"] = isFallbackAPEnabled;
     doc["mDNS"] = mDNS;
+    doc["device_name"] = deviceName;
     doc["ntp_server"] = ntpServer;
     doc["ntp_iana"] = ntpIANA;
     doc["ntp_tz"] = ntpTZ;
@@ -38,6 +40,8 @@ void MyHeatWifi::deserialize(const JsonDocument &doc)
     apPassword = doc["ap_password"] | STR(SOFTAP_PASSWORD);
     isFallbackAPEnabled = doc["is_fallback_ap_enabled"] | IS_FALLBACK_AP_ENABLED;
     mDNS = doc["mDNS"] | STR(MDNS_ADDRESS);
+    isDeviceNameStored = !doc["device_name"].isNull();
+    deviceName = doc["device_name"] | STR(DEVICE_NAME);
     ntpServer = doc["ntp_server"] | STR(NTP_SERVER);
     ntpIANA = doc["ntp_iana"] | STR(NTP_IANA);
     ntpTZ = doc["ntp_tz"] | STR(NTP_TZ);
@@ -126,6 +130,7 @@ void MyHeatWifi::begin()
 
     setSTAMode();
     MDNS.begin(mDNS.c_str());
+    MyHeatDiscovery::advertise(deviceName);
     // Timezone is applied right away so time kept across soft resets is shown as local before NTP starts
     setenv("TZ", ntpTZ.c_str(), 1);
     tzset();
@@ -229,8 +234,10 @@ void MyHeatWifi::beginNTP()
     configTzTime(ntpTZ.c_str(), ntpServerAddress.c_str());
 }
 
-void MyHeatWifi::setWifiSettings(const String &wifiSSID, const String &wifiPassword, const String &apSSID, const String &apPassword, bool isFallbackAPEnabled, const String &mDNS)
+void MyHeatWifi::setWifiSettings(const String &wifiSSID, const String &wifiPassword, const String &apSSID, const String &apPassword, bool isFallbackAPEnabled, const String &mDNS, const String &deviceName)
 {
+    this->deviceName = deviceName.length() > 0 ? deviceName : String(STR(DEVICE_NAME));
+    isDeviceNameStored = true;
     this->apSSID = apSSID;
     this->apPassword = apPassword;
     this->isFallbackAPEnabled = isFallbackAPEnabled;
@@ -320,11 +327,30 @@ void MyHeatWifi::restartMDNS()
 {
     MDNS.end();
     MDNS.begin(mDNS.c_str());
+    MyHeatDiscovery::advertise(deviceName);
 }
 
 String MyHeatWifi::getMDNS()
 {
     return mDNS;
+}
+
+String MyHeatWifi::getDeviceName()
+{
+    return deviceName;
+}
+
+void MyHeatWifi::setDeviceName(const String &deviceName)
+{
+    this->deviceName = deviceName.length() > 0 ? deviceName : String(STR(DEVICE_NAME));
+    isDeviceNameStored = true;
+    restartMDNS();
+    save();
+}
+
+bool MyHeatWifi::hasStoredDeviceName()
+{
+    return isDeviceNameStored;
 }
 
 void MyHeatWifi::save()

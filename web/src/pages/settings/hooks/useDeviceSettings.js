@@ -83,7 +83,7 @@ export const useDeviceSettings = () => {
     formData.append("update", file, file.name);
 
     const xhr = new XMLHttpRequest();
-    const url = import.meta.env.DEV ? `http://esp32-myheat-dev.local/update?type=${type}` : `http://${window.location.host}/update?type=${type}`;
+    const url = import.meta.env.DEV ? `http://esp32-myheat-dev.local/update?type=${type}` : `/update?type=${type}`;
     xhr.open("POST", url, true);
 
     xhr.upload.onprogress = (e) => {

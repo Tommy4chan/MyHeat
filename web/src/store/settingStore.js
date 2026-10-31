@@ -17,7 +17,7 @@ const useSettingStore = create((set, get) => ({
   smokeSensor: {},
   mqttSettings: {},
 
-  setWifiSettings: (wifiSSID, wifiPassword, apSSID, apPassword, isFallbackAPEnabled, mDNS) => {
+  setWifiSettings: (wifiSSID, wifiPassword, apSSID, apPassword, isFallbackAPEnabled, mDNS, deviceName) => {
     isFallbackAPEnabled = convertToBoolean(isFallbackAPEnabled);
 
     const payload = {
@@ -27,11 +27,12 @@ const useSettingStore = create((set, get) => ({
       apPassword,
       isFallbackAPEnabled,
       mDNS,
+      deviceName,
     };
     
     useWebSocketStore.getState().sendMessage("setWifiSettings", payload);
 
-    if (mDNS !== get().wifiSettings["mDNS"]) {
+    if (mDNS !== get().wifiSettings["mDNS"] && isOpenedByMdns()) {
       setTimeout(() => {
         location.replace(`http://${mDNS}.local`);
       }, 1500);
@@ -166,6 +167,9 @@ const useSettingStore = create((set, get) => ({
   setAllDeviceSettings: (payload) => {
     useWebSocketStore.getState().sendMessage("setAllDeviceSettings", payload);
 
+    // Over an IP or a tunnel address the page stays where it is, only the .local name changes with the settings
+    if (!isOpenedByMdns()) return;
+
     setTimeout(() => {
       location.replace(`http://${payload["MyHeatWifi"]["mDNS"]}.local`);
     }, 1500);
@@ -204,7 +208,7 @@ const useSettingStore = create((set, get) => ({
     set({ smokeSensor: payload });
   },
 
-  setMqttSettings: (broker, port, user, password, isEnabled, publishInterval, deviceName, isBootNotificationEnabled) => {
+  setMqttSettings: (broker, port, user, password, isEnabled, publishInterval, isBootNotificationEnabled) => {
     isEnabled = convertToBoolean(isEnabled);
     isBootNotificationEnabled = convertToBoolean(isBootNotificationEnabled);
 
@@ -215,7 +219,6 @@ const useSettingStore = create((set, get) => ({
       password,
       isEnabled,
       publishInterval: Number(publishInterval),
-      deviceName,
       isBootNotificationEnabled,
     };
 
@@ -232,6 +235,9 @@ const useSettingStore = create((set, get) => ({
   },
 
 }));
+
+// The redirect to the new mDNS name only makes sense when the page was opened by that name
+const isOpenedByMdns = () => location.hostname.endsWith(".local");
 
 const convertToBoolean = (value) => value === 'true' || value === 'false' ? value === 'true' : value;
 

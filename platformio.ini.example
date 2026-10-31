@@ -1,66 +1,148 @@
-[env:nodemcu-32s]
+; MyHeat: one file for every controller
+;
+;   [common]           shared libraries and defaults
+;   [esp32] [esp32s3]  chip-specific settings
+;   [env:<name>]       one controller: its network, bot, pins and counts
+;
+; Pick the controller in the PlatformIO env selector (status bar) or with `pio run -e <name>`,
+; or let `scripts/auto.py` detect the connected board (VS Code tasks "MyHeat: ... (auto)").
+; custom_mac makes auto-detection pick the exact controller, the MAC is printed by the script.
+; Values stored on the controller (web UI settings) win over these defaults after the first boot.
+
+[platformio]
+default_envs = my-esp32s3
+
+[common]
 platform = espressif32
-board = nodemcu-32s
 framework = arduino
 monitor_speed = 115200
 board_build.filesystem = littlefs
 board_build.partitions = esp32_custom_partition_4mb.csv
-lib_deps = 
-	gyverlibs/FastBot2@^1.0.12
+lib_deps =
+	gyverlibs/FastBot2@^1.2.8
 	gyverlibs/EncButton@^3.6.3
 	milesburton/DallasTemperature@^3.11.0
 	olikraus/U8g2@^2.35.30
 	bblanchon/ArduinoJson@^7.2.0
-	ESP32Async/AsyncTCP
-	ESP32Async/ESPAsyncWebServer
+	ESP32Async/AsyncTCP@^3.5.0
+	ESP32Async/ESPAsyncWebServer@^3.12.1
 	OneWire=https://github.com/PaulStoffregen/OneWire.git
 	ricmoo/QRCode@^0.0.1
-build_unflags = 
+	knolleary/PubSubClient@^2.8
+build_unflags =
 	-std=gnu++11
-build_flags = 
-	-D SOFTAP_SSID="ESP32MyHeat"
+build_flags =
+	; -D FB_USE_LOG=Serial
+	; -DCORE_DEBUG_LEVEL=5
+	-D MQTT_MAX_PACKET_SIZE=1024
+	-D MQTT_BROKER=\"\"
+	-D MQTT_PORT=1883
+	-D MQTT_USER=\"\"
+	-D MQTT_PASSWORD=\"\"
+	-D MQTT_ENABLED=false
+	-D MQTT_PUBLISH_INTERVAL=5000
+	-D SOFTAP_SSID="MyHeat"
 	-D SOFTAP_PASSWORD="12345678"
-	-D WIFI_SSID=""
-	-D WIFI_PASSWORD=""
 	-D WIFI_AP_FALLBACK_TIME=20000
 	-D WIFI_STABILITY_DELAY=2000
 	-D WIFI_MODE_SWITCH_DELAY=100
 	-D IS_FALLBACK_AP_ENABLED=true
-	-D MDNS_ADDRESS="esp32-myheat"
 	-D FUNCTION_COUNT=1
-	-D RELAY_COUNT=2
-	-D RELAY_PINS={32,33,25,26}
-	-D RELAY_TRIGGER={0,0,0,0}
-	-D TEMPERATURE_COUNT=6
-	-D TEMPERATURE_PIN=23
 	-D TEMPERATURE_MIN=5
-	-D TEMPERATURE_MAX=90
-	-D SMOKE_SENSOR_THRESHOLD=2000
-	-D SMOKE_SENSOR_PIN=36
+	-D SMOKE_SENSOR_THRESHOLD=3000
 	-D SMOKE_SENSOR_PREHEAT_TIME=30000
-	-D SMOKE_SENSOR_ENABLED=true
-	-D TELEGRAM_BOT_ENABLED=true
-	-D TELEGRAM_BOT_ALERT_NOTIFICATIONS=true
-	-D TELEGRAM_BOT_TOKEN=""
-	-D REGISTER_PHRASE=""
+	-D SMOKE_SENSOR_ENABLED=false
 	-D NTP_SERVER="pool.ntp.org"
 	-D NTP_IANA="Europe/Kiev"
 	-D NTP_TZ="EET-2EEST,M3.5.0/3,M10.5.0/4"
 	-D NTP_SYNC_RETRY_DELAY=15000
 	-D SYSTEM_LOAD_TIMEOUT=30000
 	-D HARDWARE_IO_IS_ENABLED=true
-	-D OLED_ADDRESS=0x78
 	-D OLED_TYPE=0
-	-D OLED_SDA=21
-	-D OLED_SCL=22
 	-D SCREEN_POWER_SAVE_INTERVAL=30000
+	-D INVERT_ENCODER=true
 	-D RETURN_HOME_ON_SLEEP=true
-	-D ENC_A=19
-	-D ENC_B=4
-	-D ENC_BTN=18
-	-D INVERT_ENCODER=false
+	-D TELEGRAM_BOT_BOOT_NOTIFICATION=false
+	-D TN_INDEX=255
 	-D TEMP_UNKNOWN=254
 	-D RELAY_UNKNOWN=255
 	-D TEMPERATURE_ERROR=-127.00
 	-D ANALOG_INITIAL_VALUE=-1
 	-std=gnu++2a
+extra_scripts =
+	scripts/download_fs.py
+
+; ----- Chips -----
+
+[esp32]
+extends = common
+board = nodemcu-32s
+board_flags =
+
+[esp32s3]
+extends = common
+board = esp32-s3-devkitc-1
+board_build.flash_size = 4MB
+; Serial goes over the native USB port
+board_flags =
+	-DARDUINO_USB_MODE=1
+	-DARDUINO_USB_CDC_ON_BOOT=1
+
+; ----- Controllers -----
+; Copy this file to platformio.ini and add one env per controller
+
+[env:my-esp32s3]
+extends = esp32s3
+; custom_mac =
+build_flags =
+	${common.build_flags}
+	${esp32s3.board_flags}
+	-D DEVICE_NAME="MyHeat"
+	-D WIFI_SSID=""
+	-D WIFI_PASSWORD=""
+	-D MDNS_ADDRESS="myheat"
+	-D RELAY_COUNT=4
+	-D RELAY_PINS={38,48,47,21}
+	-D RELAY_TRIGGER={0,0,0,0}
+	-D TEMPERATURE_COUNT=4
+	-D TEMPERATURE_PIN=4
+	-D TEMPERATURE_MAX=80
+	-D SMOKE_SENSOR_PIN=5
+	-D TELEGRAM_BOT_ENABLED=false
+	-D TELEGRAM_BOT_ALERT_NOTIFICATIONS=true
+	-D TELEGRAM_BOT_TOKEN=""
+	-D REGISTER_PHRASE=""
+	-D OLED_ADDRESS=0x78
+	-D OLED_SDA=8
+	-D OLED_SCL=9
+	-D ENC_A=36
+	-D ENC_B=37
+	-D ENC_BTN=35
+
+[env:my-esp32]
+extends = esp32
+; custom_mac =
+build_flags =
+	${common.build_flags}
+	${esp32.board_flags}
+	-D DEVICE_NAME="MyHeat-ESP32"
+	-D WIFI_SSID=""
+	-D WIFI_PASSWORD=""
+	-D MDNS_ADDRESS="myheat-esp32"
+	-D RELAY_COUNT=2
+	-D RELAY_PINS={32,33}
+	-D RELAY_TRIGGER={0,0}
+	-D TEMPERATURE_COUNT=2
+	-D TEMPERATURE_PIN=23
+	-D TEMPERATURE_MAX=90
+	-D SMOKE_SENSOR_PIN=36
+	-D TELEGRAM_BOT_ENABLED=false
+	-D TELEGRAM_BOT_ALERT_NOTIFICATIONS=true
+	-D TELEGRAM_BOT_TOKEN=""
+	-D REGISTER_PHRASE=""
+	-D OLED_ADDRESS=0x78
+	-D OLED_SDA=21
+	-D OLED_SCL=22
+	-D ENC_A=19
+	-D ENC_B=4
+	-D ENC_BTN=18

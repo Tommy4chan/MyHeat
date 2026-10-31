@@ -79,8 +79,11 @@ const Wifi = () => {
         </DarkWrapperBlock>
       </WrapperBlock>
       <WrapperBlock>
-        <h3 className='text-xl'>mDns:</h3>
+        <h3 className='text-xl'>Пристрій:</h3>
         <DarkWrapperBlock className='md:!flex-col'>
+          <FormField label="Назва">
+            <Input className='w-full' value={settings.deviceName} onChange={handleSettingsChange} name='deviceName' placeholder='MyHeat' />
+          </FormField>
           <FormField label="Адреса контролера">
             <div className='relative flex items-center rounded focus:outline-none focus:ring transition duration-300 bg-gray-700 hover:bg-gray-800 focus:ring-gray-800'>
               <Input className='w-full !bg-transparent focus:!ring-0 !pe-0' value={settings.mDNS} onChange={handleSettingsChange} name='mDNS' />

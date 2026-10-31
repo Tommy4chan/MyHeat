@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AiOutlineClose, AiOutlineMenu } from 'react-icons/ai';
 import WebSocketStatus from "./WebSocketStatus";
+import ControllerSwitcher from "./ControllerSwitcher";
 
 const Navbar = ({ setPage, page }) => {
   const [nav, setNav] = useState(false);
@@ -39,6 +40,7 @@ const Navbar = ({ setPage, page }) => {
           <div className="flex gap-2 mx-4 items-center">
             <img className="w-8 h-8" src="/logo-transparent.png" />
             <h2 className="text-2xl font-semibold">MyHeat</h2>
+            <ControllerSwitcher />
           </div>
             <WebSocketStatus className="hidden lg:flex" />
         </div>

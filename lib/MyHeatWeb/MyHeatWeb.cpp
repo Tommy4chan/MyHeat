@@ -4,18 +4,60 @@
 
 namespace MyHeatWeb
 {
+    static String getIndexEtag();
+
     void begin()
     {
         DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
         DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
         DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type");
 
+        // index.html is cached but revalidated: the browser asks with its ETag and gets an empty 304 while the file
+        // is the same. A plain long cache would keep an index pointing to deleted assets after a filesystem update.
+        // The hashed assets keep the long cache since their names change with every build
+        server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+            String etag = getIndexEtag();
+            if (etag.isEmpty()) {
+                request->send(404);
+                return;
+            }
+
+            AsyncWebServerResponse *response = request->header("If-None-Match") == etag
+                ? request->beginResponse(304)
+                : request->beginResponse(LittleFS, "/index.html", "text/html");
+            response->addHeader("Cache-Control", "no-cache");
+            response->addHeader("ETag", etag);
+            request->send(response);
+        });
         server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html").setCacheControl("max-age=6000000");
         setupOTA();
         websocket.enable(true);
         setupWebsocket();
         server.begin();
         MyHeatAlerts::registerHandler(sendAlertNotification);
+    }
+
+    // FNV-1a of the file content, index.html is ~0.5 KB and its size stays the same between builds
+    static String getIndexEtag()
+    {
+        File file = LittleFS.open("/index.html", "r");
+        if (!file) {
+            return String();
+        }
+
+        uint32_t hash = 2166136261u;
+        uint8_t buffer[128];
+        size_t count;
+        while ((count = file.read(buffer, sizeof(buffer))) > 0) {
+            for (size_t i = 0; i < count; i++) {
+                hash = (hash ^ buffer[i]) * 16777619u;
+            }
+        }
+        file.close();
+
+        char etag[11];
+        snprintf(etag, sizeof(etag), "\"%08lx\"", (unsigned long)hash);
+        return String(etag);
     }
 
     // Set only once Update.end() accepted the image, so a request without a file part can't trigger a reboot
@@ -88,6 +130,7 @@ namespace MyHeatWeb
         {
             Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
             sendUsedPinsData();
+            sendDeviceInfo();
             requestFullSend();
 
             // client->ping();
@@ -191,6 +234,13 @@ namespace MyHeatWeb
 
         case su::SH("startWifiScan"):
             startWifiScan();
+            break;
+
+        case su::SH("startDeviceScan"):
+            if (!MyHeatDiscovery::startScan())
+            {
+                setWarningMessage(responseStatus, "Пошук вже виконується");
+            }
             break;
 
         case su::SH("getDiscoveredTemperatureSensors"):
@@ -320,10 +370,17 @@ namespace MyHeatWeb
         {
             MyHeatDevice::getInstance().manualTick();
             requestFullSend();
+
+            // The device name can change with these, the controller list and tab title follow it
+            if (messageType == "setWifiSettings" || messageType == "setAllDeviceSettings")
+            {
+                sendDeviceInfo();
+            }
         }
     }
 
-    // The web UI marks the connection inactive after 8s without messages
+    // The web UI marks the connection inactive after 8s without messages. Data is only sent when it changes,
+    // so a tiny heartbeat message fills the silence instead of resending everything
     static constexpr uint32_t HEARTBEAT_INTERVAL = 4000;
     static constexpr uint32_t HOUSEKEEPING_INTERVAL = 2000;
 
@@ -340,6 +397,13 @@ namespace MyHeatWeb
         serializeJson(data, jsonString);
 
         websocket.textAll(jsonString);
+        lastHeartbeatTick = millis();
+    }
+
+    void sendHeartbeat()
+    {
+        websocket.textAll(F("{\"messageType\":\"heartbeat\"}"));
+        lastHeartbeatTick = millis();
     }
 
     void sendIfChanged(JsonDocument &data, RepeatableMessage slot, const String &messageType, bool force)
@@ -371,6 +435,42 @@ namespace MyHeatWeb
         JsonDocument response;
         getUsedPinsData(response["payload"].to<JsonObject>());
         sendDataToClients(response, F("getPinsDataResponse"));
+    }
+
+    void sendDeviceInfo()
+    {
+        JsonDocument response;
+        getDeviceInfo(response["payload"].to<JsonObject>());
+        sendDataToClients(response, F("deviceInfo"));
+    }
+
+    void sendDeviceScanData()
+    {
+        std::vector<MyHeatDiscovery::Device> devices;
+        if (!MyHeatDiscovery::takeResults(devices))
+            return;
+
+        JsonDocument response;
+        JsonArray payload = response["payload"].to<JsonArray>();
+        for (const auto &device : devices)
+        {
+            JsonObject item = payload.add<JsonObject>();
+            item["name"] = device.name;
+            item["mdns"] = device.hostname;
+            item["address"] = device.address;
+        }
+
+        JsonObject status = response["status"].to<JsonObject>();
+        if (devices.empty())
+        {
+            setWarningMessage(status, F("Інших контролерів не знайдено"));
+        }
+        else
+        {
+            setSuccessMessage(status, "Знайдено контролерів: " + String(devices.size()));
+        }
+
+        sendDataToClients(response, F("deviceScanData"));
     }
 
     void sendFunctionsData(bool force)
@@ -434,11 +534,6 @@ namespace MyHeatWeb
         {
             MyHeatWifi::getInstance().setIsWebsocketClientsConnected(false);
         }
-
-        if (force)
-        {
-            lastHeartbeatTick = millis();
-        }
     }
 
     void requestFullSend()
@@ -448,7 +543,7 @@ namespace MyHeatWeb
 
     void tick()
     {
-        bool isFullSend = isFullSendRequested || millis() - lastHeartbeatTick > HEARTBEAT_INTERVAL;
+        bool isFullSend = isFullSendRequested;
         uint32_t stateRevision = MyHeatDevice::getInstance().getStateRevision();
 
         // Nothing is serialized until the device refreshed its state or a full send is due
@@ -459,6 +554,11 @@ namespace MyHeatWeb
             sendRepeatableDataToClients(isFullSend);
         }
 
+        if (millis() - lastHeartbeatTick > HEARTBEAT_INTERVAL && canSendData())
+        {
+            sendHeartbeat();
+        }
+
         if (millis() - lastSendTick > HOUSEKEEPING_INTERVAL)
         {
             lastSendTick = millis();
@@ -466,6 +566,7 @@ namespace MyHeatWeb
             if (canSendData())
             {
                 sendNetworksData();
+                sendDeviceScanData();
             }
 
             websocket.cleanupClients();

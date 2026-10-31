@@ -86,14 +86,17 @@ _Comprehensive configuration panel for WiFi, Telegram, NTP, hardware I/O, and mo
 The heart of MyHeat's automation — a **programmable rule engine** that enables sophisticated heating control:
 
 ```
-IF (T[sensor1] + delta1) [>/<] (T[sensor2] + delta2) THEN Relay[n] = ON/OFF
+ЯКЩО  T0 < 25 °C  і  НЕ Реле 1 увімкнене   →   ТО увімкнути Реле 0 (з затримкою 60 с)
 ```
 
-- **Delta-based temperature comparison** between any two sensors
-- **Configurable comparison operators** (greater than / less than)
-- **Per-function enable/disable toggle** for easy testing
-- **Validation system** ensuring sensor and relay indices are valid
-- **Alert notifications** for misconfigured functions
+- **Condition tree** — comparisons combined with AND / OR groups (up to 2 levels deep) and NOT
+- **Sources** — any temperature sensor, relay state, smoke sensor value or "threshold exceeded" flag
+- **Compare with a number or with another source**, with a per-side correction and hysteresis
+- **Actions** — turn a relay on/off directly, with a delay (restart timer), as a one-shot pulse or as a cycle
+- **Priority** — when functions conflict over a relay, the higher priority wins
+- **Per-function enable/disable toggle** and validation of sensor/relay indices
+
+The web editor shows every rule as a sentence row, with a live summary of the whole function, the current value of each source and plain-language hints for hysteresis and timers. See [CUSTOM_FUNCTIONS_DEEP_DIVE.md](CUSTOM_FUNCTIONS_DEEP_DIVE.md) for the engine internals.
 
 ### 🚨 Safety & Alert System
 
@@ -104,10 +107,12 @@ IF (T[sensor1] + delta1) [>/<] (T[sensor2] + delta2) THEN Relay[n] = ON/OFF
 - **Multi-channel alert notifications**
   - Real-time WebSocket alerts to web dashboard
   - Telegram bot push notifications
+  - Home Assistant events over MQTT
 - **Temperature alert types**
   - Minimum threshold breach
   - Maximum threshold breach
-  - Sensor connection failure
+  - Sensor connection failure (paused during OTA uploads, flash writes corrupt OneWire reads)
+- **Startup notification** (optional, Telegram and HA) — sent after every power-on or restart with the reset reason (power on, restart, crash, watchdog, brownout, reset button)
 
 ### 🌐 Modern React Web Interface
 
@@ -124,15 +129,20 @@ The web dashboard is a **production-ready single-page application** delivering a
 #### Real-Time Communication
 
 - **WebSocket-first architecture** — bi-directional communication with ESP32
+- **Change-based updates** — data is only sent when it changes, a tiny `heartbeat` message fills 4 s of silence
 - **react-use-websocket** hook with automatic reconnection (3 attempts, 1s interval)
 - **Inactivity detection** — monitors connection health with 8-second timeout
-- **Environment-aware endpoints** — auto-switches between dev proxy and production
+- **Environment-aware endpoints** — `ws://` locally, `wss://` when the page is opened over https (tunnel)
+- **Large messages** (settings import, big functions) are reassembled from several WebSocket frames
 - **JSON message protocol** with typed message handlers
 
 #### UI Components & Design
 
 - **Custom component library**: Button, Input, Select, SelectToggle, FormField, FileUpload
 - **WiFi signal strength indicator** with visual RSSI levels
+- **Hidden secrets** — WiFi/AP passwords, bot token, registration phrase and MQTT password are masked with an eye toggle
+- **Controller switcher** in the navbar — see [Multiple Controllers](#-multiple-controllers)
+- **Board-aware pin lists** — pin pickers offer the valid GPIOs of the actual chip (ESP32 or ESP32-S3)
 - **react-toastify** for success/warning/error notifications
 - **react-icons** for consistent iconography
 - **Responsive layout** — mobile-first design with Tailwind breakpoints
@@ -167,7 +177,7 @@ The web dashboard is a **production-ready single-page application** delivering a
 - **Source file deletion** — only `.gz` files deployed to LittleFS
 - **Direct build output** to ESP32 `/data` directory
 - **Tree-shaking** and code splitting for minimal bundle size
-- **6-month cache headers** for static assets served by ESP32
+- **Long cache for hashed assets**, `index.html` is revalidated with an ETag (an empty 304 while unchanged), so a filesystem update never leaves the browser on a stale page
 
 ### 📱 Telegram Bot Integration (FastBot2)
 
@@ -176,6 +186,8 @@ The web dashboard is a **production-ready single-page application** delivering a
 - **User registration system** with secure phrase authentication
 - **Menu-driven interface** for intuitive mobile control
 - **Multi-user support** with persistent user data
+- **Startup notification** (optional) with reset reason, IP and time
+- **"Інформація"** shows WiFi and AP passwords as spoilers
 
 ### 📶 Robust WiFi Connectivity
 
@@ -185,7 +197,8 @@ The web dashboard is a **production-ready single-page application** delivering a
   - AP fallback timeout (default: 20 seconds)
   - Reconnection interval (default: 10 seconds)
   - Maximum reconnection attempts
-- **mDNS service discovery** — access via `http://myheat.local`
+- **mDNS** — access via `http://myheat.local`, the controller also advertises `_myheat._tcp` so other controllers can find it
+- **Device name** — set in the WiFi settings ("Пристрій → Назва"), used as the Home Assistant device name, in the controller list and as the browser tab title
 - **WiFi network scanning** with RSSI display
 
 ### 🖥️ Local OLED Display & Rotary Encoder
@@ -207,13 +220,58 @@ The web dashboard is a **production-ready single-page application** delivering a
 
 - **LittleFS filesystem** for reliable data storage
 - **JSON-based configuration files**:
-  - `wifi.json` — WiFi and NTP settings
+  - `wifi.json` — WiFi, mDNS, device name and NTP settings
   - `relays.json` — Relay configuration
   - `temperatureSensors.json` — Sensor addresses and thresholds
   - `customFunctions.json` — Automation rules
   - `smokeSensor.json` — Smoke sensor settings
   - `hardwareIO.json` — Display and encoder settings
-- **Full device backup/restore** via JSON export/import
+  - `telebot.json`, `/users` — Telegram bot settings and registered users
+  - `mqtt.json` — Home Assistant MQTT settings
+- **Full device backup/restore** via JSON export/import (exports from older versions are migrated on import)
+
+> ⚠️ Settings live in the same LittleFS partition as the web UI. **Uploading a filesystem image (USB or OTA) replaces all saved settings** — export them first and import them again afterwards.
+
+### 🏠 Home Assistant (MQTT)
+
+- **MQTT discovery** — temperatures, relays (mode select, switch, state), functions and the smoke sensor appear as one HA device
+- **Topics and entity IDs are built from the chip ID**, so several controllers never collide
+- **Alerts** are sent as events on an `event` entity (`event_type` per alert, `*_resolved` when cleared, `device_started` on boot with `reason` and `message`), ready for HA automations
+- The HA device name follows the global device name, renaming it re-publishes discovery
+
+### 🔀 Multiple Controllers
+
+Every controller serves its own web UI, the switcher in the navbar opens the UI of another one:
+
+- **Saved list** — click a controller to open it, ✎ to edit, × to remove. The current controller is added automatically, always shown first, and can't be edited or removed (it reports its own name and addresses)
+- **"Пошук"** — the controller you are on runs an mDNS query for `_myheat._tcp` in a background task (~3 s, only on request) and lists what it found
+- **"Додати вручну"** — type `myheat.local`, `myheat`, an IP or an external URL, it is sorted into the right field
+- **Each entry has two addresses**:
+
+  | Field | Value | Opened as |
+  |---|---|---|
+  | Local address | `myheat.local` or `192.168.1.50` | `http://<local address>` — always http, the controllers have no TLS |
+  | External address | e.g. `https://heat.example.com` | as entered |
+
+  Found controllers and the current one get their **mDNS name** as the local address (the IP only if they have none). On a page opened over https the external address is used, since browsers block `http` from `https` pages.
+- **Where the list is stored** — browser `localStorage`, which is separate per address. When switching, the list is handed over in the URL (`#c=<base64>`) and the receiving page merges it and clears the address bar, so you can always switch back
+- A name typed by hand is kept, an empty name follows the controller's own device name
+
+### 🌍 Remote Access (Cloudflare Tunnel)
+
+The web UI works through a reverse proxy such as a Cloudflare Tunnel (e.g. the cloudflared add-on in Home Assistant): it uses `wss://` on https pages, posts OTA to a relative `/update`, and only redirects to `*.local` after changing mDNS if it was opened by that name.
+
+1. Add a public hostname per controller, e.g. `heat-boiler.example.com → http://192.168.1.50:80`
+2. **Protect it with a Cloudflare Access application** (email OTP or Google login for your account only). The controller itself has no login — without Access anyone could switch relays, read passwords and flash firmware
+3. Add the hostname as the "External address" of the controller in the switcher
+
+### ⬆️ OTA Updates
+
+Settings → Device has firmware and filesystem upload:
+
+- Upload `.pio/build/<env>/firmware.bin` or `littlefs.bin` (build it with `pio run -e <env> -t buildfs`)
+- An interrupted upload no longer blocks the next one, the error toast shows the real reason (`FAIL: <reason>`)
+- The controller restarts only after the image was verified
 
 ---
 
@@ -252,6 +310,7 @@ coredump   : 0x10000 (64KB)   — Crash dump storage
 | Component | Version/Spec | Purpose |
 |-----------|--------------|---------|
 | **ESP32** | NodeMCU-32S | Dual-core 240MHz MCU with WiFi/BT |
+| **ESP32-S3** | DevKitC-1 (4MB) | Native USB serial, more GPIOs |
 | **PlatformIO** | 6.1+ | Build system and dependency management |
 | **Arduino Framework** | ESP32 3.0 | Hardware abstraction layer |
 | **LittleFS** | Latest | Flash filesystem for configuration |
@@ -270,15 +329,18 @@ coredump   : 0x10000 (64KB)   — Crash dump storage
 
 | Library | Version | Purpose |
 |---------|---------|---------|
-| **FastBot2** | ^1.0.12 | High-performance Telegram bot |
+| **FastBot2** | ^1.2.8 | High-performance Telegram bot |
 | **EncButton** | ^3.6.3 | Encoder and button handling |
 | **DallasTemperature** | ^3.11.0 | DS18B20 sensor library |
 | **OneWire** | Latest | OneWire protocol implementation |
 | **U8g2** | ^2.35.30 | OLED display driver with fonts |
 | **ArduinoJson** | ^7.2.0 | JSON parsing and serialization |
-| **AsyncTCP** | ESP32Async | Asynchronous TCP client/server |
-| **ESPAsyncWebServer** | ESP32Async | Async HTTP and WebSocket server |
+| **AsyncTCP** | ESP32Async ^3.5.0 | Asynchronous TCP client/server |
+| **ESPAsyncWebServer** | ESP32Async ^3.12.1 | Async HTTP and WebSocket server |
+| **PubSubClient** | ^2.8 | MQTT client for Home Assistant |
 | **QRCode** | ^0.0.1 | QR code generation for OLED |
+
+Library versions are pinned in `platformio.ini`, so every board env builds against the same versions.
 
 ### Web Frontend
 
@@ -437,36 +499,58 @@ MyHeat/
    cd MyHeat
    ```
 
-2. **Configure credentials** (copy and edit)
+2. **Create your config** (copy and edit)
    ```bash
    cp platformio.ini.example platformio.ini
    ```
-   
-   Edit `platformio.ini` and update:
-   ```ini
-   -D WIFI_SSID="your_wifi_network"
-   -D WIFI_PASSWORD="your_wifi_password"
-   -D TELEGRAM_BOT_TOKEN="your_bot_token"
-   -D REGISTER_PHRASE="your_secret_phrase"
-   ```
+   Add one env per controller (see [Working with platformio.ini](#working-with-platformioini)) with its WiFi, bot token, pins and counts.
 
 3. **Build and upload firmware**
    ```bash
-   pio run -t upload
+   pio run -e <env> -t upload
    ```
 
-4. **Upload web interface to LittleFS**
+4. **Upload web interface to LittleFS** (replaces saved settings)
    ```bash
    cd web
    npm install
    npm run build
    cd ..
-   pio run -t uploadfs
+   pio run -e <env> -t uploadfs
    ```
 
 5. **Access the web interface**
-   - Connect to WiFi: `http://myheat.local`
+   - Connect to WiFi: `http://<mdns>.local` (e.g. `http://myheat.local`)
    - Or via Access Point: Connect to "MyHeat" network, go to `http://192.168.4.1`
+
+### Working with platformio.ini
+
+One file holds every controller, nothing has to be copied around:
+
+```ini
+[common]           ; libraries and defaults shared by all controllers
+[esp32]            ; chip settings: board = nodemcu-32s
+[esp32s3]          ; chip settings: board = esp32-s3-devkitc-1, flash size, native USB serial flags
+
+[env:main]         ; one section per controller
+extends = esp32s3
+custom_mac = aa:bb:cc:dd:ee:ff      ; optional, for auto-detection
+build_flags =
+	${common.build_flags}
+	${esp32s3.board_flags}
+	-D DEVICE_NAME="MyHeat"
+	-D WIFI_SSID="..."
+	...
+```
+
+- **Shared values** go to `[common]`, **chip values** to `[esp32]`/`[esp32s3]`, **everything specific to one controller** to its `[env:...]`. Keep the two `${...}` lines first and don't repeat a `[common]` flag in an env (the compiler warns about redefinitions)
+- **Pick the controller** in the PlatformIO env selector in the VS Code status bar, or with `pio run -e <env> ...`. Without `-e`, `default_envs` is used
+- **Auto-detect the connected board** with the VS Code tasks *MyHeat: Upload (auto)*, *Upload FS (auto)*, *Monitor (auto)* (`Ctrl+Shift+P → Tasks: Run Task`), or from a terminal:
+  ```bash
+  python scripts/auto.py upload|uploadfs|monitor|build [--port COM5]
+  ```
+  The script reads the chip type and MAC with esptool and picks the env whose `custom_mac` matches, otherwise the only env for that chip. If several envs use the same chip it asks once and prints the MAC to put into `custom_mac`
+- **These values are first-boot defaults** — once a setting is saved on the controller (web UI or import), the saved value wins
 
 ### Web Development
 
@@ -493,7 +577,8 @@ npm run lint     # Run ESLint
 | `SOFTAP_PASSWORD` | "12345678" | Access Point password |
 | `IS_FALLBACK_AP_ENABLED` | true | Enable AP fallback on WiFi failure |
 | `WIFI_AP_FALLBACK_TIME` | 20000 | Time before AP fallback (ms) |
-| `MDNS_ADDRESS` | "myheat" | mDNS hostname |
+| `MDNS_ADDRESS` | "myheat" | mDNS hostname, give every controller its own |
+| `DEVICE_NAME` | MyHeat | Device name (HA device, controller list, tab title) |
 | `RELAY_COUNT` | 2 | Number of relay outputs |
 | `RELAY_PINS` | {26,27} | GPIO pins for relays |
 | `TEMPERATURE_COUNT` | 4 | Number of temperature sensors |
@@ -502,7 +587,10 @@ npm run lint     # Run ESLint
 | `TEMPERATURE_MAX` | 80 | Maximum temperature alert (°C) |
 | `SMOKE_SENSOR_ENABLED` | false | Enable smoke sensor |
 | `SMOKE_SENSOR_PIN` | 35 | Analog pin for MQ-2 |
-| `TELEGRAM_BOT_ENABLED` | true | Enable Telegram bot |
+| `TELEGRAM_BOT_ENABLED` | true | Enable Telegram bot (one bot token per controller) |
+| `TELEGRAM_BOT_BOOT_NOTIFICATION` | false | Telegram message after power-on/restart |
+| `MQTT_ENABLED` | false | Enable Home Assistant MQTT |
+| `MQTT_BOOT_NOTIFICATION` | false | `device_started` HA event after power-on/restart |
 | `NTP_SERVER` | "pool.ntp.org" | NTP server address |
 | `NTP_IANA` | "Europe/Kiev" | IANA timezone |
 
@@ -510,7 +598,7 @@ npm run lint     # Run ESLint
 
 ## 📡 WebSocket API
 
-The web interface communicates via WebSocket at `ws://<device-ip>/ws`. 
+The web interface communicates via WebSocket at `ws://<device-ip>/ws` (`wss://` through an https proxy). Repeatable data is sent only when it changes, with a `heartbeat` after 4 s of silence.
 
 ### Message Format
 ```json
@@ -528,6 +616,10 @@ The web interface communicates via WebSocket at `ws://<device-ip>/ws`.
 | `relaysData` | Server → Client | Relay states and modes |
 | `functionsData` | Server → Client | Custom function states |
 | `alertNotification` | Server → Client | Alert messages |
+| `heartbeat` | Server → Client | Keeps the connection marked alive when nothing changed |
+| `deviceInfo` | Server → Client | `{ name, mdns, address }` of this controller, sent on connect and after settings change |
+| `startDeviceScan` | Client → Server | Search the network for other controllers (mDNS) |
+| `deviceScanData` | Server → Client | `[{ name, mdns, address }]` found controllers |
 | `setRelayMode` | Client → Server | Change relay operating mode |
 | `setFunctionIsEnabled` | Client → Server | Toggle function on/off |
 | `setWifiSettings` | Client → Server | Update WiFi configuration |
@@ -558,6 +650,7 @@ cd web && npm run lint
 | Platform | Status | Notes |
 |----------|--------|-------|
 | ESP32 | ✅ Fully Supported | Primary target platform |
+| ESP32-S3 | ✅ Supported | DevKitC-1 4MB, native USB serial (GPIO 19/20 reserved) |
 | ESP32-S2 | ⚠️ Untested | Should work with minor changes |
 | ESP32-C3 | ⚠️ Untested | May require GPIO mapping |
 | ESP8266 | ❌ Not Supported | Insufficient resources |

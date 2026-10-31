@@ -8,10 +8,6 @@
 #include "MyHeatUtils.h"
 #include "MyHeatAlerts.h"
 
-#ifndef MQTT_DEVICE_NAME
-#define MQTT_DEVICE_NAME "MyHeat Controller"
-#endif
-
 #ifndef MQTT_BOOT_NOTIFICATION
 #define MQTT_BOOT_NOTIFICATION false
 #endif
@@ -31,7 +27,8 @@ namespace MyHeatMqtt
         String password = MQTT_PASSWORD;
         bool isEnabled = MQTT_ENABLED;
         uint32_t publishInterval = MQTT_PUBLISH_INTERVAL;
-        String deviceName = MQTT_DEVICE_NAME;
+        // Only read for migration, the device name now lives in the WiFi settings (MyHeatWifi::getDeviceName)
+        String legacyDeviceName;
         bool isBootNotificationEnabled = MQTT_BOOT_NOTIFICATION;
 
         void serialize(JsonDocument &json) override;
@@ -125,8 +122,9 @@ namespace MyHeatMqtt
     String getDeviceName();
     void setSettings(const String &broker, uint16_t port, 
                      const String &user, const String &password,
-                     bool isEnabled, uint32_t publishInterval,
-                     const String &deviceName);
+                     bool isEnabled, uint32_t publishInterval);
+    // Reconnects so HA gets the discovery configs again, e.g. with a new device name
+    void refreshDiscovery();
     void save();
 
     // ----- Device JSON helper -----
