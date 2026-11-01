@@ -274,6 +274,7 @@ float MyHeatTemperatures::getMaxTemperature()
 void MyHeatTemperatures::manualDeserialize(const JsonDocument& payload)
 {
     deserialize(payload);
+    setTemperaturePin(temperaturePin, false);
     save();
 }
 

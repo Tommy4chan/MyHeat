@@ -5,11 +5,13 @@ void MyHeatSmokeSensor::serialize(JsonDocument &doc)
 {
     doc[F("threshold")] = threshold;
     doc[F("pin")] = pin;
+    doc[F("isEnabled")] = isEnabled;
 }
 
 void MyHeatSmokeSensor::deserialize(const JsonDocument &doc)
 {
     threshold = doc[F("threshold")] | SMOKE_SENSOR_THRESHOLD;
+    isEnabled = doc[F("isEnabled")] | true;
     MyHeatAnalogSensor::begin(doc[F("pin")] | SMOKE_SENSOR_PIN);
 }
 

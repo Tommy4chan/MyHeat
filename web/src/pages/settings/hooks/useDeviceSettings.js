@@ -2,6 +2,20 @@ import { useEffect, useState } from "react";
 import useSettingStore from "@/store/settingStore";
 import { showErrorToast, showSuccessToast, showWarningToast } from "@/components/CustomToast";
 
+const SETTINGS_SECTIONS = [
+  "MyHeatTemperatures",
+  "MyHeatCustomFunctions",
+  "MyHeatRelays",
+  "MyHeatSmokeSensor",
+  "MyHeatHardwareIO",
+  "MyHeatWifi",
+  "MyHeatTelebot",
+  "MyHeatMqtt",
+  "MyHeatTelebotUsers",
+];
+// Leaves room for the message wrapper under the controller's 16384 byte limit
+const MAX_IMPORT_SIZE = 16000;
+
 export const useDeviceSettings = () => {
   const { getAllDeviceSettings, allDeviceSettings, setAllDeviceSettings, restartDevice } = useSettingStore();
   const [shouldExport, setShouldExport] = useState(false);
@@ -41,6 +55,9 @@ export const useDeviceSettings = () => {
     reader.onload = (e) => {
       try {
         const parsedData = JSON.parse(e.target.result);
+        const isSettingsFile = parsedData && typeof parsedData === "object" && !Array.isArray(parsedData)
+          && SETTINGS_SECTIONS.some((key) => key in parsedData);
+        if (!isSettingsFile) throw new Error("Not a settings export");
         setAllSettingsData(parsedData);
       } catch (err) {
         showErrorToast("Поганий формат файлу!");
@@ -56,6 +73,12 @@ export const useDeviceSettings = () => {
   const handleImport = () => {
     if(Object.keys(allSettingsData).length === 0) {
       showWarningToast("Виберіть файл для імпорту!");
+      return;
+    }
+
+    // The controller drops websocket messages over 16 KB without a reply
+    if (new TextEncoder().encode(JSON.stringify(allSettingsData)).length > MAX_IMPORT_SIZE) {
+      showErrorToast("Файл завеликий для імпорту!");
       return;
     }
 

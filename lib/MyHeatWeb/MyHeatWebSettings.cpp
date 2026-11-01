@@ -177,20 +177,44 @@ namespace MyHeatWeb
         MyHeatHardwareIO &myHeatHardwareIO = MyHeatHardwareIO::getInstance();
         MyHeatWifi &myHeatWifi = MyHeatWifi::getInstance();
 
-        myHeatDevice.temperatures.manualDeserialize(payload[F("MyHeatTemperatures")]);
-        myHeatDevice.customFunctions.manualDeserialize(payload[F("MyHeatCustomFunctions")]);
-        myHeatDevice.relays.manualDeserialize(payload[F("MyHeatRelays")]);
-        myHeatDevice.smokeSensor.manualDeserialize(payload[F("MyHeatSmokeSensor")]);
-        myHeatHardwareIO.manualDeserialize(payload[F("MyHeatHardwareIO")]);
-        myHeatWifi.manualDeserialize(payload[F("MyHeatWifi")]);
-
-        // Exports from older versions carry the device name in the MQTT settings
-        const char *legacyDeviceName = payload[F("MyHeatMqtt")][F("deviceName")];
-        if (payload[F("MyHeatWifi")][F("device_name")].isNull() && legacyDeviceName)
+        // A missing section would reset its module to defaults, so only the sections present are applied
+        bool hasAnySection = false;
+        for (const char *key : {"MyHeatTemperatures", "MyHeatCustomFunctions", "MyHeatRelays", "MyHeatSmokeSensor",
+                                "MyHeatHardwareIO", "MyHeatWifi", "MyHeatTelebot", "MyHeatMqtt", "MyHeatTelebotUsers"})
         {
-            myHeatWifi.setDeviceName(legacyDeviceName);
+            hasAnySection |= !payload[key].isNull();
         }
-        MyHeatTelebot::manualDeserialize(payload[F("MyHeatTelebot")]);
+        if (!hasAnySection)
+        {
+            setErrorMessage(status, "Файл не містить налаштувань");
+            return;
+        }
+
+        if (!payload[F("MyHeatTemperatures")].isNull())
+            myHeatDevice.temperatures.manualDeserialize(payload[F("MyHeatTemperatures")]);
+        if (!payload[F("MyHeatCustomFunctions")].isNull())
+            myHeatDevice.customFunctions.manualDeserialize(payload[F("MyHeatCustomFunctions")]);
+        if (!payload[F("MyHeatRelays")].isNull())
+            myHeatDevice.relays.manualDeserialize(payload[F("MyHeatRelays")]);
+        if (!payload[F("MyHeatSmokeSensor")].isNull())
+            myHeatDevice.smokeSensor.manualDeserialize(payload[F("MyHeatSmokeSensor")]);
+        if (!payload[F("MyHeatHardwareIO")].isNull())
+            myHeatHardwareIO.manualDeserialize(payload[F("MyHeatHardwareIO")]);
+
+        if (!payload[F("MyHeatWifi")].isNull())
+        {
+            myHeatWifi.manualDeserialize(payload[F("MyHeatWifi")]);
+
+            // Exports from older versions carry the device name in the MQTT settings
+            const char *legacyDeviceName = payload[F("MyHeatMqtt")][F("deviceName")];
+            if (payload[F("MyHeatWifi")][F("device_name")].isNull() && legacyDeviceName)
+            {
+                myHeatWifi.setDeviceName(legacyDeviceName);
+            }
+        }
+
+        if (!payload[F("MyHeatTelebot")].isNull())
+            MyHeatTelebot::manualDeserialize(payload[F("MyHeatTelebot")]);
         if (!payload["MyHeatMqtt"].isNull()) {
             MyHeatMqtt::settings.manualDeserialize(payload[F("MyHeatMqtt")]);
             MyHeatMqtt::save();

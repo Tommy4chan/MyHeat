@@ -168,10 +168,11 @@ const useSettingStore = create((set, get) => ({
     useWebSocketStore.getState().sendMessage("setAllDeviceSettings", payload);
 
     // Over an IP or a tunnel address the page stays where it is, only the .local name changes with the settings
-    if (!isOpenedByMdns()) return;
+    const mDNS = payload["MyHeatWifi"]?.["mDNS"];
+    if (!mDNS || !isOpenedByMdns()) return;
 
     setTimeout(() => {
-      location.replace(`http://${payload["MyHeatWifi"]["mDNS"]}.local`);
+      location.replace(`http://${mDNS}.local`);
     }, 1500);
   },
 
