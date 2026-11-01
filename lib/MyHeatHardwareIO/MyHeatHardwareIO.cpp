@@ -496,14 +496,22 @@ void MyHeatHardwareIO::animateLoadingScreen()
             u8g2->sendBuffer();
         }
         dots = (dots + 1) % 4;
-        vTaskDelay(pdMS_TO_TICKS(500));
+        // Woken early by stopLoadingScreen(), the wait is only entered between frames so no I2C transfer is cut off
+        if (ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(500)))
+        {
+            break;
+        }
     }
+
+    isLoadingTaskFinished = true;
+    vTaskDelete(NULL);
 }
 
 void MyHeatHardwareIO::startLoadingScreen()
 {
     if (isEnabled && u8g2)
     {
+        isLoadingTaskFinished = false;
         xTaskCreatePinnedToCore(
             loadingTask,
             "LoadingTask",
@@ -520,7 +528,13 @@ void MyHeatHardwareIO::stopLoadingScreen()
 {
     if (loadingTaskHandle != NULL)
     {
-        vTaskDelete(loadingTaskHandle);
+        // Deleting the task from here could kill it mid sendBuffer() while it holds the Wire lock,
+        // the next sendBuffer() would then block the loop forever, so the task is asked to exit on its own
+        xTaskNotifyGive(loadingTaskHandle);
+        while (!isLoadingTaskFinished)
+        {
+            vTaskDelay(pdMS_TO_TICKS(1));
+        }
         loadingTaskHandle = NULL;
         
         if (u8g2) {

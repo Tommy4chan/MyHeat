@@ -96,6 +96,7 @@ private:
     void initOLED(byte scl, byte sda, byte address);
 
     TaskHandle_t loadingTaskHandle = NULL;
+    volatile bool isLoadingTaskFinished = true;
 
 public:
     void animateLoadingScreen();
