@@ -61,6 +61,20 @@ void MyHeatHardwareIO::showHome()
     {
         drawLabeledText(LINE_Y[2], F("WiFi: "), myHeatWifi.getWifiSSID());
     }
+    else if (myHeatWifi.getWifiSSID() != "")
+    {
+        // STA keeps retrying in the background, show that instead of an empty address
+        if (myHeatWifi.hasConnectionDropped())
+        {
+            drawScrollingText(0, LINE_Y[2], F("WiFi втрачено"), true);
+        }
+        else
+        {
+            drawLabeledText(LINE_Y[2], F("WiFi: "), myHeatWifi.getWifiSSID());
+        }
+        drawConnectingText(LINE_Y[3]);
+        return;
+    }
     else
     {
         drawLabeledText(LINE_Y[2], F("WiFi: "), F("відключено"));
@@ -79,6 +93,21 @@ void MyHeatHardwareIO::showHome()
     {
         drawScrollingText(0, LINE_Y[3], ipAddress, true);
     }
+}
+
+void MyHeatHardwareIO::drawConnectingText(byte y)
+{
+    // Positioned for the longest variant so the word stays put while the dots grow
+    static const char *CONNECTING_TEXT = "Підключення";
+    int16_t x = (u8g2->getDisplayWidth() - u8g2->getUTF8Width("Підключення...")) / 2;
+    byte dotsCount = (millis() / SCREEN_UPDATE_INTERVAL) % 4;
+
+    String text = CONNECTING_TEXT;
+    for (byte i = 0; i < dotsCount; i++)
+    {
+        text += '.';
+    }
+    u8g2->drawUTF8(x, y, text.c_str());
 }
 
 void MyHeatHardwareIO::drawLabeledText(byte y, const String &label, const String &text, bool isCentered)

@@ -77,6 +77,7 @@ void MyHeatWifi::setSTAMode()
 {
     isAPActive = false;
     isFallbackAPActive = false;
+    isConnectionLost = false;
     wifiReconnectTick = millis();
     WiFi.softAPdisconnect();
     WiFi.mode(WIFI_MODE_STA);
@@ -90,6 +91,17 @@ void MyHeatWifi::setSTAMode()
     {
         setManualAPMode();
     }
+}
+
+void MyHeatWifi::leaveFallbackAPMode()
+{
+    // Only the AP is shut down: setSTAMode() would call WiFi.begin(), which drops the connection that was just made
+    isAPActive = false;
+    isFallbackAPActive = false;
+    wifiReconnectTick = millis();
+    WiFi.softAPdisconnect();
+    WiFi.mode(WIFI_MODE_STA);
+    WiFi.setAutoReconnect(true);
 }
 
 void MyHeatWifi::onWiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info)
@@ -106,13 +118,18 @@ void MyHeatWifi::handleWiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info)
         Serial.println(WiFi.localIP());
         if (isFallbackAPActive)
         {
-            setSTAMode();
+            leaveFallbackAPMode();
         }
         wifiGotIpTick = millis();
+        isConnectionLost = false;
         isNtpStartPending = true;
         break;
     case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
         Serial.println("WiFi Disconnected.");
+        if (wifiGotIpTick != 0)
+        {
+            isConnectionLost = true;
+        }
         wifiGotIpTick = 0;
         break;
     default:
@@ -204,6 +221,11 @@ time_t MyHeatWifi::getLastNtpSyncTime()
 bool MyHeatWifi::isConnected()
 {
     return WiFi.isConnected() && wifiGotIpTick != 0 && (millis() - wifiGotIpTick > WIFI_STABILITY_DELAY_MS);
+}
+
+bool MyHeatWifi::hasConnectionDropped()
+{
+    return isConnectionLost;
 }
 
 void MyHeatWifi::setNTPSettings(const String &ntpServer, const String &ntpIANA, const String &ntpTZ)

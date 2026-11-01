@@ -41,6 +41,8 @@ private:
     bool isAPActive = false;
     bool isFallbackAPActive = false;
     bool isWebsocketClientsConnected = false;
+    // Set when an established connection drops, cleared on the next IP or a fresh connect
+    bool isConnectionLost = false;
 
     void serialize(JsonDocument &doc) override;
     void deserialize(const JsonDocument &doc) override;
@@ -49,6 +51,7 @@ private:
     void setManualAPMode();
     void setFallbackAPMode();
     void setSTAMode();
+    void leaveFallbackAPMode();
 
     // Set from the SNTP callback, not derived from the clock: system time survives soft resets,
     // so a valid clock does not mean SNTP has finished its DNS lookup (lwIP asserts if TLS clients race it)
@@ -76,6 +79,7 @@ public:
     void tick();
 
     bool isConnected();
+    bool hasConnectionDropped();
     bool isTimeSynced();
     time_t getLastNtpSyncTime();
     void setNTPSettings(const String &ntpServer, const String &ntpIANA, const String &ntpTZ);

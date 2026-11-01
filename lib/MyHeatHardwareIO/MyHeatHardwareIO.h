@@ -77,6 +77,7 @@ private:
 
     void showHome();
     void drawScrollingText(byte x, byte y, const String &text, bool isCentered = false);
+    void drawConnectingText(byte y);
     void drawLabeledText(byte y, const String &label, const String &text, bool isCentered = true);
     void showTemperature();
     void showRelay();
